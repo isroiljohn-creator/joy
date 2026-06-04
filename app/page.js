@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Nav, ListingCard } from "@/components/ui";
 import SearchBox from "@/components/SearchBox";
+import Footer from "@/components/Footer";
 import { getListings, categories } from "@/lib/data";
 
 export default async function Home() {
@@ -48,7 +49,7 @@ export default async function Home() {
               "url('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=900&q=75')",
           }}
         >
-          <div className="float tl">
+          <Link href="/property/1" className="float tl" style={{ cursor: "pointer" }}>
             <div className="ic">
               <i className="ti ti-home"></i>
             </div>
@@ -56,7 +57,7 @@ export default async function Home() {
               <div className="v">3 xonali</div>
               <div className="s">Chilonzor · $72 000</div>
             </div>
-          </div>
+          </Link>
           <div className="float br">
             <div className="ic">
               <i className="ti ti-shield-check"></i>
@@ -159,18 +160,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <footer className="wrap">
-        <Link className="logo" href="/">
-          <span className="dot"></span>Joy
-        </Link>
-        <div className="fnav">
-          <a>Biz haqimizda</a>
-          <a>Yordam</a>
-          <a>Shartlar</a>
-          <a>Aloqa</a>
-        </div>
-        <div>© 2026 Joy.uz</div>
-      </footer>
+      <Footer />
     </>
   );
 }

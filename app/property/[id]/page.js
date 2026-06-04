@@ -3,6 +3,8 @@ import { notFound, redirect } from "next/navigation";
 import { Nav } from "@/components/ui";
 import Gallery from "@/components/Gallery";
 import MessageModal from "@/components/MessageModal";
+import ShareBtn from "@/components/ShareBtn";
+import CallBtn from "@/components/CallBtn";
 import { getListingById, getListings } from "@/lib/data";
 import { getCurrentUser, toggleFavoriteAction } from "@/app/actions";
 import pool from "@/lib/db";
@@ -52,6 +54,9 @@ export default async function Property({ params }) {
     await toggleFavoriteAction(l.id);
   };
 
+  // E'lon egasining telefon raqamini aniqlash (baza yoki mock)
+  const ownerPhone = l.owner === "Dilnoza Yusupova" ? "+998 93 321 65 43" : "+998 90 123 45 67";
+
   return (
     <>
       <Nav />
@@ -75,7 +80,7 @@ export default async function Property({ params }) {
                   <i className="ti ti-map-pin"></i> {l.addr}, Toshkent
                 </div>
               </div>
-              <div className="iconbtns">
+              <div className="iconbtns" style={{ display: "flex", gap: 10, alignItems: "center" }}>
                 <form action={handleToggleFavorite}>
                   <button 
                     type="submit" 
@@ -91,9 +96,7 @@ export default async function Property({ params }) {
                     ></i>
                   </button>
                 </form>
-                <div className="ibtn">
-                  <i className="ti ti-share"></i>
-                </div>
+                <ShareBtn />
               </div>
             </div>
 
@@ -160,9 +163,8 @@ export default async function Property({ params }) {
                 <div className="orole">Egasi · 14 ta e'lon</div>
               </div>
             </div>
-            <button className="cbtn primary">
-              <i className="ti ti-phone"></i> Qo'ng'iroq qilish
-            </button>
+            
+            <CallBtn phone={ownerPhone} />
             
             <MessageModal listingId={l.id} receiverOwner={l.owner} />
             
