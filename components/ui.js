@@ -1,10 +1,13 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { toggleFavoriteAction } from "@/app/actions";
 
 export function Nav() {
   const [user, setUser] = useState(null);
+  const pathname = usePathname();
+  const isLandingPage = pathname === "/";
 
   useEffect(() => {
     // Cookie-larni o'qiymiz
@@ -38,10 +41,14 @@ export function Nav() {
           <span className="dot"></span>Joy
         </Link>
         <div className="nav-links">
-          <Link href="/listings?cat=Ikkilamchi">Sotib olish</Link>
-          <Link href="/listings?cat=Ijara">Ijara</Link>
-          <Link href="/listings?cat=Ofis">Ofis</Link>
-          <Link href="/listings?cat=Yangi%20uylar">Novostroyka</Link>
+          {isLandingPage && (
+            <>
+              <Link href="/listings?cat=Ikkilamchi">Sotib olish</Link>
+              <Link href="/listings?cat=Ijara">Ijara</Link>
+              <Link href="/listings?cat=Ofis">Ofis</Link>
+              <Link href="/listings?cat=Yangi%20uylar">Novostroyka</Link>
+            </>
+          )}
         </div>
         <div className="nav-r">
           {user ? (
