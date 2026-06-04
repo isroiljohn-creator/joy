@@ -8,6 +8,7 @@ export function Nav() {
   const [user, setUser] = useState(null);
   const [navQuery, setNavQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const isLandingPage = pathname === "/";
@@ -27,6 +28,13 @@ export function Nav() {
         id: cookiesList.user_id,
         name: decodeURIComponent(cookiesList.user_name)
       });
+    }
+
+    // Tungi rejimni localStorage dan o'qish
+    const saved = localStorage.getItem("joy-theme");
+    if (saved === "dark") {
+      setDarkMode(true);
+      document.documentElement.setAttribute("data-theme", "dark");
     }
   }, []);
 
@@ -107,6 +115,26 @@ export function Nav() {
             aria-label="Menyu"
           >
             <i className={mobileMenuOpen ? "ti ti-x" : "ti ti-menu-2"}></i>
+          </button>
+
+          {/* Tungi/kunduzgi rejim */}
+          <button
+            className="theme-toggle"
+            onClick={() => {
+              const next = !darkMode;
+              setDarkMode(next);
+              if (next) {
+                document.documentElement.setAttribute("data-theme", "dark");
+                localStorage.setItem("joy-theme", "dark");
+              } else {
+                document.documentElement.removeAttribute("data-theme");
+                localStorage.setItem("joy-theme", "light");
+              }
+            }}
+            aria-label={darkMode ? "Kunduzgi rejim" : "Tungi rejim"}
+            title={darkMode ? "Kunduzgi rejim" : "Tungi rejim"}
+          >
+            <i className={darkMode ? "ti ti-sun" : "ti ti-moon"}></i>
           </button>
 
           <div className="nav-r-desktop">

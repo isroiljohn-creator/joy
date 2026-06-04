@@ -288,35 +288,37 @@ footer{border-top:1px solid var(--sand);padding:36px 0;display:flex;align-items:
 .soc:hover{border-color:var(--orange)}.soc i{font-size:19px}
 @media(max-width:840px){.shell{grid-template-columns:1fr}.visual{display:none}}
 
-/* DARK MODE */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --ink: #F5F0EB;
-    --cream: #1A1612;
-    --sand: #2D2822;
-    --muted: #8A837B;
-    --text2: #B5AEA5;
-  }
-  html, body { background: #1A1612; color: #F5F0EB }
-  nav { background: rgba(26, 22, 18, 0.85) }
-  .card, .fsection, .side, .phead, .pstat, .searchbox, .cat, .inp, .field input, .field select, .field textarea, .btn-ghost, .soc, .mobile-menu { background: #231F1A }
-  .nav-search, .mobile-search { background: #231F1A }
-  .photo { background-color: #2D2822 !important }
-  .shell .formside { background: #1A1612 }
-  .shell .visual .ov { background: linear-gradient(180deg, rgba(26,22,18,.3), rgba(26,22,18,.9)) }
-  .heart { background: rgba(35,31,26,0.92) }
-  .chip { background: #231F1A }
-  .float { background: #231F1A }
-  .drop { border-color: #2D2822 }
-  .drop:hover { background: rgba(242,89,31,0.1) }
-  .mort { background: #231F1A }
-  .owner { border-color: #2D2822 }
-  .mapwrap { background: #2D2822 }
-  .map-roads { opacity: 0.15 }
-  .pin { background: #231F1A }
-  .ks { background: #231F1A }
-  img { opacity: 0.92 }
+/* DARK MODE — faqat [data-theme="dark"] qo'shilganda ishlaydi */
+[data-theme="dark"] {
+  --ink: #F5F0EB;
+  --cream: #1A1612;
+  --sand: #2D2822;
+  --muted: #8A837B;
+  --text2: #B5AEA5;
 }
+[data-theme="dark"] body { background: #1A1612; color: #F5F0EB }
+[data-theme="dark"] nav { background: rgba(26, 22, 18, 0.85) }
+[data-theme="dark"] .card, [data-theme="dark"] .fsection, [data-theme="dark"] .side, [data-theme="dark"] .phead, [data-theme="dark"] .pstat, [data-theme="dark"] .searchbox, [data-theme="dark"] .cat, [data-theme="dark"] .inp, [data-theme="dark"] .field input, [data-theme="dark"] .field select, [data-theme="dark"] .field textarea, [data-theme="dark"] .btn-ghost, [data-theme="dark"] .soc, [data-theme="dark"] .mobile-menu { background: #231F1A }
+[data-theme="dark"] .nav-search, [data-theme="dark"] .mobile-search { background: #231F1A }
+[data-theme="dark"] .photo { background-color: #2D2822 !important }
+[data-theme="dark"] .shell .formside { background: #1A1612 }
+[data-theme="dark"] .shell .visual .ov { background: linear-gradient(180deg, rgba(26,22,18,.3), rgba(26,22,18,.9)) }
+[data-theme="dark"] .heart { background: rgba(35,31,26,0.92) }
+[data-theme="dark"] .chip { background: #231F1A }
+[data-theme="dark"] .float { background: #231F1A }
+[data-theme="dark"] .drop { border-color: #2D2822 }
+[data-theme="dark"] .drop:hover { background: rgba(242,89,31,0.1) }
+[data-theme="dark"] .mort { background: #231F1A }
+[data-theme="dark"] .owner { border-color: #2D2822 }
+[data-theme="dark"] .mapwrap { background: #2D2822 }
+[data-theme="dark"] .map-roads { opacity: 0.15 }
+[data-theme="dark"] .pin { background: #231F1A }
+[data-theme="dark"] .ks { background: #231F1A }
+[data-theme="dark"] img { opacity: 0.92 }
+
+/* Dark mode toggle tugmasi */
+.theme-toggle{background:none;border:1px solid var(--sand);width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--text2);transition:all .2s;flex-shrink:0}
+.theme-toggle:hover{border-color:var(--orange);color:var(--orange)}
 
 /* PRINT */
 @media print {
