@@ -93,24 +93,35 @@ nav{position:sticky;top:0;z-index:50;background:rgba(251,247,243,.85);backdrop-f
 .float .s{font-size:12px;color:var(--muted)}
 @media(max-width:860px){.hero{grid-template-columns:1fr;padding:40px 0 32px}.hero h1{font-size:42px}.hero-art{height:340px}}
 @media(max-width:560px){
-  .hero{padding:28px 0 20px}
-  .hero h1{font-size:30px}
-  .hero p{font-size:14px;margin:14px 0 20px}
+  .wrap{padding:0 16px;overflow-x:hidden}
+  .nav-in{padding:10px 16px;gap:10px}
+  .nav-links{display:none!important}
+  .theme-toggle{width:34px;height:34px;font-size:15px}
+  .hero{padding:24px 0 16px;overflow:hidden}
+  .hero h1{font-size:28px;word-break:break-word}
+  .hero p{font-size:13px;margin:12px 0 18px;max-width:100%}
   .hero-art{display:none}
-  .stats{gap:16px;flex-wrap:wrap;margin-top:20px}
-  .stat-h .n{font-size:22px}
+  .tagline{font-size:11px;padding:5px 10px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .stats{gap:12px;flex-wrap:wrap;margin-top:16px}
+  .stat-h .n{font-size:20px}
   .stat-h .l{font-size:11px}
-  .searchbox{border-radius:16px;padding:6px}
-  .seg button{font-size:12px;padding:7px 0}
-  .go{width:40px;height:40px;border-radius:12px}
-  .wrap{padding:0 16px}
+  .searchbox{border-radius:14px;padding:5px}
+  .seg{gap:2px;padding:2px}
+  .seg button{font-size:11px;padding:7px 4px;border-radius:10px}
+  .searchrow{padding:4px 6px 4px 12px;gap:6px}
+  .searchrow input{font-size:13px}
+  .go{width:38px;height:38px;border-radius:10px;font-size:17px}
   .sec-head{flex-direction:column;align-items:flex-start;gap:8px}
-  .sec-head .display{font-size:24px}
+  .sec-head .display{font-size:22px}
   .cats{grid-template-columns:1fr 1fr}
   .feats{grid-template-columns:1fr}
-  .cta .display{font-size:26px}
-  .ctabtn{padding:14px 30px;font-size:14px}
-  .nav-links{display:none!important}
+  .cta{padding:32px 20px!important}
+  .cta .display{font-size:22px}
+  .ctabtn{padding:12px 24px;font-size:13px}
+  .why .display{font-size:24px}
+  .why .sub{font-size:13px}
+  section{padding:32px 0}
+  footer{padding:24px 0!important}
 }
 
 /* SECTIONS */
