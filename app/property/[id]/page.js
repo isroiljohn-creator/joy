@@ -1,8 +1,11 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Nav } from "@/components/ui";
 import Gallery from "@/components/Gallery";
+import MessageModal from "@/components/MessageModal";
 import { getListingById, getListings } from "@/lib/data";
+import { getCurrentUser, toggleFavoriteAction } from "@/app/actions";
+import pool from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -18,11 +21,36 @@ export default async function Property({ params }) {
     notFound();
   }
 
+  // 1. Foydalanuvchi va favorit holatini tekshirish
+  const user = await getCurrentUser();
+  let isFavorite = false;
+
+  if (user) {
+    try {
+      const { rows } = await pool.query(
+        "SELECT * FROM favorites WHERE user_id = $1 AND listing_id = $2",
+        [user.id, l.id]
+      );
+      isFavorite = rows.length > 0;
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   const initials = l.owner
     ? l.owner.split(" ").map((w) => w[0]).join("").slice(0, 2)
     : "AK";
     
   const monthly = Math.round((l.priceNum * 0.8 * 0.01) + (l.priceNum * 0.8 / 300));
+
+  const handleToggleFavorite = async () => {
+    "use server";
+    const user = await getCurrentUser();
+    if (!user) {
+      redirect("/login");
+    }
+    await toggleFavoriteAction(l.id);
+  };
 
   return (
     <>
@@ -48,9 +76,21 @@ export default async function Property({ params }) {
                 </div>
               </div>
               <div className="iconbtns">
-                <div className="ibtn">
-                  <i className="ti ti-heart"></i>
-                </div>
+                <form action={handleToggleFavorite}>
+                  <button 
+                    type="submit" 
+                    className="ibtn" 
+                    style={{ cursor: "pointer", border: "none", display: "flex", alignItems: "center", justifyContent: "center" }}
+                  >
+                    <i 
+                      className="ti ti-heart" 
+                      style={{ 
+                        color: isFavorite ? "var(--orange)" : "inherit",
+                        fontWeight: isFavorite ? "bold" : "normal"
+                      }}
+                    ></i>
+                  </button>
+                </form>
                 <div className="ibtn">
                   <i className="ti ti-share"></i>
                 </div>
@@ -123,9 +163,9 @@ export default async function Property({ params }) {
             <button className="cbtn primary">
               <i className="ti ti-phone"></i> Qo'ng'iroq qilish
             </button>
-            <button className="cbtn gh">
-              <i className="ti ti-message"></i> Xabar yozish
-            </button>
+            
+            <MessageModal listingId={l.id} receiverOwner={l.owner} />
+            
             <div className="mort">
               <div
                 style={{

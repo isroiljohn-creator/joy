@@ -10,7 +10,7 @@ const tabs = [
   { key: "Ofis", icon: "ti-briefcase" },
 ];
 
-export default function ListingsClient({ initialListings }) {
+export default function ListingsClient({ initialListings, favoriteIds = [] }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   
@@ -108,7 +108,7 @@ export default function ListingsClient({ initialListings }) {
                     borderRadius: 20
                   }}
                 >
-                  <ListingCard l={l} />
+                  <ListingCard l={l} isFavorite={favoriteIds.includes(l.id)} />
                 </div>
               ))}
             </div>
