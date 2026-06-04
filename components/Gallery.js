@@ -1,9 +1,15 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 export default function Gallery({ mainPhoto, top }) {
   const [isOpen, setIsOpen] = useState(false);
   const [index, setIndex] = useState(0);
+  const [zoomed, setZoomed] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  // Touch/swipe state
+  const touchStartX = useRef(null);
+  const touchEndX = useRef(null);
 
   const photos = [
     mainPhoto,
@@ -12,6 +18,12 @@ export default function Gallery({ mainPhoto, top }) {
     "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=900&q=75", // Bedroom
     "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=900&q=75", // Bathroom
   ];
+
+  // Reset loaded state when index changes
+  useEffect(() => {
+    setImageLoaded(false);
+    setZoomed(false);
+  }, [index]);
 
   // Keypress event listener for navigation and closing
   useEffect(() => {
@@ -23,12 +35,44 @@ export default function Gallery({ mainPhoto, top }) {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen]);
+  }, [isOpen, photos.length]);
 
   const openLightbox = (idx) => {
     setIndex(idx);
     setIsOpen(true);
+    setZoomed(false);
   };
+
+  const handleDoubleClick = useCallback(() => {
+    setZoomed((prev) => !prev);
+  }, []);
+
+  // Touch handlers for swipe
+  const handleTouchStart = useCallback((e) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchEndX.current = null;
+  }, []);
+
+  const handleTouchMove = useCallback((e) => {
+    touchEndX.current = e.touches[0].clientX;
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    if (touchStartX.current === null || touchEndX.current === null) return;
+    const diff = touchStartX.current - touchEndX.current;
+    const minSwipe = 50;
+    if (Math.abs(diff) > minSwipe) {
+      if (diff > 0) {
+        // Swipe left → next
+        setIndex((prev) => (prev + 1) % photos.length);
+      } else {
+        // Swipe right → prev
+        setIndex((prev) => (prev - 1 + photos.length) % photos.length);
+      }
+    }
+    touchStartX.current = null;
+    touchEndX.current = null;
+  }, [photos.length]);
 
   return (
     <>
@@ -80,6 +124,7 @@ export default function Gallery({ mainPhoto, top }) {
               color: "#fff",
               fontSize: 32,
               cursor: "pointer",
+              zIndex: 10,
             }}
             onClick={() => setIsOpen(false)}
           >
@@ -92,12 +137,15 @@ export default function Gallery({ mainPhoto, top }) {
               position: "relative",
               width: "90%",
               maxWidth: 900,
-              height: "70vh",
+              height: "65vh",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}
             onClick={(e) => e.stopPropagation()}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
           >
             {/* Prev button */}
             <button
@@ -122,15 +170,41 @@ export default function Gallery({ mainPhoto, top }) {
               <i className="ti ti-chevron-left"></i>
             </button>
 
+            {/* Image loading placeholder */}
+            {!imageLoaded && (
+              <div
+                style={{
+                  position: "absolute",
+                  width: "80%",
+                  height: "80%",
+                  background: "var(--sand, #e8e0d8)",
+                  borderRadius: 12,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "var(--muted, #999)",
+                  fontSize: 24,
+                }}
+              >
+                <i className="ti ti-photo"></i>
+              </div>
+            )}
+
             <img
               src={photos[index]}
               alt={`Galereya rasm ${index + 1}`}
+              onLoad={() => setImageLoaded(true)}
+              onDoubleClick={handleDoubleClick}
               style={{
                 maxHeight: "100%",
                 maxWidth: "100%",
                 objectFit: "contain",
                 borderRadius: 12,
                 boxShadow: "0 20px 50px rgba(0,0,0,0.5)",
+                cursor: zoomed ? "zoom-out" : "zoom-in",
+                transform: zoomed ? "scale(2)" : "scale(1)",
+                transition: "transform 0.3s ease",
+                opacity: imageLoaded ? 1 : 0,
               }}
             />
 
@@ -158,16 +232,57 @@ export default function Gallery({ mainPhoto, top }) {
             </button>
           </div>
 
-          {/* Page count indicators */}
+          {/* Page count indicator */}
           <div
             style={{
               color: "#fff",
-              marginTop: 16,
+              marginTop: 12,
               fontSize: 15,
               fontWeight: 500,
             }}
           >
             {index + 1} / {photos.length}
+          </div>
+
+          {/* Thumbnail strip */}
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              marginTop: 12,
+              overflowX: "auto",
+              maxWidth: "90%",
+              padding: "4px 0",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {photos.map((photo, i) => (
+              <div
+                key={i}
+                onClick={() => { setIndex(i); setZoomed(false); }}
+                style={{
+                  width: 64,
+                  height: 48,
+                  minWidth: 64,
+                  borderRadius: 8,
+                  overflow: "hidden",
+                  cursor: "pointer",
+                  border: i === index ? "2px solid var(--orange, #f57c00)" : "2px solid transparent",
+                  opacity: i === index ? 1 : 0.6,
+                  transition: "all 0.2s ease",
+                }}
+              >
+                <img
+                  src={photo}
+                  alt={`Thumbnail ${i + 1}`}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                  }}
+                />
+              </div>
+            ))}
           </div>
         </div>
       )}

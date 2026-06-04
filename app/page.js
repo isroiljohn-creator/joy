@@ -2,11 +2,12 @@ import Link from "next/link";
 import { Nav, ListingCard } from "@/components/ui";
 import SearchBox from "@/components/SearchBox";
 import Footer from "@/components/Footer";
-import { getListings, categories } from "@/lib/data";
+import { getListings, getListingCount, categories } from "@/lib/data";
 
 export default async function Home() {
   const allActive = await getListings();
   const featured = allActive.slice(0, 3);
+  const count = await getListingCount();
 
   return (
     <>
@@ -14,23 +15,23 @@ export default async function Home() {
       <header className="wrap hero">
         <div>
           <div className="tagline">
-            <i className="ti ti-map-pin"></i> O'zbekiston bo'ylab 12 000+ e'lon
+            <i className="ti ti-map-pin"></i> O&apos;zbekiston bo&apos;ylab {count.toLocaleString()}+ e&apos;lon
           </div>
           <h1 className="display">
             Joyingizni <span className="acc">Joy</span>dan toping
           </h1>
           <p>
             Uy sotib oling, ijaraga oling yoki ofis tanlang — xaritada qidiring,
-            ishonchli e'lonlarni ko'ring va to'g'ridan-to'g'ri egasi bilan
-            bog'laning.
+            ishonchli e&apos;lonlarni ko&apos;ring va to&apos;g&apos;ridan-to&apos;g&apos;ri egasi bilan
+            bog&apos;laning.
           </p>
           
           <SearchBox />
           
           <div className="stats">
             <div className="stat-h">
-              <div className="n">12 000+</div>
-              <div className="l">Faol e'lon</div>
+              <div className="n">{count.toLocaleString()}+</div>
+              <div className="l">Faol e&apos;lon</div>
             </div>
             <div className="stat-h">
               <div className="n">340+</div>
@@ -74,7 +75,7 @@ export default async function Home() {
         <div className="sec-head">
           <div>
             <h2 className="display">Nimani izlayapsiz?</h2>
-            <p>To'rt toifadan birini tanlang</p>
+            <p>To&apos;rt toifadan birini tanlang</p>
           </div>
         </div>
         <div className="cats">
@@ -114,7 +115,7 @@ export default async function Home() {
       <section className="wrap">
         <div className="why">
           <h2 className="display">Nega aynan Joy?</h2>
-          <div className="sub">Uy izlash hech qachon bunchalik oson bo'lmagan</div>
+          <div className="sub">Uy izlash hech qachon bunchalik oson bo&apos;lmagan</div>
           <div className="feats">
             <div className="feat">
               <div className="fic">
@@ -122,7 +123,7 @@ export default async function Home() {
               </div>
               <h3>Xaritada qidiruv</h3>
               <p>
-                Uylarni xaritada ko'ring — metro, maktab va infratuzilmaga
+                Uylarni xaritada ko&apos;ring — metro, maktab va infratuzilmaga
                 yaqinligini bir qarashda biling.
               </p>
             </div>
@@ -130,9 +131,9 @@ export default async function Home() {
               <div className="fic">
                 <i className="ti ti-shield-check"></i>
               </div>
-              <h3>Ishonchli e'lonlar</h3>
+              <h3>Ishonchli e&apos;lonlar</h3>
               <p>
-                Har bir e'lon va egasi tasdiqlanadi. Soxta e'lonlarsiz, faqat
+                Har bir e&apos;lon va egasi tasdiqlanadi. Soxta e&apos;lonlarsiz, faqat
                 haqiqiy takliflar.
               </p>
             </div>
@@ -140,10 +141,10 @@ export default async function Home() {
               <div className="fic">
                 <i className="ti ti-messages"></i>
               </div>
-              <h3>To'g'ridan-to'g'ri aloqa</h3>
+              <h3>To&apos;g&apos;ridan-to&apos;g&apos;ri aloqa</h3>
               <p>
-                Vositachisiz, to'g'ridan-to'g'ri sotuvchi yoki ijaraga beruvchi
-                bilan bog'laning.
+                Vositachisiz, to&apos;g&apos;ridan-to&apos;g&apos;ri sotuvchi yoki ijaraga beruvchi
+                bilan bog&apos;laning.
               </p>
             </div>
           </div>
@@ -153,9 +154,9 @@ export default async function Home() {
       <section className="wrap" style={{ paddingTop: 0 }}>
         <div className="cta">
           <h2 className="display">Uyingizni soting yoki ijaraga bering</h2>
-          <p>Bepul e'lon joylang — minglab xaridorlar sizni topadi</p>
+          <p>Bepul e&apos;lon joylang — minglab xaridorlar sizni topadi</p>
           <Link className="ctabtn" href="/add">
-            <i className="ti ti-plus"></i> E'lon qo'shish
+            <i className="ti ti-plus"></i> E&apos;lon qo&apos;shish
           </Link>
         </div>
       </section>

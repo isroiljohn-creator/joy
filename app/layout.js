@@ -2,13 +2,29 @@ import "./globals.css";
 
 export const metadata = {
   title: "Joy — Ko'chmas mulk platformasi",
-  description: "Joyingizni Joydan toping",
+  description: "Joyingizni Joydan toping. O'zbekiston bo'ylab uylar, kvartiralar, ofislar — sotib oling, ijaraga oling yoki soting.",
+  keywords: ["ko'chmas mulk", "uy sotish", "kvartira", "ijara", "Toshkent", "Joy", "O'zbekiston"],
+  authors: [{ name: "Joy.uz" }],
+  openGraph: {
+    title: "Joy — Ko'chmas mulk platformasi",
+    description: "Joyingizni Joydan toping. O'zbekiston bo'ylab 12 000+ e'lon.",
+    url: "https://joy.uz",
+    siteName: "Joy",
+    locale: "uz_UZ",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Joy — Ko'chmas mulk platformasi",
+    description: "Joyingizni Joydan toping. O'zbekiston bo'ylab 12 000+ e'lon.",
+  },
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="uz">
       <head>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link

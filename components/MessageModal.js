@@ -1,6 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { sendMessageAction } from "@/app/actions";
+
+const MAX_CHARS = 500;
 
 export default function MessageModal({ listingId, receiverOwner }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -8,7 +11,7 @@ export default function MessageModal({ listingId, receiverOwner }) {
   const [senderName, setSenderName] = useState("");
   const [senderPhone, setSenderPhone] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  
+
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
@@ -30,11 +33,42 @@ export default function MessageModal({ listingId, receiverOwner }) {
     }
   }, [isOpen]);
 
+  const handleClose = () => {
+    setIsOpen(false);
+    setSuccess(false);
+    setError("");
+  };
+
+  const validateForm = () => {
+    if (!isLoggedIn) {
+      if (senderName.trim().length < 2) {
+        setError("Ism kamida 2 ta belgidan iborat bo'lishi kerak.");
+        return false;
+      }
+      if (!senderPhone.trim().startsWith("+998")) {
+        setError("Telefon raqam +998 bilan boshlanishi kerak.");
+        return false;
+      }
+    }
+    if (content.trim().length === 0) {
+      setError("Xabar matnini kiriting.");
+      return false;
+    }
+    if (content.length > MAX_CHARS) {
+      setError(`Xabar ${MAX_CHARS} ta belgidan oshmasligi kerak.`);
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
-    
+
+    if (!validateForm()) return;
+
+    setLoading(true);
+
     const formData = new FormData();
     formData.append("listing_id", listingId);
     formData.append("receiver_owner", receiverOwner);
@@ -53,16 +87,22 @@ export default function MessageModal({ listingId, receiverOwner }) {
         setSuccess(true);
         setLoading(false);
         setContent("");
-        setTimeout(() => {
-          setIsOpen(false);
-          setSuccess(false);
-        }, 2000);
       }
     } catch (err) {
       setError("Xatolik yuz berdi");
       setLoading(false);
     }
   };
+
+  const handleContentChange = (e) => {
+    const val = e.target.value;
+    if (val.length <= MAX_CHARS) {
+      setContent(val);
+    }
+  };
+
+  const nameError = !isLoggedIn && senderName.length > 0 && senderName.trim().length < 2;
+  const phoneError = !isLoggedIn && senderPhone.length > 0 && !senderPhone.startsWith("+998");
 
   return (
     <>
@@ -81,9 +121,9 @@ export default function MessageModal({ listingId, receiverOwner }) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            backdropFilter: "blur(4px)"
+            backdropFilter: "blur(4px)",
           }}
-          onClick={() => setIsOpen(false)}
+          onClick={handleClose}
         >
           <form
             onSubmit={handleSubmit}
@@ -95,31 +135,56 @@ export default function MessageModal({ listingId, receiverOwner }) {
               width: "100%",
               maxWidth: 420,
               boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
-              border: "1px solid var(--sand)"
+              border: "1px solid var(--sand)",
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="display" style={{ fontSize: 22, marginBottom: 8 }}>
-              Egasi bilan bog'lanish
+              Egasi bilan bog{"'"}lanish
             </h2>
             <p style={{ fontSize: 13, color: "var(--text2)", marginBottom: 20 }}>
-              <strong>{receiverOwner}</strong>ga ushbu e'lon bo'yicha xabar yozing:
+              <strong>{receiverOwner}</strong>ga ushbu e{"'"}lon bo{"'"}yicha xabar yozing:
             </p>
 
             {success ? (
-              <div
-                style={{
-                  color: "var(--green)",
-                  background: "var(--green-tint)",
-                  padding: "16px 20px",
-                  borderRadius: 14,
-                  textAlign: "center",
-                  fontWeight: 600,
-                  fontSize: 14
-                }}
-              >
-                <i className="ti ti-circle-check" style={{ fontSize: 24, display: "block", marginBottom: 6 }}></i>
-                Xabaringiz muvaffaqiyatli yuborildi!
+              <div>
+                <div
+                  style={{
+                    color: "var(--green)",
+                    background: "var(--green-tint)",
+                    padding: "16px 20px",
+                    borderRadius: 14,
+                    textAlign: "center",
+                    fontWeight: 600,
+                    fontSize: 14,
+                    marginBottom: 16,
+                  }}
+                >
+                  <i className="ti ti-circle-check" style={{ fontSize: 24, display: "block", marginBottom: 6 }}></i>
+                  Xabaringiz muvaffaqiyatli yuborildi!
+                </div>
+                <Link
+                  href="/profile"
+                  style={{
+                    display: "block",
+                    textAlign: "center",
+                    color: "var(--orange)",
+                    fontWeight: 600,
+                    fontSize: 14,
+                    textDecoration: "none",
+                    marginBottom: 12,
+                  }}
+                >
+                  Yuborilgan xabarlarni ko{"'"}rish →
+                </Link>
+                <button
+                  type="button"
+                  className="cbtn gh"
+                  onClick={handleClose}
+                  style={{ width: "100%", padding: 12 }}
+                >
+                  Yopish
+                </button>
               </div>
             ) : (
               <>
@@ -131,7 +196,7 @@ export default function MessageModal({ listingId, receiverOwner }) {
                       padding: "10px 14px",
                       borderRadius: 10,
                       fontSize: 13,
-                      marginBottom: 16
+                      marginBottom: 16,
                     }}
                   >
                     {error}
@@ -141,36 +206,85 @@ export default function MessageModal({ listingId, receiverOwner }) {
                 {!isLoggedIn && (
                   <>
                     <div style={{ marginBottom: 12 }}>
-                      <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text2)", display: "block", marginBottom: 4 }}>Ismingiz</label>
+                      <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text2)", display: "block", marginBottom: 4 }}>
+                        Ismingiz
+                      </label>
                       <input
                         placeholder="Aziz Karimov"
                         value={senderName}
                         onChange={(e) => setSenderName(e.target.value)}
                         required
-                        style={{ width: "100%", padding: 12, borderRadius: 12, border: "1px solid var(--sand)", outline: "none", fontSize: 14 }}
+                        style={{
+                          width: "100%",
+                          padding: 12,
+                          borderRadius: 12,
+                          border: `1px solid ${nameError ? "#b23e12" : "var(--sand)"}`,
+                          outline: "none",
+                          fontSize: 14,
+                        }}
                       />
+                      {nameError && (
+                        <span style={{ fontSize: 11, color: "#b23e12", marginTop: 2, display: "block" }}>
+                          Kamida 2 ta belgi kiriting
+                        </span>
+                      )}
                     </div>
                     <div style={{ marginBottom: 12 }}>
-                      <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text2)", display: "block", marginBottom: 4 }}>Telefon raqamingiz</label>
+                      <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text2)", display: "block", marginBottom: 4 }}>
+                        Telefon raqamingiz
+                      </label>
                       <input
                         placeholder="+998 90 123 45 67"
                         value={senderPhone}
                         onChange={(e) => setSenderPhone(e.target.value)}
                         required
-                        style={{ width: "100%", padding: 12, borderRadius: 12, border: "1px solid var(--sand)", outline: "none", fontSize: 14 }}
+                        style={{
+                          width: "100%",
+                          padding: 12,
+                          borderRadius: 12,
+                          border: `1px solid ${phoneError ? "#b23e12" : "var(--sand)"}`,
+                          outline: "none",
+                          fontSize: 14,
+                        }}
                       />
+                      {phoneError && (
+                        <span style={{ fontSize: 11, color: "#b23e12", marginTop: 2, display: "block" }}>
+                          Raqam +998 bilan boshlanishi kerak
+                        </span>
+                      )}
                     </div>
                   </>
                 )}
 
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text2)", display: "block", marginBottom: 4 }}>Xabar matni</label>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text2)" }}>
+                      Xabar matni
+                    </label>
+                    <span style={{
+                      fontSize: 11,
+                      color: content.length > MAX_CHARS * 0.9 ? "#b23e12" : "var(--muted)",
+                      fontWeight: 500,
+                    }}>
+                      {content.length}/{MAX_CHARS}
+                    </span>
+                  </div>
                   <textarea
                     placeholder="Assalomu alaykum, e'lon bo'yicha batafsil ma'lumot bera olasizmi?"
                     value={content}
-                    onChange={(e) => setContent(e.target.value)}
+                    onChange={handleContentChange}
                     required
-                    style={{ width: "100%", height: 100, padding: 12, borderRadius: 12, border: "1px solid var(--sand)", outline: "none", fontSize: 14, resize: "none" }}
+                    maxLength={MAX_CHARS}
+                    style={{
+                      width: "100%",
+                      height: 100,
+                      padding: 12,
+                      borderRadius: 12,
+                      border: "1px solid var(--sand)",
+                      outline: "none",
+                      fontSize: 14,
+                      resize: "none",
+                    }}
                   />
                 </div>
 
@@ -178,7 +292,7 @@ export default function MessageModal({ listingId, receiverOwner }) {
                   <button
                     type="button"
                     className="cbtn gh"
-                    onClick={() => setIsOpen(false)}
+                    onClick={handleClose}
                     style={{ flex: 1, padding: 12 }}
                   >
                     Bekor qilish

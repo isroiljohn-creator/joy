@@ -71,7 +71,8 @@ export default async function ProfilePage() {
       senderPhone: r.sender_phone,
       content: r.content,
       createdAt: r.created_at,
-      listingType: r.listing_type || "O'chirilgan e'lon"
+      listingType: r.listing_type || "O'chirilgan e'lon",
+      isRead: r.is_read || false
     }));
   } catch (error) {
     console.error("Error fetching messages:", error);

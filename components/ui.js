@@ -1,12 +1,15 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toggleFavoriteAction } from "@/app/actions";
 
 export function Nav() {
   const [user, setUser] = useState(null);
+  const [navQuery, setNavQuery] = useState("");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const isLandingPage = pathname === "/";
 
   useEffect(() => {
@@ -27,11 +30,35 @@ export function Nav() {
     }
   }, []);
 
+  // Mobil menyu ochilganda scroll-ni bloklash
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileMenuOpen]);
+
   const handleLogout = () => {
     document.cookie = "user_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
     document.cookie = "user_name=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
     document.cookie = "user_phone=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
     window.location.href = "/";
+  };
+
+  const handleNavSearch = (e) => {
+    if (e.key === "Enter" && navQuery.trim()) {
+      router.push(`/listings?q=${encodeURIComponent(navQuery.trim())}`);
+      setNavQuery("");
+    }
+  };
+
+  const handleNavSearchClick = () => {
+    if (navQuery.trim()) {
+      router.push(`/listings?q=${encodeURIComponent(navQuery.trim())}`);
+      setNavQuery("");
+    }
   };
 
   return (
@@ -40,56 +67,163 @@ export function Nav() {
         <Link className="logo" href="/">
           <span className="dot"></span>Joy
         </Link>
-        <div className="nav-links">
-          {isLandingPage && (
-            <>
-              <Link href="/listings?cat=Ikkilamchi">Sotib olish</Link>
-              <Link href="/listings?cat=Ijara">Ijara</Link>
-              <Link href="/listings?cat=Ofis">Ofis</Link>
-              <Link href="/listings?cat=Yangi%20uylar">Novostroyka</Link>
-            </>
-          )}
-        </div>
-        <div className="nav-r">
-          {user ? (
-            <>
-              <button 
-                onClick={handleLogout} 
-                className="btn-ghost" 
-                style={{ border: "none", background: "none", color: "var(--muted)", cursor: "pointer" }}
-              >
-                Chiqish
+
+        {/* Navbar qidiruv — bosh sahifadan boshqa barcha sahifalarda */}
+        {!isLandingPage && (
+          <div className="nav-search">
+            <i className="ti ti-search"></i>
+            <input
+              placeholder="Hudud, tuman yoki manzil bo'yicha qidiring..."
+              value={navQuery}
+              onChange={(e) => setNavQuery(e.target.value)}
+              onKeyDown={handleNavSearch}
+            />
+            {navQuery && (
+              <button className="nav-search-clear" onClick={() => setNavQuery("")} aria-label="Tozalash">
+                <i className="ti ti-x"></i>
               </button>
-              <Link className="btn-add" href="/add">
-                <i className="ti ti-plus"></i> E'lon qo'shish
-              </Link>
-              <Link 
-                className="avatar" 
-                href="/profile" 
-                style={{ 
-                  background: "var(--orange-tint)", 
-                  color: "var(--orange-dark)", 
-                  fontWeight: 600, 
-                  fontSize: 13,
-                  textDecoration: "none"
-                }}
-              >
-                {user.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link className="btn-ghost" href="/login">Kirish</Link>
-              <Link className="btn-add" href="/login">
-                <i className="ti ti-plus"></i> E'lon qo'shish
-              </Link>
-              <Link className="avatar" href="/login">
-                <i className="ti ti-user"></i>
-              </Link>
-            </>
-          )}
+            )}
+            <button className="nav-search-go" onClick={handleNavSearchClick} aria-label="Qidirish">
+              <i className="ti ti-arrow-right"></i>
+            </button>
+          </div>
+        )}
+
+        {/* Bosh sahifadagi nav havolalari */}
+        {isLandingPage && (
+          <div className="nav-links">
+            <Link href="/listings?cat=Ikkilamchi">Sotib olish</Link>
+            <Link href="/listings?cat=Ijara">Ijara</Link>
+            <Link href="/listings?cat=Ofis">Ofis</Link>
+            <Link href="/listings?cat=Yangi%20uylar">Novostroyka</Link>
+          </div>
+        )}
+
+        <div className="nav-r">
+          {/* Mobil hamburger tugmasi */}
+          <button 
+            className="hamburger" 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Menyu"
+          >
+            <i className={mobileMenuOpen ? "ti ti-x" : "ti ti-menu-2"}></i>
+          </button>
+
+          <div className="nav-r-desktop">
+            {user ? (
+              <>
+                <button 
+                  onClick={handleLogout} 
+                  className="btn-ghost" 
+                  style={{ border: "none", background: "none", color: "var(--muted)", cursor: "pointer" }}
+                >
+                  Chiqish
+                </button>
+                <Link className="btn-add" href="/add">
+                  <i className="ti ti-plus"></i> E'lon qo'shish
+                </Link>
+                <Link 
+                  className="avatar" 
+                  href="/profile" 
+                  style={{ 
+                    background: "var(--orange-tint)", 
+                    color: "var(--orange-dark)", 
+                    fontWeight: 600, 
+                    fontSize: 13,
+                    textDecoration: "none"
+                  }}
+                >
+                  {user.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link className="btn-ghost" href="/login">Kirish</Link>
+                <Link className="btn-add" href="/login">
+                  <i className="ti ti-plus"></i> E'lon qo'shish
+                </Link>
+                <Link className="avatar" href="/login">
+                  <i className="ti ti-user"></i>
+                </Link>
+              </>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Mobil menyu paneli */}
+      {mobileMenuOpen && (
+        <div className="mobile-menu-overlay" onClick={() => setMobileMenuOpen(false)}>
+          <div className="mobile-menu" onClick={(e) => e.stopPropagation()}>
+            {/* Mobil qidiruv */}
+            <div className="mobile-search">
+              <i className="ti ti-search"></i>
+              <input
+                placeholder="Qidirish..."
+                value={navQuery}
+                onChange={(e) => setNavQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && navQuery.trim()) {
+                    router.push(`/listings?q=${encodeURIComponent(navQuery.trim())}`);
+                    setNavQuery("");
+                    setMobileMenuOpen(false);
+                  }
+                }}
+              />
+            </div>
+
+            <div className="mobile-links">
+              <Link href="/listings?cat=Yangi%20uylar" onClick={() => setMobileMenuOpen(false)}>
+                <i className="ti ti-building-skyscraper"></i> Yangi uylar
+              </Link>
+              <Link href="/listings?cat=Ikkilamchi" onClick={() => setMobileMenuOpen(false)}>
+                <i className="ti ti-home"></i> Sotib olish
+              </Link>
+              <Link href="/listings?cat=Ijara" onClick={() => setMobileMenuOpen(false)}>
+                <i className="ti ti-key"></i> Ijara
+              </Link>
+              <Link href="/listings?cat=Ofis" onClick={() => setMobileMenuOpen(false)}>
+                <i className="ti ti-briefcase"></i> Ofis
+              </Link>
+            </div>
+
+            <div className="mobile-divider"></div>
+
+            <div className="mobile-links">
+              {user ? (
+                <>
+                  <Link href="/profile" onClick={() => setMobileMenuOpen(false)}>
+                    <i className="ti ti-user"></i> Profil
+                  </Link>
+                  <Link href="/add" onClick={() => setMobileMenuOpen(false)}>
+                    <i className="ti ti-plus"></i> E'lon qo'shish
+                  </Link>
+                  <button onClick={() => { handleLogout(); setMobileMenuOpen(false); }}>
+                    <i className="ti ti-logout"></i> Chiqish
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                    <i className="ti ti-login-2"></i> Kirish
+                  </Link>
+                  <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                    <i className="ti ti-user-plus"></i> Ro'yxatdan o'tish
+                  </Link>
+                </>
+              )}
+            </div>
+
+            <div className="mobile-divider"></div>
+
+            <div className="mobile-links secondary">
+              <Link href="/about" onClick={() => setMobileMenuOpen(false)}>Biz haqimizda</Link>
+              <Link href="/help" onClick={() => setMobileMenuOpen(false)}>Yordam</Link>
+              <Link href="/contact" onClick={() => setMobileMenuOpen(false)}>Aloqa</Link>
+            </div>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

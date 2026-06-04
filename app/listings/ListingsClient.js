@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Nav, ListingCard } from "@/components/ui";
 
@@ -23,6 +23,7 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
   // Saralash holatlari
   const [sortBy, setSortBy] = useState("recommended"); // recommended, price-asc, price-desc, area-desc
   const [sortOpen, setSortOpen] = useState(false);
+  const sortRef = useRef(null);
 
   // Filtr holatlari
   const [filterOpen, setFilterOpen] = useState(false);
@@ -41,6 +42,19 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
       setActive(urlCat);
     }
   }, [urlCat]);
+
+  // Sort dropdown tashqarisiga bosilganda yopish
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (sortRef.current && !sortRef.current.contains(e.target)) {
+        setSortOpen(false);
+      }
+    }
+    if (sortOpen) {
+      document.addEventListener("click", handleClickOutside);
+      return () => document.removeEventListener("click", handleClickOutside);
+    }
+  }, [sortOpen]);
 
   // Filtr qo'llash funksiyasi
   const handleApplyFilters = () => {
@@ -143,12 +157,19 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
       <div className="split">
         <div className="split-list">
           <div className="split-meta" style={{ position: "relative" }}>
-            <h1 className="display">
-              Toshkent · <span className="count">{shown.length} ta e'lon</span>
-            </h1>
+            <div>
+              <h1 className="display">
+                Toshkent · <span className="count">{shown.length} ta e&apos;lon</span>
+              </h1>
+              {searchQuery && (
+                <div style={{ fontSize: 14, color: "var(--orange-dark)", marginTop: 4, fontWeight: 500 }}>
+                  <i className="ti ti-search" style={{ fontSize: 14 }}></i> Qidiruv: &apos;{searchQuery}&apos;
+                </div>
+              )}
+            </div>
             
             {/* Saralash Dropdown */}
-            <div style={{ position: "relative" }}>
+            <div style={{ position: "relative" }} ref={sortRef}>
               <div 
                 style={{ fontSize: 13, color: "var(--text2)", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
                 onClick={() => setSortOpen(!sortOpen)}
@@ -209,9 +230,9 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
               marginTop: 20
             }}>
               <i className="ti ti-search-off" style={{ fontSize: 48, color: 'var(--muted)', display: 'block', marginBottom: 16 }}></i>
-              <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>E'lonlar topilmadi</h3>
+              <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>E&apos;lonlar topilmadi</h3>
               <p style={{ color: 'var(--text2)', fontSize: 14, maxWidth: 300, margin: '0 auto' }}>
-                Kiritilgan filtrlar bo'yicha hozircha e'lonlar mavjud emas. Filtrlarni o'zgartirib ko'ring.
+                Kiritilgan filtrlar bo&apos;yicha hozircha e&apos;lonlar mavjud emas. Filtrlarni o&apos;zgartirib ko&apos;ring.
               </p>
               <button 
                 onClick={handleClearFilters}
@@ -257,9 +278,10 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
                 left: l.pinX ?? 100,
                 top: l.pinY ?? 100,
                 transform: activePin === i ? "scale(1.15)" : "scale(1)",
-                transition: "transform 0.2s ease, background 0.2s ease"
+                transition: "transform 0.2s ease, background 0.2s ease",
+                cursor: "pointer"
               }}
-              onClick={() => setActivePin(i)}
+              onClick={() => router.push(`/property/${l.id}`)}
             >
               ${Math.round(l.priceNum / 1000)}k
             </div>
@@ -308,7 +330,7 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
             <div style={{ flex: 1, overflowY: "auto" }}>
               {/* Narx oralig'i */}
               <div style={{ marginBottom: 24 }}>
-                <label style={{ fontSize: 13, fontWeight: 600, color: "var(--text2)", display: "block", marginBottom: 8 }}>Narx oralig'i (USD)</label>
+                <label style={{ fontSize: 13, fontWeight: 600, color: "var(--text2)", display: "block", marginBottom: 8 }}>Narx oralig&apos;i (USD)</label>
                 <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                   <input 
                     type="number" 
@@ -371,7 +393,7 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
                 className="cbtn primary"
                 style={{ flex: 1, padding: 14, margin: 0 }}
               >
-                Qo'llash
+                Qo&apos;llash
               </button>
             </div>
           </div>

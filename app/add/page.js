@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Nav } from "@/components/ui";
 import { createListingAction } from "@/app/actions";
 
@@ -10,19 +10,55 @@ const cats = [
   { key: "Ofis", icon: "ti-briefcase" },
 ];
 
+const districts = [
+  "Chilonzor",
+  "Yunusobod",
+  "Mirzo Ulug'bek",
+  "Sergeli",
+  "Yakkasaroy",
+  "Shayxontohur",
+  "Olmazor",
+  "Uchtepa",
+  "Mirabad",
+  "Bektemir",
+  "Yashnobod",
+];
+
 export default function Add() {
-  const [cat, setCat] = useState("Yangi uy");
-  const [title, setTitle] = useState("3 xonali kvartira");
-  const [rooms, setRooms] = useState("3 xona");
+  const [cat, setCat] = useState("");
+  const [title, setTitle] = useState("");
+  const [rooms, setRooms] = useState("1 xona");
   const [baths, setBaths] = useState("1");
-  const [area, setArea] = useState("78");
-  const [floor, setFloor] = useState("5/9");
-  const [price, setPrice] = useState("72 000");
-  const [district, setDistrict] = useState("Chilonzor");
-  const [quarter, setQuarter] = useState("9-kvartal");
-  const [desc, setDesc] = useState("Chilonzor tumanining markazida, metroga yaqin yorug' 3 xonali kvartira.");
+  const [area, setArea] = useState("");
+  const [floor, setFloor] = useState("");
+  const [price, setPrice] = useState("");
+  const [paymentType, setPaymentType] = useState("Sotuv");
+  const [district, setDistrict] = useState("");
+  const [quarter, setQuarter] = useState("");
+  const [desc, setDesc] = useState("");
+  const [selectedFiles, setSelectedFiles] = useState([]);
 
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef(null);
+
+  // Progress bo'limlari to'ldirilganligini hisoblash
+  const sectionsFilled = [
+    !!cat,                              // 1. Toifa
+    !!(title && area && floor),         // 2. Asosiy ma'lumotlar
+    !!price,                            // 3. Narx
+    !!(district),                       // 4. Joylashuvi
+    selectedFiles.length > 0,           // 5. Fotosuratlar
+    desc.length > 0,                    // 6. Tavsif
+  ];
+
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files || []);
+    setSelectedFiles(prev => [...prev, ...files].slice(0, 20));
+  };
+
+  const removeFile = (index) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,6 +72,7 @@ export default function Add() {
     formData.append("area", area);
     formData.append("floor", floor);
     formData.append("price", price);
+    formData.append("paymentType", paymentType);
     formData.append("district", district);
     formData.append("quarter", quarter);
     formData.append("desc", desc);
@@ -53,9 +90,35 @@ export default function Add() {
     <>
       <Nav />
       <div className="wrap">
-        <h1 className="page-title display">E'lon qo'shish</h1>
+        <h1 className="page-title display">E&apos;lon qo&apos;shish</h1>
         <div className="page-sub">
           Uyingizni soting yoki ijaraga bering — bepul va tez
+        </div>
+
+        {/* Progress indicator */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "20px 0 10px", justifyContent: "center" }}>
+          {sectionsFilled.map((filled, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{
+                width: 28,
+                height: 28,
+                borderRadius: "50%",
+                background: filled ? "var(--orange)" : "#eee",
+                color: filled ? "#fff" : "var(--muted)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 12,
+                fontWeight: 700,
+                transition: "all 0.2s ease"
+              }}>
+                {filled ? <i className="ti ti-check" style={{ fontSize: 14 }}></i> : i + 1}
+              </div>
+              {i < 5 && (
+                <div style={{ width: 24, height: 2, background: filled && sectionsFilled[i + 1] ? "var(--orange)" : "#eee", borderRadius: 1 }} />
+              )}
+            </div>
+          ))}
         </div>
 
         <form onSubmit={handleSubmit} className="flayout">
@@ -80,12 +143,13 @@ export default function Add() {
 
             <div className="fsection">
               <h2 className="display">
-                <span className="fnum">2</span> Asosiy ma'lumotlar
+                <span className="fnum">2</span> Asosiy ma&apos;lumotlar
               </h2>
               <div className="frow">
                 <div className="field full">
                   <label>Sarlavha (Kvartira turi)</label>
                   <input
+                    placeholder="Masalan: 3 xonali kvartira"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     required
@@ -122,6 +186,7 @@ export default function Add() {
                 <div className="field">
                   <label>Maydon (m²)</label>
                   <input
+                    placeholder="78"
                     value={area}
                     onChange={(e) => setArea(e.target.value)}
                     required
@@ -130,6 +195,7 @@ export default function Add() {
                 <div className="field">
                   <label>Qavat / Jami</label>
                   <input
+                    placeholder="5/9"
                     value={floor}
                     onChange={(e) => setFloor(e.target.value)}
                     required
@@ -146,14 +212,18 @@ export default function Add() {
                 <div className="field">
                   <label>Narx (USD)</label>
                   <input
+                    placeholder="72 000"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
                     required
                   />
                 </div>
                 <div className="field">
-                  <label>To'lov turi</label>
-                  <select>
+                  <label>To&apos;lov turi</label>
+                  <select
+                    value={paymentType}
+                    onChange={(e) => setPaymentType(e.target.value)}
+                  >
                     <option>Sotuv</option>
                     <option>Oylik ijara</option>
                     <option>Kunlik ijara</option>
@@ -173,15 +243,16 @@ export default function Add() {
                     value={district}
                     onChange={(e) => setDistrict(e.target.value)}
                   >
-                    <option>Chilonzor</option>
-                    <option>Yunusobod</option>
-                    <option>Mirzo Ulug'bek</option>
-                    <option>Sergeli</option>
+                    <option value="">Tanlang...</option>
+                    {districts.map(d => (
+                      <option key={d}>{d}</option>
+                    ))}
                   </select>
                 </div>
                 <div className="field">
                   <label>Mahalla / kvartal</label>
                   <input
+                    placeholder="9-kvartal"
                     value={quarter}
                     onChange={(e) => setQuarter(e.target.value)}
                     required
@@ -194,13 +265,49 @@ export default function Add() {
               <h2 className="display">
                 <span className="fnum">5</span> Fotosuratlar
               </h2>
-              <div className="drop">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png"
+                multiple
+                style={{ display: "none" }}
+                onChange={handleFileSelect}
+              />
+              <div
+                className="drop"
+                style={{ cursor: "pointer" }}
+                onClick={() => fileInputRef.current?.click()}
+              >
                 <i className="ti ti-photo-up"></i>
                 <div className="t">Rasmlarni shu yerga torting yoki tanlang</div>
                 <div className="s">
                   JPG, PNG · 20 tagacha · har biri 10 MB gacha
                 </div>
               </div>
+              {selectedFiles.length > 0 && (
+                <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  {selectedFiles.map((file, i) => (
+                    <div key={i} style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      background: "var(--orange-tint)",
+                      padding: "6px 10px",
+                      borderRadius: 8,
+                      fontSize: 12,
+                      fontWeight: 500
+                    }}>
+                      <i className="ti ti-photo" style={{ fontSize: 14, color: "var(--orange)" }}></i>
+                      <span style={{ maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{file.name}</span>
+                      <i
+                        className="ti ti-x"
+                        style={{ fontSize: 14, cursor: "pointer", color: "var(--muted)" }}
+                        onClick={(e) => { e.stopPropagation(); removeFile(i); }}
+                      ></i>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="fsection">
@@ -209,10 +316,22 @@ export default function Add() {
               </h2>
               <div className="field full">
                 <textarea
+                  placeholder="E'lon haqida batafsil yozing..."
                   value={desc}
-                  onChange={(e) => setDesc(e.target.value)}
+                  onChange={(e) => {
+                    if (e.target.value.length <= 1000) setDesc(e.target.value);
+                  }}
                   required
                 ></textarea>
+                <div style={{
+                  textAlign: "right",
+                  fontSize: 12,
+                  color: desc.length >= 900 ? "#d9534f" : "var(--muted)",
+                  marginTop: 4,
+                  fontWeight: desc.length >= 900 ? 600 : 400
+                }}>
+                  {desc.length}/1000
+                </div>
               </div>
             </div>
           </div>
@@ -238,7 +357,7 @@ export default function Add() {
                 }}
               >
                 <i className="ti ti-eye" style={{ fontSize: 15 }}></i>{" "}
-                Ko'rinishi (Live Preview)
+                Ko&apos;rinishi (Live Preview)
               </div>
               <div style={{ padding: "12px 12px 0" }}>
                 <div
@@ -253,7 +372,9 @@ export default function Add() {
                     style={{
                       height: 130,
                       backgroundImage:
-                        "url('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=500&q=70')",
+                        selectedFiles.length > 0
+                          ? `url('${URL.createObjectURL(selectedFiles[0])}')`
+                          : "url('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=500&q=70')",
                       backgroundSize: "cover",
                       position: "relative",
                     }}
@@ -262,7 +383,7 @@ export default function Add() {
                   </div>
                   <div style={{ padding: "14px 16px 16px" }}>
                     <div className="price" style={{ fontSize: 20 }}>
-                      ${price.replace(/\s/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, " ")}
+                      ${price ? price.replace(/\s/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, " ") : "0"}
                     </div>
                     <div
                       style={{
@@ -271,11 +392,11 @@ export default function Add() {
                         margin: "4px 0 2px",
                       }}
                     >
-                      {title}
+                      {title || "Sarlavha"}
                     </div>
                     <div style={{ fontSize: 12, color: "var(--muted)" }}>
                       <i className="ti ti-map-pin" style={{ fontSize: 13 }}></i>{" "}
-                      {district} {quarter}
+                      {district || "Tuman"} {quarter}
                     </div>
                   </div>
                 </div>
@@ -285,16 +406,6 @@ export default function Add() {
                   <i className="ti ti-rocket"></i>{" "}
                   {loading ? "Joylanmoqda..." : "E'lonni joylash"}
                 </button>
-                <div
-                  style={{
-                    fontSize: 12,
-                    color: "var(--muted)",
-                    textAlign: "center",
-                    marginTop: 10,
-                  }}
-                >
-                  Baza bilan jonli bog'lanish va deploy
-                </div>
               </div>
             </div>
           </div>

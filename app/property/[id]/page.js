@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { Nav } from "@/components/ui";
+import { Nav, ListingCard } from "@/components/ui";
 import Gallery from "@/components/Gallery";
 import MessageModal from "@/components/MessageModal";
 import ShareBtn from "@/components/ShareBtn";
 import CallBtn from "@/components/CallBtn";
-import { getListingById, getListings } from "@/lib/data";
+import { getListingById, getListings, getSimilarListings, getOwnerListingCount } from "@/lib/data";
 import { getCurrentUser, toggleFavoriteAction } from "@/app/actions";
 import pool from "@/lib/db";
+import PropertyExtras from "./PropertyExtras";
 
 export const dynamic = "force-dynamic";
 
@@ -42,8 +43,30 @@ export default async function Property({ params }) {
   const initials = l.owner
     ? l.owner.split(" ").map((w) => w[0]).join("").slice(0, 2)
     : "AK";
-    
-  const monthly = Math.round((l.priceNum * 0.8 * 0.01) + (l.priceNum * 0.8 / 300));
+
+  // Dynamic owner listing count
+  const ownerCount = await getOwnerListingCount(l.owner);
+
+  // O'xshash e'lonlar
+  const similarListings = await getSimilarListings(l.id, l.cat);
+
+  // E'lon egasining telefon raqamini aniqlash (bazadagi phone yoki fallback)
+  const ownerPhone = l.phone || "+998 90 123 45 67";
+
+  // Tavsif (bazadagi yoki avtomatik)
+  const description = l.description || `${l.addr} hududida, metro va savdo markazlariga yaqin joylashgan yorug' va shinam ${l.type.toLowerCase()}. To'liq ta'mirlangan, mebellangan. Tinch hudud, maktab va bog'cha yonida.`;
+
+  // Dinamik xususiyatlar
+  const features = [
+    "Internet / Wi-Fi",
+    "Lift",
+  ];
+  if (l.rooms >= 3) features.unshift("Keng xonalar");
+  if (l.area >= 80) features.unshift("Katta maydon");
+  features.push("Konditsioner");
+  if (l.floor && parseInt(l.floor) <= 3) features.push("Past qavat");
+  features.push("Avtoturargoh");
+  features.push("Yevro ta'mir");
 
   const handleToggleFavorite = async () => {
     "use server";
@@ -54,9 +77,6 @@ export default async function Property({ params }) {
     await toggleFavoriteAction(l.id);
   };
 
-  // E'lon egasining telefon raqamini aniqlash (baza yoki mock)
-  const ownerPhone = l.owner === "Dilnoza Yusupova" ? "+998 93 321 65 43" : "+998 90 123 45 67";
-
   return (
     <>
       <Nav />
@@ -64,7 +84,7 @@ export default async function Property({ params }) {
         <div className="crumb">
           <Link href="/">Bosh sahifa</Link>
           <i className="ti ti-chevron-right" style={{ fontSize: 14 }}></i>
-          <Link href="/listings">{l.cat}</Link>
+          <Link href={`/listings?cat=${encodeURIComponent(l.cat)}`}>{l.cat}</Link>
           <i className="ti ti-chevron-right" style={{ fontSize: 14 }}></i>
           <span>{l.addr.split(" ")[0]}</span>
         </div>
@@ -125,28 +145,31 @@ export default async function Property({ params }) {
 
             <div className="block">
               <h2 className="display">Tavsif</h2>
-              <p>
-                {l.addr} hududida, metro va savdo markazlariga yaqin joylashgan yorug' va shinam {l.type.toLowerCase()}. To'liq ta'mirlangan, mebellangan. Tinch hudud, maktab va bog'cha yonida.
-              </p>
+              <p>{description}</p>
             </div>
 
             <div className="block">
               <h2 className="display">Xususiyatlar</h2>
               <div className="dfeats">
-                {[
-                  "Yevro ta'mir",
-                  "Mebel bilan",
-                  "Konditsioner",
-                  "Lift",
-                  "Avtoturargoh",
-                  "Internet / Wi-Fi",
-                ].map((f) => (
+                {features.map((f) => (
                   <div className="ft" key={f}>
                     <i className="ti ti-check"></i> {f}
                   </div>
                 ))}
               </div>
             </div>
+
+            {/* O'xshash e'lonlar */}
+            {similarListings.length > 0 && (
+              <div className="block" style={{ marginTop: 32 }}>
+                <h2 className="display">O&apos;xshash e&apos;lonlar</h2>
+                <div className="grid" style={{ marginTop: 16 }}>
+                  {similarListings.map((sl) => (
+                    <ListingCard l={sl} key={sl.id} />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <aside className="side">
@@ -160,7 +183,7 @@ export default async function Property({ params }) {
                 <div className="oname">
                   {l.owner} <i className="ti ti-rosette-discount-check"></i>
                 </div>
-                <div className="orole">Egasi · 14 ta e'lon</div>
+                <div className="orole">Egasi · {ownerCount} ta e&apos;lon</div>
               </div>
             </div>
             
@@ -168,35 +191,7 @@ export default async function Property({ params }) {
             
             <MessageModal listingId={l.id} receiverOwner={l.owner} />
             
-            <div className="mort">
-              <div
-                style={{
-                  fontSize: 13,
-                  color: "var(--muted)",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                }}
-              >
-                <i className="ti ti-calculator" style={{ fontSize: 16 }}></i>{" "}
-                Ipoteka hisobi
-              </div>
-              <div className="mv">
-                ≈ ${monthly.toLocaleString()}{" "}
-                <span
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 400,
-                    color: "var(--muted)",
-                  }}
-                >
-                  /oy
-                </span>
-              </div>
-              <div style={{ fontSize: 12, color: "var(--muted)" }}>
-                20% boshlang'ich · 25 yil · 12%
-              </div>
-            </div>
+            <PropertyExtras priceNum={l.priceNum} listingId={l.id} />
           </aside>
         </div>
       </div>
