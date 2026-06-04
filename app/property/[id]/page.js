@@ -122,26 +122,78 @@ export default async function Property({ params }) {
 
             <div className="keyspecs">
               <div className="ks">
-                <i className="ti ti-bed"></i>
-                <div className="v">{l.rooms}</div>
-                <div className="l">Xona</div>
+                <div className="ks-icon"><i className="ti ti-bed"></i></div>
+                <div className="ks-text">
+                  <div className="v">{l.rooms}</div>
+                  <div className="l">Xona</div>
+                </div>
               </div>
               <div className="ks">
-                <i className="ti ti-bath"></i>
-                <div className="v">{l.baths}</div>
-                <div className="l">Hammom</div>
+                <div className="ks-icon"><i className="ti ti-bath"></i></div>
+                <div className="ks-text">
+                  <div className="v">{l.baths}</div>
+                  <div className="l">Hammom</div>
+                </div>
               </div>
               <div className="ks">
-                <i className="ti ti-ruler-2"></i>
-                <div className="v">{l.area} m²</div>
-                <div className="l">Maydon</div>
+                <div className="ks-icon"><i className="ti ti-ruler-2"></i></div>
+                <div className="ks-text">
+                  <div className="v">{l.area} m²</div>
+                  <div className="l">Maydon</div>
+                </div>
               </div>
               <div className="ks">
-                <i className="ti ti-stairs"></i>
-                <div className="v">{l.floor}</div>
-                <div className="l">Qavat</div>
+                <div className="ks-icon"><i className="ti ti-stairs"></i></div>
+                <div className="ks-text">
+                  <div className="v">{l.floor}</div>
+                  <div className="l">Qavat</div>
+                </div>
               </div>
             </div>
+
+            {/* Narx indikatori — bozor narxiga nisbatan */}
+            {(() => {
+              const pricePerM2 = l.area > 0 ? Math.round(l.priceNum / l.area) : 0;
+              // Toshkent o'rtacha bozor narxlari (USD/m²)
+              const avgMarket = { "Yangi uylar": 850, "Ikkilamchi": 720, "Ijara": 12, "Ofis": 650 };
+              const avg = avgMarket[l.cat] || 750;
+              const ratio = pricePerM2 / avg;
+              let label, color, bg, icon;
+              if (ratio < 0.85) {
+                label = "Bozordan arzon"; color = "#2d9d5c"; bg = "#e8f8ef"; icon = "ti-trending-down";
+              } else if (ratio <= 1.15) {
+                label = "Bozor narxida"; color = "#b8860b"; bg = "#fef9ea"; icon = "ti-minus";
+              } else {
+                label = "Bozordan qimmat"; color = "#c0392b"; bg = "#fdeaea"; icon = "ti-trending-up";
+              }
+              return (
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 14,
+                  background: bg, border: `1px solid ${color}22`,
+                  borderRadius: 14, padding: "14px 20px", marginBottom: 8,
+                }}>
+                  <div style={{
+                    width: 40, height: 40, borderRadius: 10,
+                    background: `${color}18`, display: "flex", alignItems: "center",
+                    justifyContent: "center", flexShrink: 0,
+                  }}>
+                    <i className={`ti ${icon}`} style={{ fontSize: 22, color }}></i>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: 15, color }}>{label}</div>
+                    <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>
+                      ${pricePerM2.toLocaleString()}/m² · O&apos;rtacha: ${avg.toLocaleString()}/m²
+                    </div>
+                  </div>
+                  <div style={{
+                    fontSize: 13, fontWeight: 700, color,
+                    background: `${color}14`, padding: "4px 10px", borderRadius: 8,
+                  }}>
+                    {ratio < 1 ? `${Math.round((1 - ratio) * 100)}% arzon` : ratio > 1 ? `${Math.round((ratio - 1) * 100)}% qimmat` : "="}
+                  </div>
+                </div>
+              );
+            })()}
 
             <div className="block">
               <h2 className="display">Tavsif</h2>
