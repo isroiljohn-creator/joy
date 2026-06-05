@@ -25,8 +25,8 @@ function getUserYear(createdAt) {
   }
 }
 
-export default function ProfileClient({ user, myListings, savedListings, messages }) {
-  const [tab, setTab] = useState("Mening e'lonlarim");
+export default function ProfileClient({ user, myListings, savedListings, messages, initialTab = "Mening e'lonlarim" }) {
+  const [tab, setTab] = useState(initialTab);
   
   // Sozlamalar oynasi state-lari
   const [name, setName] = useState(user?.name || "");

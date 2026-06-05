@@ -30,12 +30,15 @@ function mapListingFromDb(row) {
   };
 }
 
-export default async function ProfilePage() {
+export default async function ProfilePage({ searchParams }) {
   // 1. Tizimga kirgan foydalanuvchini tekshiramiz
   const user = await getCurrentUser();
   if (!user) {
     redirect("/login");
   }
+
+  const tabParam = searchParams?.tab;
+  const initialTab = tabParam === "saved" ? "Saqlangan" : tabParam === "messages" ? "Xabarlar" : "Mening e'lonlarim";
 
   // 2. Foydalanuvchining o'z e'lonlarini yuklaymiz
   const myListings = await getProfileListings(user.name);
@@ -84,6 +87,7 @@ export default async function ProfilePage() {
       myListings={myListings} 
       savedListings={savedListings} 
       messages={messages} 
+      initialTab={initialTab}
     />
   );
 }

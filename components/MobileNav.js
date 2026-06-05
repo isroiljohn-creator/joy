@@ -1,15 +1,31 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 
 export default function MobileNav() {
   const path = usePathname();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const cookiesList = document.cookie.split(";").reduce((acc, c) => {
+      const [key, val] = c.trim().split("=");
+      if (key && val) {
+        acc[key] = val;
+      }
+      return acc;
+    }, {});
+    if (cookiesList.user_id) {
+      setIsLoggedIn(true);
+    }
+  }, [path]);
+
   const items = [
     { key: "home", icon: "ti-home", label: "Asosiy", href: "/" },
     { key: "saved", icon: "ti-bookmark", label: "Saqlangan", href: "/saved" },
     { key: "add", fab: true, href: "/add" },
     { key: "map", icon: "ti-map-2", label: "Xarita", href: "/listings" },
-    { key: "profile", icon: "ti-user", label: "Profil", href: "/login" },
+    { key: "profile", icon: "ti-user", label: "Profil", href: isLoggedIn ? "/profile" : "/login" },
   ];
 
   const isActive = (href) => {
