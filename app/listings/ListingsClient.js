@@ -246,7 +246,7 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
               </button>
             </div>
           ) : (
-            {/* Desktop grid */}
+            <>
             <div className="split-grid desktop-only">
               {shown.map((l, idx) => (
                 <div 
@@ -299,6 +299,7 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
                 </div>
               ))}
             </div>
+            </>
           )}
         </div>
 
