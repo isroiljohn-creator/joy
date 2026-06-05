@@ -9,13 +9,13 @@ html,body{background:var(--cream);color:var(--ink);overflow-x:hidden;max-width:1
 body{font-family:'Plus Jakarta Sans',sans-serif;-webkit-font-smoothing:antialiased}
 .display{font-family:'Bricolage Grotesque',sans-serif;letter-spacing:-.02em}
 a{text-decoration:none;color:inherit}
-.wrap{margin:0 auto;padding:0 28px;overflow-x:hidden}
+.wrap{max-width:1400px;margin:0 auto;padding:0 28px;overflow-x:hidden}
 ::selection{background:var(--orange-tint)}
 button{font-family:inherit}
 
 /* NAV */
 nav{position:sticky;top:0;z-index:50;background:rgba(251,247,243,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--sand);overflow:hidden}
-.nav-in{margin:0 auto;display:flex;align-items:center;gap:16px;padding:14px 28px;overflow:hidden}
+.nav-in{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:16px;padding:14px 28px;overflow:hidden}
 .logo{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:25px;display:flex;align-items:center;gap:8px;flex-shrink:0}
 .logo .dot{width:11px;height:11px;border-radius:50%;background:var(--orange)}
 .nav-links{display:flex;gap:24px;font-size:15px;font-weight:500;color:var(--text2);overflow:hidden;flex-shrink:1;min-width:0}
