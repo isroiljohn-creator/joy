@@ -2,6 +2,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Nav, ListingCard } from "@/components/ui";
+import dynamic from "next/dynamic";
+
+const Map = dynamic(() => import("@/components/Map"), { ssr: false });
 
 const tabs = [
   { key: "Yangi uylar", icon: "ti-building-skyscraper" },
@@ -269,23 +272,14 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
         </div>
 
         <div className="mapwrap">
-          <div className="map-roads"></div>
-          {shown.map((l, i) => (
-            <div
-              key={l.id}
-              className={"pin" + (activePin === i ? " active" : "")}
-              style={{
-                left: l.pinX ?? 100,
-                top: l.pinY ?? 100,
-                transform: activePin === i ? "scale(1.15)" : "scale(1)",
-                transition: "transform 0.2s ease, background 0.2s ease",
-                cursor: "pointer"
-              }}
-              onClick={() => router.push(`/property/${l.id}`)}
-            >
-              ${Math.round(l.priceNum / 1000)}k
-            </div>
-          ))}
+          <Map
+            listings={shown}
+            activePin={activePin}
+            onPinClick={(i) => {
+              setActivePin(i);
+              router.push(`/property/${shown[i]?.id}`);
+            }}
+          />
         </div>
       </div>
 
