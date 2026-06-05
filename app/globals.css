@@ -9,13 +9,13 @@ html,body{background:var(--cream);color:var(--ink);overflow-x:hidden;max-width:1
 body{font-family:'Plus Jakarta Sans',sans-serif;-webkit-font-smoothing:antialiased}
 .display{font-family:'Bricolage Grotesque',sans-serif;letter-spacing:-.02em}
 a{text-decoration:none;color:inherit}
-.wrap{max-width:1400px;margin:0 auto;padding:0 28px;overflow-x:hidden}
+.wrap{max-width:1400px;margin:0 auto;padding:0 48px;overflow-x:hidden}
 ::selection{background:var(--orange-tint)}
 button{font-family:inherit}
 
 /* NAV */
 nav{position:sticky;top:0;z-index:50;background:rgba(251,247,243,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--sand);overflow:hidden}
-.nav-in{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:16px;padding:14px 28px;overflow:hidden}
+.nav-in{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:16px;padding:14px 48px;overflow:hidden}
 .logo{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:25px;display:flex;align-items:center;gap:8px;flex-shrink:0}
 .logo .dot{width:11px;height:11px;border-radius:50%;background:var(--orange)}
 .nav-links{display:flex;gap:24px;font-size:15px;font-weight:500;color:var(--text2);overflow:hidden;flex-shrink:1;min-width:0}
@@ -190,14 +190,14 @@ footer{border-top:1px solid var(--sand);padding:36px 0;display:flex;align-items:
 .fnav{display:flex;gap:22px}.fnav a:hover{color:var(--orange)}
 
 /* LISTINGS PAGE (split + map) */
-.tabs-row{display:flex;align-items:center;gap:8px;padding:12px 28px;border-bottom:1px solid var(--sand);max-width:1400px;margin:0 auto}
+.tabs-row{display:flex;align-items:center;gap:8px;padding:12px 48px;border-bottom:1px solid var(--sand);max-width:1400px;margin:0 auto}
 .ftab{display:flex;align-items:center;gap:8px;padding:9px 16px;border-radius:22px;font-size:14px;font-weight:500;color:var(--text2);cursor:pointer;transition:.2s;border:1px solid transparent}
 .ftab i{font-size:18px}
 .ftab:hover{background:#fff;border-color:var(--sand)}
 .ftab.on{background:var(--orange);color:#fff}
 .filters-btn{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:14px;font-weight:500;padding:9px 16px;border:1px solid var(--sand);border-radius:22px;background:#fff;cursor:pointer}
 .split{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:1fr 520px}
-.split-list{padding:20px 28px 60px}
+.split-list{padding:20px 48px 60px}
 .split-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
 .split-meta h1{font-family:'Bricolage Grotesque',sans-serif;font-size:24px;font-weight:700}
 .split-meta .count{color:var(--orange)}
