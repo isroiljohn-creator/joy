@@ -1,4 +1,5 @@
 import "./globals.css";
+import MobileNav from "@/components/MobileNav";
 
 export const metadata = {
   title: "Joy — Ko'chmas mulk platformasi",
@@ -24,6 +25,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="uz">
       <head>
+        <meta name="theme-color" content="#F2591F" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
@@ -36,7 +38,10 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <MobileNav />
+      </body>
     </html>
   );
 }

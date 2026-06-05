@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Nav, ListingCard } from "@/components/ui";
 import SearchBox from "@/components/SearchBox";
 import Footer from "@/components/Footer";
+import MobileHome from "@/components/MobileHome";
 import { getListings, getListingCount, categories } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
@@ -164,6 +165,9 @@ export default async function Home() {
       </section>
 
       <Footer />
+
+      {/* Mobil versiya */}
+      <MobileHome listings={allActive} count={count} />
     </>
   );
 }
