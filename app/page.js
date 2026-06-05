@@ -4,6 +4,8 @@ import SearchBox from "@/components/SearchBox";
 import Footer from "@/components/Footer";
 import { getListings, getListingCount, categories } from "@/lib/data";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const allActive = await getListings();
   const featured = allActive.slice(0, 3);
