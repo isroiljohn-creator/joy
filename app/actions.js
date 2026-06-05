@@ -47,11 +47,19 @@ export async function getCurrentUser() {
   if (!id) return null;
 
   try {
-    const { rows } = await pool.query("SELECT created_at FROM users WHERE id = $1", [parseInt(id)]);
-    const createdAt = rows.length > 0 ? rows[0].created_at : null;
-    return { id: parseInt(id), name, phone, createdAt };
+    const { rows } = await pool.query("SELECT role, created_at FROM users WHERE id = $1", [parseInt(id)]);
+    if (rows.length > 0) {
+      return { 
+        id: parseInt(id), 
+        name, 
+        phone, 
+        role: rows[0].role || 'user', 
+        createdAt: rows[0].created_at 
+      };
+    }
+    return { id: parseInt(id), name, phone, role: 'user', createdAt: null };
   } catch (error) {
-    return { id: parseInt(id), name, phone, createdAt: null };
+    return { id: parseInt(id), name, phone, role: 'user', createdAt: null };
   }
 }
 
@@ -71,6 +79,7 @@ export async function loginAction(formData) {
     cookieStore.set("user_id", String(user.id), COOKIE_OPTIONS);
     cookieStore.set("user_name", user.name, COOKIE_OPTIONS);
     cookieStore.set("user_phone", user.phone, COOKIE_OPTIONS);
+    cookieStore.set("user_role", user.role || "user", PUBLIC_COOKIE_OPTIONS);
     cookieStore.set("is_logged_in", "true", PUBLIC_COOKIE_OPTIONS);
   } catch (error) {
     console.error("loginAction error:", error);
@@ -97,6 +106,7 @@ export async function registerAction(formData) {
     cookieStore.set("user_id", String(user.id), COOKIE_OPTIONS);
     cookieStore.set("user_name", user.name, COOKIE_OPTIONS);
     cookieStore.set("user_phone", user.phone, COOKIE_OPTIONS);
+    cookieStore.set("user_role", user.role || "user", PUBLIC_COOKIE_OPTIONS);
     cookieStore.set("is_logged_in", "true", PUBLIC_COOKIE_OPTIONS);
   } catch (error) {
     console.error("registerAction error:", error);
@@ -112,6 +122,7 @@ export async function logoutAction() {
   cookieStore.delete("user_id");
   cookieStore.delete("user_name");
   cookieStore.delete("user_phone");
+  cookieStore.delete("user_role");
   cookieStore.delete("is_logged_in");
   redirect("/");
 }
@@ -477,5 +488,126 @@ export async function updateSettingsAction(formData) {
   } catch (error) {
     console.error("updateSettingsAction error:", error);
     return { error: "Sozlamalarni yangilashda xatolik yuz berdi" };
+  }
+}
+
+// Admin action: E'lonni tasdiqlash
+export async function adminApproveListingAction(listingId) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "admin") {
+    return { error: "Ruxsat berilmagan (unauthorized)" };
+  }
+
+  try {
+    await pool.query(
+      "UPDATE listings SET status = 'active' WHERE id = $1",
+      [listingId]
+    );
+    revalidatePath("/");
+    revalidatePath("/listings");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (error) {
+    console.error("adminApproveListingAction error:", error);
+    return { error: "E'lonni tasdiqlashda xatolik yuz berdi" };
+  }
+}
+
+// Admin action: E'lonni top-ga chiqarish / top-dan olish
+export async function adminToggleTopListingAction(listingId) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "admin") {
+    return { error: "Ruxsat berilmagan (unauthorized)" };
+  }
+
+  try {
+    await pool.query(
+      "UPDATE listings SET top = NOT top WHERE id = $1",
+      [listingId]
+    );
+    revalidatePath("/");
+    revalidatePath("/listings");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (error) {
+    console.error("adminToggleTopListingAction error:", error);
+    return { error: "E'lon holatini o'zgartirishda xatolik yuz berdi" };
+  }
+}
+
+// Admin action: E'lonni o'chirish (Tranzaksiya bilan)
+export async function adminDeleteListingAction(listingId) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "admin") {
+    return { error: "Ruxsat berilmagan (unauthorized)" };
+  }
+
+  try {
+    await pool.query("BEGIN");
+    await pool.query("DELETE FROM favorites WHERE listing_id = $1", [listingId]);
+    await pool.query("DELETE FROM messages WHERE listing_id = $1", [listingId]);
+    await pool.query("DELETE FROM listings WHERE id = $1", [listingId]);
+    await pool.query("COMMIT");
+
+    revalidatePath("/");
+    revalidatePath("/listings");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (error) {
+    await pool.query("ROLLBACK");
+    console.error("adminDeleteListingAction error:", error);
+    return { error: "E'lonni o'chirishda xatolik yuz berdi" };
+  }
+}
+
+// Admin action: Foydalanuvchi rolini o'zgartirish
+export async function adminUpdateUserRoleAction(userId, role) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "admin") {
+    return { error: "Ruxsat berilmagan (unauthorized)" };
+  }
+
+  if (user.id === userId && role !== "admin") {
+    return { error: "O'z rolingizni o'zgartira olmaysiz" };
+  }
+
+  try {
+    await pool.query(
+      "UPDATE users SET role = $1 WHERE id = $2",
+      [role, userId]
+    );
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (error) {
+    console.error("adminUpdateUserRoleAction error:", error);
+    return { error: "Rolni o'zgartirishda xatolik yuz berdi" };
+  }
+}
+
+// Admin action: Foydalanuvchini o'chirish (barcha bog'liq e'lonlar, xabarlar o'chib ketadi CASCADE orqali)
+export async function adminDeleteUserAction(userId) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== "admin") {
+    return { error: "Ruxsat berilmagan (unauthorized)" };
+  }
+
+  if (user.id === userId) {
+    return { error: "O'zingizni o'chira olmaysiz" };
+  }
+
+  try {
+    await pool.query("BEGIN");
+    await pool.query("DELETE FROM messages WHERE sender_id = $1 OR receiver_id = $1", [userId]);
+    await pool.query("DELETE FROM users WHERE id = $1", [userId]);
+    await pool.query("COMMIT");
+
+    revalidatePath("/");
+    revalidatePath("/listings");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (error) {
+    await pool.query("ROLLBACK");
+    console.error("adminDeleteUserAction error:", error);
+    return { error: "Foydalanuvchini o'chirishda xatolik yuz berdi" };
   }
 }

@@ -163,13 +163,31 @@ export default function ProfileClient({ user, myListings, savedListings, message
               </span>
             </div>
           </div>
-          <button className="editp" onClick={() => setTab("Sozlamalar")}>
-            <i
-              className="ti ti-settings"
-              style={{ fontSize: 15, verticalAlign: -2 }}
-            ></i>{" "}
-            Sozlamalar
-          </button>
+          <div style={{ marginLeft: "auto", display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {user?.role === "admin" && (
+              <Link 
+                href="/admin" 
+                className="editp" 
+                style={{ 
+                  background: "var(--purple-tint)", 
+                  color: "var(--purple)", 
+                  borderColor: "transparent",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6
+                }}
+              >
+                <i className="ti ti-shield" style={{ fontSize: 15 }}></i> Admin Panel
+              </Link>
+            )}
+            <button className="editp" onClick={() => setTab("Sozlamalar")}>
+              <i
+                className="ti ti-settings"
+                style={{ fontSize: 15, verticalAlign: -2 }}
+              ></i>{" "}
+              Sozlamalar
+            </button>
+          </div>
         </div>
 
         <div className="pstats">

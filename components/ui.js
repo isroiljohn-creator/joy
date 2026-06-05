@@ -26,7 +26,8 @@ export function Nav() {
     if (cookiesList.user_id && cookiesList.user_name) {
       setUser({
         id: cookiesList.user_id,
-        name: decodeURIComponent(cookiesList.user_name)
+        name: decodeURIComponent(cookiesList.user_name),
+        role: cookiesList.user_role || "user"
       });
     }
 
@@ -52,6 +53,7 @@ export function Nav() {
     document.cookie = "user_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
     document.cookie = "user_name=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
     document.cookie = "user_phone=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+    document.cookie = "user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
     window.location.href = "/";
   };
 
@@ -140,6 +142,11 @@ export function Nav() {
           <div className="nav-r-desktop">
             {user ? (
               <>
+                {user.role === "admin" && (
+                  <Link href="/admin" className="btn-ghost" style={{ border: "1px solid var(--purple)", color: "var(--purple)", background: "var(--purple-tint)" }}>
+                    Admin Panel
+                  </Link>
+                )}
                 <button 
                   onClick={handleLogout} 
                   className="btn-ghost" 
@@ -220,6 +227,11 @@ export function Nav() {
             <div className="mobile-links">
               {user ? (
                 <>
+                  {user.role === "admin" && (
+                    <Link href="/admin" onClick={() => setMobileMenuOpen(false)} style={{ color: "var(--purple)" }}>
+                      <i className="ti ti-shield" style={{ color: "var(--purple)" }}></i> Admin Panel
+                    </Link>
+                  )}
                   <Link href="/profile" onClick={() => setMobileMenuOpen(false)}>
                     <i className="ti ti-user"></i> Profil
                   </Link>

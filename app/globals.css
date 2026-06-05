@@ -41,6 +41,7 @@ nav{position:sticky;top:0;z-index:50;background:rgba(251,247,243,.85);backdrop-f
 .nav-search-clear:hover{color:var(--orange)}
 .nav-search-go{background:var(--orange);color:#fff;border:none;width:38px;height:38px;border-radius:50%;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;flex-shrink:0}
 .nav-search-go:hover{background:var(--orange-dark)}
+.nav-search-go i{color:#fff !important}
 
 /* Hamburger (mobil menyu tugmasi) */
 .hamburger{display:none;background:none;border:none;font-size:24px;cursor:pointer;color:var(--ink);padding:6px}
@@ -83,6 +84,7 @@ nav{position:sticky;top:0;z-index:50;background:rgba(251,247,243,.85);backdrop-f
 .searchrow input::placeholder{color:var(--muted)}
 .go{background:var(--orange);color:#fff;border:none;width:46px;height:46px;border-radius:14px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s}
 .go:hover{background:var(--orange-dark)}
+.go i{color:#fff !important}
 .stats{display:flex;gap:34px;margin-top:30px}
 .stat-h .n{font-family:'Bricolage Grotesque',sans-serif;font-size:28px;font-weight:700}
 .stat-h .l{font-size:13px;color:var(--muted)}
