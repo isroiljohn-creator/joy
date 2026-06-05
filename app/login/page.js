@@ -245,6 +245,16 @@ export default function Login() {
               </button>
             </div>
           )}
+
+          <div className="divider">yoki</div>
+          <div className="socials">
+            <button type="button" className="soc" onClick={() => alert("Google orqali kirish tez kunda ishga tushadi!")}>
+              <i className="ti ti-brand-google"></i> Google
+            </button>
+            <button type="button" className="soc" onClick={() => alert("Apple orqali kirish tez kunda ishga tushadi!")}>
+              <i className="ti ti-brand-apple"></i> Apple
+            </button>
+          </div>
         </form>
       </div>
     </div>
