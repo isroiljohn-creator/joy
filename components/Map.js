@@ -90,33 +90,83 @@ export default function Map({ listings, activePin, onPinClick }) {
   }, [activePin]);
 
   function addMarkers(L, map, items) {
+    // Global CSS for pins (bir marta)
+    if (!document.getElementById("map-pin-style")) {
+      const style = document.createElement("style");
+      style.id = "map-pin-style";
+      style.textContent = `
+        .custom-pin { background: none !important; border: none !important; }
+        .joy-pin {
+          background: #fff;
+          color: #1A130E;
+          font-family: 'Bricolage Grotesque', sans-serif;
+          font-weight: 700;
+          font-size: 13px;
+          padding: 5px 12px;
+          border-radius: 8px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+          white-space: nowrap;
+          cursor: pointer;
+          position: relative;
+          transition: all 0.15s ease;
+          border: 1.5px solid #e8e2da;
+        }
+        .joy-pin::after {
+          content: '';
+          position: absolute;
+          bottom: -6px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 0; height: 0;
+          border-left: 6px solid transparent;
+          border-right: 6px solid transparent;
+          border-top: 6px solid #fff;
+          filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));
+        }
+        .joy-pin:hover, .joy-pin.active {
+          background: #F2591F;
+          color: #fff;
+          border-color: #F2591F;
+          transform: scale(1.08);
+          box-shadow: 0 4px 14px rgba(242,89,31,0.35);
+        }
+        .joy-pin:hover::after, .joy-pin.active::after {
+          border-top-color: #F2591F;
+        }
+        .leaflet-popup-content-wrapper {
+          border-radius: 14px !important;
+          box-shadow: 0 6px 20px rgba(0,0,0,0.12) !important;
+          padding: 0 !important;
+        }
+        .leaflet-popup-content { margin: 12px 14px !important; }
+        .leaflet-popup-tip { box-shadow: none !important; }
+      `;
+      document.head.appendChild(style);
+    }
+
     items.forEach((l, i) => {
       const coords = getCoords(l.addr);
-      const priceLabel = `$${Math.round(l.priceNum / 1000)}k`;
+      const priceLabel = l.priceNum >= 1000
+        ? `$${Math.round(l.priceNum / 1000)}k`
+        : `$${l.priceNum.toLocaleString()}`;
 
       const icon = L.divIcon({
         className: "custom-pin",
-        html: `<div style="
-          background: var(--orange, #F2591F); color: #fff;
-          font-family: 'Bricolage Grotesque', sans-serif;
-          font-weight: 700; font-size: 12px;
-          padding: 4px 10px; border-radius: 16px;
-          box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-          white-space: nowrap; cursor: pointer;
-          border: 2px solid #fff;
-        ">${priceLabel}</div>`,
+        html: `<div class="joy-pin">${priceLabel}</div>`,
         iconSize: [0, 0],
-        iconAnchor: [30, 15],
+        iconAnchor: [30, 20],
       });
 
       const marker = L.marker(coords, { icon }).addTo(map);
       marker.bindPopup(`
-        <div style="min-width:160px">
-          <b style="font-size:14px">${l.type}</b><br/>
-          <span style="color:#666;font-size:12px">${l.addr}</span><br/>
-          <b style="color:#F2591F;font-size:15px">${l.price}</b>
+        <div style="min-width:140px">
+          <div style="font-weight:700;font-size:14px;margin-bottom:3px;color:#1A130E">${l.type}</div>
+          <div style="color:#9B9286;font-size:12px;margin-bottom:6px;display:flex;align-items:center;gap:3px">
+            <i class="ti ti-map-pin" style="font-size:13px"></i> ${l.addr}
+          </div>
+          <div style="color:#F2591F;font-weight:700;font-size:16px;font-family:'Bricolage Grotesque',sans-serif">${l.price}</div>
         </div>
-      `);
+      `, { closeButton: false, offset: [0, -10] });
       marker.on("click", () => {
         if (onPinClick) onPinClick(i);
       });
