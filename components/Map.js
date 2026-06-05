@@ -95,8 +95,9 @@ export default function Map({ listings, activePin, onPinClick }) {
       const style = document.createElement("style");
       style.id = "map-pin-style";
       style.textContent = `
-        .custom-pin { background: none !important; border: none !important; }
+        .custom-pin { background: none !important; border: none !important; width: auto !important; height: auto !important; }
         .joy-pin {
+          display: inline-block;
           background: #fff;
           color: #1A130E;
           font-family: 'Bricolage Grotesque', sans-serif;
@@ -110,6 +111,7 @@ export default function Map({ listings, activePin, onPinClick }) {
           position: relative;
           transition: all 0.15s ease;
           border: 1.5px solid #e8e2da;
+          transform: translateX(-50%);
         }
         .joy-pin::after {
           content: '';
@@ -153,8 +155,9 @@ export default function Map({ listings, activePin, onPinClick }) {
       const icon = L.divIcon({
         className: "custom-pin",
         html: `<div class="joy-pin">${priceLabel}</div>`,
-        iconSize: [0, 0],
-        iconAnchor: [30, 20],
+        iconSize: null,
+        iconAnchor: [0, 0],
+        popupAnchor: [0, -5],
       });
 
       const marker = L.marker(coords, { icon }).addTo(map);
