@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 
-export default function ShareBtn() {
+export default function ShareBtn({ btnClass = "ibtn" }) {
   const [copied, setCopied] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef(null);
@@ -79,7 +79,7 @@ export default function ShareBtn() {
     <div style={{ position: "relative" }} ref={menuRef}>
       <button
         type="button"
-        className="ibtn"
+        className={btnClass}
         onClick={handleShare}
         style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
         title="Ulashish"

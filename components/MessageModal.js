@@ -5,7 +5,7 @@ import { sendMessageAction } from "@/app/actions";
 
 const MAX_CHARS = 500;
 
-export default function MessageModal({ listingId, receiverOwner }) {
+export default function MessageModal({ listingId, receiverOwner, btnClass = "cbtn gh", btnText = "Xabar yozish" }) {
   const [isOpen, setIsOpen] = useState(false);
   const [content, setContent] = useState("");
   const [senderName, setSenderName] = useState("");
@@ -106,8 +106,8 @@ export default function MessageModal({ listingId, receiverOwner }) {
 
   return (
     <>
-      <button className="cbtn gh" onClick={() => setIsOpen(true)}>
-        <i className="ti ti-message"></i> Xabar yozish
+      <button className={btnClass} onClick={() => setIsOpen(true)}>
+        <i className="ti ti-message"></i> {btnText}
       </button>
 
       {isOpen && (
