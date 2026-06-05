@@ -68,7 +68,7 @@ nav{position:sticky;top:0;z-index:50;background:rgba(251,247,243,.85);backdrop-f
 .mobile-divider{height:1px;background:var(--sand);margin:10px 0}
 
 /* HERO */
-.hero{padding:60px 0 48px;display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
+.hero{padding-top:60px;padding-bottom:48px;display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
 .tagline{display:inline-flex;align-items:center;gap:7px;background:var(--orange-tint);color:var(--orange-dark);font-size:13px;font-weight:600;padding:7px 14px;border-radius:20px;margin-bottom:22px}
 .hero h1{font-family:'Bricolage Grotesque',sans-serif;font-size:54px;line-height:1.05;font-weight:700;letter-spacing:-.03em;overflow-wrap:break-word;word-break:break-word}
 .hero h1 .acc{color:var(--orange)}
