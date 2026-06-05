@@ -14,6 +14,7 @@ export default async function Home() {
 
   return (
     <>
+      <div className="desktop-only">
       <Nav />
       <header className="wrap hero">
         <div>
@@ -165,6 +166,7 @@ export default async function Home() {
       </section>
 
       <Footer />
+      </div>
 
       {/* Mobil versiya */}
       <MobileHome listings={allActive} count={count} />
