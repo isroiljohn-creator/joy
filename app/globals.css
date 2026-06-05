@@ -190,7 +190,7 @@ footer{border-top:1px solid var(--sand);padding:36px 0;display:flex;align-items:
 .fnav{display:flex;gap:22px}.fnav a:hover{color:var(--orange)}
 
 /* LISTINGS PAGE (split + map) */
-.tabs-row{display:flex;align-items:center;gap:8px;padding:12px 28px;max-width:1200px;margin:0 auto;border-bottom:1px solid var(--sand)}
+.tabs-row{display:flex;align-items:center;gap:8px;padding:12px 28px;border-bottom:1px solid var(--sand);max-width:1400px;margin:0 auto}
 .ftab{display:flex;align-items:center;gap:8px;padding:9px 16px;border-radius:22px;font-size:14px;font-weight:500;color:var(--text2);cursor:pointer;transition:.2s;border:1px solid transparent}
 .ftab i{font-size:18px}
 .ftab:hover{background:#fff;border-color:var(--sand)}
