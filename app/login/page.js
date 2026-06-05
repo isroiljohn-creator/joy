@@ -245,16 +245,6 @@ export default function Login() {
               </button>
             </div>
           )}
-
-          <div className="divider">yoki</div>
-          <div className="socials">
-            <button type="button" className="soc" onClick={() => alert("Google orqali kirish tez kunda ishga tushadi!")}>
-              <i className="ti ti-brand-google"></i> Google
-            </button>
-            <button type="button" className="soc" onClick={() => alert("MyID orqali kirish tez kunda ishga tushadi!")}>
-              <i className="ti ti-id-badge-2"></i> MyID
-            </button>
-          </div>
         </form>
       </div>
     </div>
