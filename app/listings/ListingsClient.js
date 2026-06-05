@@ -271,7 +271,7 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
             </div>
 
             {/* Mobile compact list */}
-            <div className="mobile-only" style={{ paddingBottom: 80 }}>
+            <div className="mobile-only" style={{ paddingBottom: 110 }}>
               {shown.map((l) => (
                 <div
                   key={l.id}

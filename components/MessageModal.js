@@ -5,7 +5,7 @@ import { sendMessageAction } from "@/app/actions";
 
 const MAX_CHARS = 500;
 
-export default function MessageModal({ listingId, receiverOwner, btnClass = "cbtn gh", btnText = "Xabar yozish" }) {
+export default function MessageModal({ listingId, receiverOwner, receiverId, btnClass = "cbtn gh", btnText = "Xabar yozish" }) {
   const [isOpen, setIsOpen] = useState(false);
   const [content, setContent] = useState("");
   const [senderName, setSenderName] = useState("");
@@ -71,7 +71,7 @@ export default function MessageModal({ listingId, receiverOwner, btnClass = "cbt
 
     const formData = new FormData();
     formData.append("listing_id", listingId);
-    formData.append("receiver_owner", receiverOwner);
+    formData.append("receiver_id", receiverId);
     formData.append("content", content);
     if (!isLoggedIn) {
       formData.append("sender_name", senderName);

@@ -46,7 +46,7 @@ export default async function Property({ params }) {
     : "AK";
 
   // Dynamic owner listing count
-  const ownerCount = await getOwnerListingCount(l.owner);
+  const ownerCount = await getOwnerListingCount(l.ownerId);
 
   // O'xshash e'lonlar
   const similarListings = await getSimilarListings(l.id, l.cat);
@@ -244,7 +244,7 @@ export default async function Property({ params }) {
               
               <CallBtn phone={ownerPhone} />
               
-              <MessageModal listingId={l.id} receiverOwner={l.owner} />
+              <MessageModal listingId={l.id} receiverOwner={l.owner} receiverId={l.ownerId} />
               
               <PropertyExtras priceNum={l.priceNum} listingId={l.id} />
             </aside>
@@ -253,7 +253,7 @@ export default async function Property({ params }) {
       </div>
 
       {/* Mobile view */}
-      <div className="mobile-only" style={{ background: "var(--cream, #FBF7F3)", minHeight: "100vh", paddingBottom: 100 }}>
+      <div className="mobile-only" style={{ background: "var(--cream, #FBF7F3)", minHeight: "100vh", paddingBottom: 120 }}>
         <div className="mdphoto" style={{ backgroundImage: `url('${l.photo}')` }}>
           <div className="mdnav">
             <Link href="/listings" className="mdbtn" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -355,7 +355,7 @@ export default async function Property({ params }) {
         </div>
 
         {/* Sticky Mobile Actions Bar */}
-        <MobileActions listingId={l.id} receiverOwner={l.owner} ownerPhone={ownerPhone} />
+        <MobileActions listingId={l.id} receiverOwner={l.owner} receiverId={l.ownerId} ownerPhone={ownerPhone} />
       </div>
     </>
   );

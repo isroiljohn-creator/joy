@@ -532,6 +532,6 @@ html { scroll-behavior: smooth }
 
 /* Padding for bottom nav */
 @media(max-width:768px){
-  .scroll-pad{padding-bottom:90px}
+  .scroll-pad{padding-bottom:110px}
   body{padding-bottom:0}
 }

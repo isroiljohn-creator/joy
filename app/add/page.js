@@ -64,6 +64,20 @@ export default function Add() {
     e.preventDefault();
     setLoading(true);
 
+    let base64Photo = "";
+    if (selectedFiles.length > 0) {
+      try {
+        base64Photo = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(selectedFiles[0]);
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = (error) => reject(error);
+        });
+      } catch (err) {
+        console.error("FileReader error:", err);
+      }
+    }
+
     const formData = new FormData();
     formData.append("cat", cat);
     formData.append("title", title);
@@ -76,6 +90,9 @@ export default function Add() {
     formData.append("district", district);
     formData.append("quarter", quarter);
     formData.append("desc", desc);
+    if (base64Photo) {
+      formData.append("photo", base64Photo);
+    }
 
     try {
       await createListingAction(formData);

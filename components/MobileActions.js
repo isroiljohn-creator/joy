@@ -2,7 +2,7 @@
 import { useState } from "react";
 import MessageModal from "./MessageModal";
 
-export default function MobileActions({ listingId, receiverOwner, ownerPhone }) {
+export default function MobileActions({ listingId, receiverOwner, receiverId, ownerPhone }) {
   const [revealed, setRevealed] = useState(false);
   const cleanPhone = ownerPhone.replace(/\s/g, "");
 
@@ -13,6 +13,7 @@ export default function MobileActions({ listingId, receiverOwner, ownerPhone }) 
           <MessageModal
             listingId={listingId}
             receiverOwner={receiverOwner}
+            receiverId={receiverId}
             btnClass="mdabtn mgh"
             btnText="Yozish"
           />

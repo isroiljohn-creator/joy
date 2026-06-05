@@ -15,8 +15,10 @@ export default function MobileNav() {
       }
       return acc;
     }, {});
-    if (cookiesList.user_id) {
+    if (cookiesList.is_logged_in === "true") {
       setIsLoggedIn(true);
+    } else {
+      setIsLoggedIn(false);
     }
   }, [path]);
 

@@ -3,9 +3,40 @@ import pool from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import { hashPassword, verifyPassword } from "@/lib/hash";
 
-// Cookie sozlamalari (30 kunlik muddat)
-const COOKIE_OPTIONS = { path: "/", maxAge: 60 * 60 * 24 * 30 };
+// Cookie sozlamalari (30 kunlik muddat, xavfsiz HttpOnly)
+const COOKIE_OPTIONS = { 
+  path: "/", 
+  maxAge: 60 * 60 * 24 * 30,
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax"
+};
+
+// Client o'qishi uchun xavfsiz bo'lmagan parallel cookie
+const PUBLIC_COOKIE_OPTIONS = {
+  path: "/",
+  maxAge: 60 * 60 * 24 * 30,
+  httpOnly: false,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax"
+};
+
+// Tuman koordinatalari xaritasi
+const DISTRICT_PINS = {
+  "Chilonzor": { x: 58, y: 80 },
+  "Yunusobod": { x: 200, y: 200 },
+  "Mirzo Ulug'bek": { x: 260, y: 140 },
+  "Sergeli": { x: 120, y: 300 },
+  "Yakkasaroy": { x: 360, y: 260 },
+  "Shayxontohur": { x: 80, y: 180 },
+  "Olmazor": { x: 150, y: 420 },
+  "Uchtepa": { x: 280, y: 370 },
+  "Mirabad": { x: 340, y: 190 },
+  "Bektemir": { x: 380, y: 450 },
+  "Yashnobod": { x: 300, y: 290 }
+};
 
 // Sessiyadagi joriy foydalanuvchini olish
 export async function getCurrentUser() {
@@ -15,13 +46,11 @@ export async function getCurrentUser() {
   const phone = cookieStore.get("user_phone")?.value;
   if (!id) return null;
 
-  // Bazadan yaratilgan sanani ham olamiz
   try {
     const { rows } = await pool.query("SELECT created_at FROM users WHERE id = $1", [parseInt(id)]);
     const createdAt = rows.length > 0 ? rows[0].created_at : null;
     return { id: parseInt(id), name, phone, createdAt };
   } catch (error) {
-    // Agar bazaga ulanib bo'lmasa, cookie ma'lumotlarini qaytaramiz
     return { id: parseInt(id), name, phone, createdAt: null };
   }
 }
@@ -33,7 +62,7 @@ export async function loginAction(formData) {
 
   try {
     const { rows } = await pool.query("SELECT * FROM users WHERE phone = $1", [phone]);
-    if (rows.length === 0 || rows[0].password !== password) {
+    if (rows.length === 0 || !verifyPassword(password, rows[0].password)) {
       return { error: "Telefon raqami yoki parol noto'g'ri" };
     }
 
@@ -42,6 +71,7 @@ export async function loginAction(formData) {
     cookieStore.set("user_id", String(user.id), COOKIE_OPTIONS);
     cookieStore.set("user_name", user.name, COOKIE_OPTIONS);
     cookieStore.set("user_phone", user.phone, COOKIE_OPTIONS);
+    cookieStore.set("is_logged_in", "true", PUBLIC_COOKIE_OPTIONS);
   } catch (error) {
     console.error("loginAction error:", error);
     return { error: "Tizimga kirishda xatolik yuz berdi" };
@@ -55,17 +85,19 @@ export async function registerAction(formData) {
   const name = formData.get("name");
   const phone = formData.get("phone");
   const password = formData.get("password");
+  const hashedPassword = hashPassword(password);
 
   try {
     const { rows } = await pool.query(
       "INSERT INTO users (name, phone, password) VALUES ($1, $2, $3) RETURNING *",
-      [name, phone, password]
+      [name, phone, hashedPassword]
     );
     const user = rows[0];
     const cookieStore = cookies();
     cookieStore.set("user_id", String(user.id), COOKIE_OPTIONS);
     cookieStore.set("user_name", user.name, COOKIE_OPTIONS);
     cookieStore.set("user_phone", user.phone, COOKIE_OPTIONS);
+    cookieStore.set("is_logged_in", "true", PUBLIC_COOKIE_OPTIONS);
   } catch (error) {
     console.error("registerAction error:", error);
     return { error: "Ushbu telefon raqami allaqachon ro'yxatdan o'tgan" };
@@ -80,6 +112,7 @@ export async function logoutAction() {
   cookieStore.delete("user_id");
   cookieStore.delete("user_name");
   cookieStore.delete("user_phone");
+  cookieStore.delete("is_logged_in");
   redirect("/");
 }
 
@@ -110,17 +143,22 @@ export async function createListingAction(formData) {
   }
 
   const addr = `${district} ${quarter}`;
-  const pinX = Math.floor(Math.random() * 320) + 40;
-  const pinY = Math.floor(Math.random() * 360) + 40;
-  const photo = "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=75";
+  
+  // Tuman koordinatalarini dinamik olamiz
+  const coords = DISTRICT_PINS[district] || { x: 150, y: 150 };
+  const pinX = coords.x;
+  const pinY = coords.y;
+
+  // Haqiqiy rasm faylini Base64 ko'rinishida olamiz
+  const photo = formData.get("photo") || "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=75";
   const status = "active";
   const top = false;
 
   try {
     await pool.query(
-      `INSERT INTO listings (price, price_num, type, cat, addr, rooms, baths, area, floor, top, photo, owner, views, saves, status, pin_x, pin_y, description, phone)
+      `INSERT INTO listings (price, price_num, type, cat, addr, rooms, baths, area, floor, top, photo, owner_id, views, saves, status, pin_x, pin_y, description, phone)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
-      [priceFormatted, priceNum, title, cat, addr, rooms, baths, area, floor, top, photo, user.name, 0, 0, status, pinX, pinY, desc, user.phone]
+      [priceFormatted, priceNum, title, cat, addr, rooms, baths, area, floor, top, photo, user.id, 0, 0, status, pinX, pinY, desc, user.phone]
     );
 
     revalidatePath("/");
@@ -134,7 +172,7 @@ export async function createListingAction(formData) {
   redirect("/profile");
 }
 
-// E'lonni o'chirish (faqat o'z e'lonlarini)
+// E'lonni o'chirish (Tranzaksiya bilan)
 export async function deleteListingAction(listingId) {
   const user = await getCurrentUser();
   if (!user) {
@@ -142,25 +180,28 @@ export async function deleteListingAction(listingId) {
   }
 
   try {
-    // Faqat o'z e'lonini o'chirishga ruxsat beramiz
+    // Egalikni tekshiramiz (ID bo'yicha)
     const { rows } = await pool.query(
-      "SELECT * FROM listings WHERE id = $1 AND owner = $2",
-      [listingId, user.name]
+      "SELECT * FROM listings WHERE id = $1 AND owner_id = $2",
+      [listingId, user.id]
     );
 
     if (rows.length === 0) {
       return { error: "E'lon topilmadi yoki sizga tegishli emas" };
     }
 
-    // Avval bog'liq sevimlilarni o'chiramiz
+    // ACID tranzaksiyasi
+    await pool.query("BEGIN");
     await pool.query("DELETE FROM favorites WHERE listing_id = $1", [listingId]);
     await pool.query("DELETE FROM listings WHERE id = $1", [listingId]);
+    await pool.query("COMMIT");
 
     revalidatePath("/");
     revalidatePath("/listings");
     revalidatePath("/profile");
     return { success: true };
   } catch (error) {
+    await pool.query("ROLLBACK");
     console.error("deleteListingAction error:", error);
     return { error: "E'lonni o'chirishda xatolik yuz berdi" };
   }
@@ -176,18 +217,16 @@ export async function updateListingAction(formData) {
   const listingId = parseInt(formData.get("id"));
 
   try {
-    // Egalikni tekshiramiz
+    // Egalikni tekshiramiz (ID bo'yicha)
     const { rows: existing } = await pool.query(
-      "SELECT * FROM listings WHERE id = $1 AND owner = $2",
-      [listingId, user.name]
+      "SELECT * FROM listings WHERE id = $1 AND owner_id = $2",
+      [listingId, user.id]
     );
 
     if (existing.length === 0) {
       return { error: "E'lon topilmadi yoki sizga tegishli emas" };
     }
 
-    // Yangilanishi mumkin bo'lgan maydonlarni yig'amiz
-    const fields = ["title", "price", "rooms", "baths", "area", "floor", "desc", "cat"];
     const updates = [];
     const values = [];
     let paramIndex = 1;
@@ -267,11 +306,9 @@ export async function toggleFavoriteAction(listingId) {
     );
 
     if (rows.length > 0) {
-      // Saqlanganlardan o'chirish
       await pool.query("DELETE FROM favorites WHERE user_id = $1 AND listing_id = $2", [user.id, listingId]);
       await pool.query("UPDATE listings SET saves = GREATEST(0, saves - 1) WHERE id = $1", [listingId]);
     } else {
-      // Saqlanganlarga qo'shish
       await pool.query("INSERT INTO favorites (user_id, listing_id) VALUES ($1, $2)", [user.id, listingId]);
       await pool.query("UPDATE listings SET saves = saves + 1 WHERE id = $1", [listingId]);
     }
@@ -287,11 +324,11 @@ export async function toggleFavoriteAction(listingId) {
   }
 }
 
-// Xabar yuborish (Send message to owner)
+// Xabar yuborish (Send message to owner - referenced with IDs)
 export async function sendMessageAction(formData) {
   const user = await getCurrentUser();
   const listingId = parseInt(formData.get("listing_id"));
-  const receiverOwner = formData.get("receiver_owner");
+  const receiverId = parseInt(formData.get("receiver_id"));
   const content = formData.get("content");
   
   let senderId = user ? user.id : null;
@@ -303,15 +340,15 @@ export async function sendMessageAction(formData) {
     senderPhone = user.phone;
   }
 
-  if (!senderName || !senderPhone || !content) {
+  if (!senderName || !senderPhone || !content || !receiverId || !listingId) {
     return { error: "Ma'lumotlar to'liq kiritilmadi" };
   }
 
   try {
     await pool.query(
-      `INSERT INTO messages (sender_id, sender_name, sender_phone, receiver_owner, listing_id, content)
+      `INSERT INTO messages (sender_id, sender_name, sender_phone, receiver_id, listing_id, content)
        VALUES ($1, $2, $3, $4, $5, $6)`,
-      [senderId, senderName, senderPhone, receiverOwner, listingId, content]
+      [senderId, senderName, senderPhone, receiverId, listingId, content]
     );
     return { success: true };
   } catch (error) {
@@ -328,10 +365,9 @@ export async function markMessageReadAction(messageId) {
   }
 
   try {
-    // Faqat o'ziga kelgan xabarlarni o'qilgan deb belgilash
     await pool.query(
-      "UPDATE messages SET is_read = TRUE WHERE id = $1 AND receiver_owner = $2",
-      [messageId, user.name]
+      "UPDATE messages SET is_read = TRUE WHERE id = $1 AND receiver_id = $2",
+      [messageId, user.id]
     );
     return { success: true };
   } catch (error) {
@@ -348,10 +384,9 @@ export async function deleteMessageAction(messageId) {
   }
 
   try {
-    // Faqat o'ziga kelgan xabarlarni o'chirish mumkin
     const { rowCount } = await pool.query(
-      "DELETE FROM messages WHERE id = $1 AND receiver_owner = $2",
-      [messageId, user.name]
+      "DELETE FROM messages WHERE id = $1 AND receiver_id = $2",
+      [messageId, user.id]
     );
 
     if (rowCount === 0) {
@@ -367,11 +402,11 @@ export async function deleteMessageAction(messageId) {
 }
 
 // O'qilmagan xabarlar sonini olish
-export async function getUnreadMessageCount(userName) {
+export async function getUnreadMessageCount(userId) {
   try {
     const { rows } = await pool.query(
-      "SELECT COUNT(*) FROM messages WHERE receiver_owner = $1 AND is_read = FALSE",
-      [userName]
+      "SELECT COUNT(*) FROM messages WHERE receiver_id = $1 AND is_read = FALSE",
+      [userId]
     );
     return parseInt(rows[0].count, 10);
   } catch (error) {
@@ -401,12 +436,13 @@ export async function changePasswordAction(formData) {
   try {
     // Eski parolni tekshiramiz
     const { rows } = await pool.query("SELECT password FROM users WHERE id = $1", [user.id]);
-    if (rows.length === 0 || rows[0].password !== oldPassword) {
+    if (rows.length === 0 || !verifyPassword(oldPassword, rows[0].password)) {
       return { error: "Eski parol noto'g'ri" };
     }
 
-    // Yangi parolni saqlaymiz
-    await pool.query("UPDATE users SET password = $1 WHERE id = $2", [newPassword, user.id]);
+    // Yangi parolni shifrlab saqlaymiz
+    const hashedNew = hashPassword(newPassword);
+    await pool.query("UPDATE users SET password = $1 WHERE id = $2", [hashedNew, user.id]);
     return { success: true };
   } catch (error) {
     console.error("changePasswordAction error:", error);

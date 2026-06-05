@@ -20,7 +20,8 @@ function mapListingFromDb(row) {
     floor: row.floor,
     top: row.top,
     photo: row.photo,
-    owner: row.owner,
+    owner: row.owner_name || "",
+    ownerId: row.owner_id,
     views: row.views || 0,
     saves: row.saves || 0,
     status: row.status,
@@ -40,14 +41,15 @@ export default async function ProfilePage({ searchParams }) {
   const tabParam = searchParams?.tab;
   const initialTab = tabParam === "saved" ? "Saqlangan" : tabParam === "messages" ? "Xabarlar" : "Mening e'lonlarim";
 
-  // 2. Foydalanuvchining o'z e'lonlarini yuklaymiz
-  const myListings = await getProfileListings(user.name);
+  // 2. Foydalanuvchining o'z e'lonlarini yuklaymiz (ID bo'yicha)
+  const myListings = await getProfileListings(user.id);
 
   // 3. Foydalanuvchining saqlagan (favorites) e'lonlarini yuklaymiz
   let savedListings = [];
   try {
     const { rows } = await pool.query(
-      `SELECT l.* FROM listings l 
+      `SELECT l.*, u.name as owner_name FROM listings l 
+       LEFT JOIN users u ON l.owner_id = u.id
        JOIN favorites f ON l.id = f.listing_id 
        WHERE f.user_id = $1 
        ORDER BY l.id DESC`,
@@ -58,15 +60,15 @@ export default async function ProfilePage({ searchParams }) {
     console.error("Error fetching saved listings:", error);
   }
 
-  // 4. Foydalanuvchining e'lonlari bo'yicha kelgan xabarlarni yuklaymiz
+  // 4. Foydalanuvchining e'lonlari bo'yicha kelgan xabarlarni yuklaymiz (receiver_id bo'yicha)
   let messages = [];
   try {
     const { rows } = await pool.query(
       `SELECT m.*, l.type as listing_type FROM messages m
        LEFT JOIN listings l ON m.listing_id = l.id
-       WHERE m.receiver_owner = $1
+       WHERE m.receiver_id = $1
        ORDER BY m.id DESC`,
-      [user.name]
+      [user.id]
     );
     messages = rows.map(r => ({
       id: r.id,
