@@ -412,6 +412,18 @@ html { scroll-behavior: smooth }
   nav, footer, .hero-art, .sec-head .display + .sub,
   .why, .cta, .feats { display: none !important; }
   .wrap { padding: 0 !important; max-width: 100% !important; }
+
+  /* Listings page mobile */
+  .tabs-row { padding: 10px 16px; gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
+  .tabs-row::-webkit-scrollbar { display: none; }
+  .ftab { font-size: 13px; padding: 7px 12px; white-space: nowrap; flex-shrink: 0; }
+  .ftab i { font-size: 15px; }
+  .filters-btn { font-size: 12px; padding: 7px 12px; flex-shrink: 0; }
+  .split { grid-template-columns: 1fr !important; }
+  .split-list { padding: 14px 16px 90px !important; }
+  .split-meta h1 { font-size: 18px !important; }
+  .split-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+  .mapwrap { display: none !important; }
 }
 
 /* Mobile-only classes (visible only on mobile) */

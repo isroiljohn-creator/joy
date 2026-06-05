@@ -246,7 +246,8 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
               </button>
             </div>
           ) : (
-            <div className="split-grid">
+            {/* Desktop grid */}
+            <div className="split-grid desktop-only">
               {shown.map((l, idx) => (
                 <div 
                   key={l.id}
@@ -265,6 +266,36 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
                   }}
                 >
                   <ListingCard l={l} isFavorite={favoriteIds.includes(l.id)} />
+                </div>
+              ))}
+            </div>
+
+            {/* Mobile compact list */}
+            <div className="mobile-only" style={{ paddingBottom: 80 }}>
+              {shown.map((l) => (
+                <div
+                  key={l.id}
+                  onClick={() => router.push(`/property/${l.id}`)}
+                  style={{ background: "#fff", borderRadius: 18, overflow: "hidden", margin: "0 0 12px", display: "flex", gap: 12, padding: 10, cursor: "pointer" }}
+                >
+                  <div style={{ width: 96, height: 96, borderRadius: 14, backgroundSize: "cover", backgroundPosition: "center", backgroundColor: "#C9BDA8", flexShrink: 0, position: "relative", backgroundImage: `url('${l.photo}')` }}>
+                    {l.top && <span style={{ position: "absolute", top: 6, left: 6, background: "var(--orange)", color: "#fff", fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 8 }}>TOP</span>}
+                  </div>
+                  <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", minWidth: 0 }}>
+                    <div>
+                      <div style={{ fontFamily: "'Bricolage Grotesque',sans-serif", fontWeight: 700, fontSize: 17, color: "var(--orange)" }}>{l.price}</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, marginTop: 2 }}>{l.type}</div>
+                      <div style={{ fontSize: 11, color: "var(--muted)", display: "flex", alignItems: "center", gap: 3 }}>
+                        <i className="ti ti-map-pin" style={{ fontSize: 13 }}></i> {l.addr}
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: 10, fontSize: 11, color: "var(--text2)", marginTop: 4 }}>
+                      <span style={{ display: "flex", alignItems: "center", gap: 3 }}><i className="ti ti-bed" style={{ fontSize: 13 }}></i>{l.rooms}</span>
+                      <span style={{ display: "flex", alignItems: "center", gap: 3 }}><i className="ti ti-bath" style={{ fontSize: 13 }}></i>{l.baths}</span>
+                      <span style={{ display: "flex", alignItems: "center", gap: 3 }}><i className="ti ti-ruler-2" style={{ fontSize: 13 }}></i>{l.area}m²</span>
+                      <span style={{ display: "flex", alignItems: "center", gap: 3 }}><i className="ti ti-stairs" style={{ fontSize: 13 }}></i>{l.floor}</span>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
