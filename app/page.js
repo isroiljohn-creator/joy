@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import MobileHome from "@/components/MobileHome";
 import { getListings, getListingCount, categories } from "@/lib/data";
 import net from "net";
+import dns from "dns";
 
 export const dynamic = "force-dynamic";
 
@@ -13,25 +14,32 @@ async function probeSSL() {
     const url = process.env.DATABASE_URL;
     if (!url) return resolve("No DATABASE_URL");
     try {
-      // Manual parse because URL might not parse postgresql protocol if URL isn't imported globally
       const match = url.match(/([^:]+):\/\/([^:]+):([^@]+)@([^:]+):([^\/]+)\/(.+)/);
       if (!match) return resolve("Failed regex parse of DATABASE_URL");
       const host = match[4];
       const port = parseInt(match[5], 10);
       
-      const socket = new net.Socket();
-      socket.connect(port, host, () => {
-        const sslRequest = Buffer.from([0, 0, 0, 8, 4, 210, 22, 47]);
-        socket.write(sslRequest);
-      });
-      
-      socket.on("data", (data) => {
-        resolve(`Hex: ${data.toString("hex")} | String: ${data.toString("utf8")}`);
-        socket.destroy();
-      });
-      
-      socket.on("error", (err) => {
-        resolve(`Socket error: ${err.message}`);
+      dns.lookup(host, { all: true }, (err, addresses) => {
+        if (err) {
+          return resolve(`DNS Lookup failed for ${host}: ${err.message}`);
+        }
+        
+        const addrInfo = addresses.map(a => `${a.address} (${a.family})`).join(", ");
+        
+        const socket = new net.Socket();
+        socket.connect(port, host, () => {
+          const sslRequest = Buffer.from([0, 0, 0, 8, 4, 210, 22, 47]);
+          socket.write(sslRequest);
+        });
+        
+        socket.on("data", (data) => {
+          resolve(`DNS: ${addrInfo} | Host: ${host}:${port} | Hex: ${data.toString("hex")} | String: ${data.toString("utf8")}`);
+          socket.destroy();
+        });
+        
+        socket.on("error", (err) => {
+          resolve(`DNS: ${addrInfo} | Host: ${host}:${port} | Socket error: ${err.message}`);
+        });
       });
     } catch (e) {
       resolve(`Error parsing URL: ${e.message}`);
