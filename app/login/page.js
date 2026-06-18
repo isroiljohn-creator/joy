@@ -1,7 +1,13 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { loginAction, registerAction } from "@/app/actions";
+import { 
+  loginAction, 
+  registerAction, 
+  sendOtpAction, 
+  verifyOtpAction, 
+  completeSmsRegisterAction 
+} from "@/app/actions";
 
 function getPasswordStrength(pw) {
   if (!pw) return null;
@@ -17,7 +23,8 @@ function getPasswordStrength(pw) {
 }
 
 export default function Login() {
-  const [mode, setMode] = useState("login");
+  const [authType, setAuthType] = useState("password"); // "password" | "sms"
+  const [mode, setMode] = useState("login"); // "login" | "register"
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -25,15 +32,28 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // SMS Flow States
+  const [smsStep, setSmsStep] = useState(1); // 1 | 2 | 3
+  const [otpCode, setOtpCode] = useState("");
+  const [resendTimer, setResendTimer] = useState(0);
+  const [smsSuccessMsg, setSmsSuccessMsg] = useState("");
+
   const phoneValid = !phone || /^\+998\s?\d{2}\s?\d{3}\s?\d{2}\s?\d{2}$/.test(phone);
   const passwordTooShort = password.length > 0 && password.length < 6;
   const strength = getPasswordStrength(password);
 
-  const handleSubmit = async (e) => {
+  useEffect(() => {
+    if (resendTimer > 0) {
+      const t = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
+      return () => clearTimeout(t);
+    }
+  }, [resendTimer]);
+
+  const handleSubmitPassword = async (e) => {
     e.preventDefault();
     setError("");
 
-    if (!phoneValid) {
+    if (!phone || !phoneValid) {
       setError("Telefon raqami +998 formatida bo'lishi kerak");
       return;
     }
@@ -74,6 +94,86 @@ export default function Login() {
     }
   };
 
+  const handleSendOtp = async (e) => {
+    if (e) e.preventDefault();
+    setError("");
+    setSmsSuccessMsg("");
+    
+    if (!phone || !phoneValid) {
+      setError("Telefon raqamini to'g'ri kiriting (+998 XX XXX XX XX)");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await sendOtpAction(phone);
+      if (res?.error) {
+        setError(res.error);
+      } else {
+        setSmsSuccessMsg(`SMS tasdiqlash kodi yuborildi: ${res.demoCode}`);
+        setResendTimer(60);
+        setSmsStep(2);
+      }
+    } catch (err) {
+      setError("Tizimda xatolik yuz berdi");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e) => {
+    if (e) e.preventDefault();
+    setError("");
+    setSmsSuccessMsg("");
+
+    if (!otpCode || otpCode.length !== 6) {
+      setError("6 xonali tasdiqlash kodini kiriting");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await verifyOtpAction(phone, otpCode);
+      if (res?.error) {
+        setError(res.error);
+      } else {
+        if (res.exists) {
+          window.location.href = "/profile";
+        } else {
+          setSmsStep(3);
+        }
+      }
+    } catch (err) {
+      setError("Tizimda xatolik yuz berdi");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCompleteRegister = async (e) => {
+    if (e) e.preventDefault();
+    setError("");
+
+    if (!name || name.trim().length < 2) {
+      setError("Ism familiyangizni kiriting (kamida 2 ta belgi)");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await completeSmsRegisterAction(phone, otpCode, name);
+      if (res?.error) {
+        setError(res.error);
+      } else {
+        window.location.href = "/profile";
+      }
+    } catch (err) {
+      setError("Tizimda xatolik yuz berdi");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="shell">
       <div className="visual">
@@ -99,37 +199,54 @@ export default function Login() {
       </div>
 
       <div className="formside">
-        <form onSubmit={handleSubmit} className="formbox">
-          <div className="aseg">
+        <div className="formbox">
+          {/* Auth Type Tabs */}
+          <div className="auth-tabs" style={{ display: "flex", gap: 12, marginBottom: 24, borderBottom: "1px solid var(--sand)", paddingBottom: 10 }}>
             <button
               type="button"
-              className={mode === "login" ? "on" : ""}
+              style={{
+                background: "none",
+                border: "none",
+                fontSize: 15,
+                fontWeight: 600,
+                color: authType === "password" ? "var(--orange)" : "var(--muted)",
+                cursor: "pointer",
+                padding: "8px 16px",
+                borderBottom: authType === "password" ? "3px solid var(--orange)" : "3px solid transparent",
+                transition: "all 0.2s",
+                fontFamily: "inherit"
+              }}
               onClick={() => {
-                setMode("login");
+                setAuthType("password");
                 setError("");
               }}
             >
-              Kirish
+              Parol orqali
             </button>
             <button
               type="button"
-              className={mode === "register" ? "on" : ""}
+              style={{
+                background: "none",
+                border: "none",
+                fontSize: 15,
+                fontWeight: 600,
+                color: authType === "sms" ? "var(--orange)" : "var(--muted)",
+                cursor: "pointer",
+                padding: "8px 16px",
+                borderBottom: authType === "sms" ? "3px solid var(--orange)" : "3px solid transparent",
+                transition: "all 0.2s",
+                fontFamily: "inherit"
+              }}
               onClick={() => {
-                setMode("register");
+                setAuthType("sms");
+                setSmsStep(1);
+                setOtpCode("");
                 setError("");
+                setSmsSuccessMsg("");
               }}
             >
-              Ro&apos;yxatdan o&apos;tish
+              SMS kod orqali
             </button>
-          </div>
-          
-          <h1 className="display">
-            {mode === "login" ? "Xush kelibsiz" : "Hisob yarating"}
-          </h1>
-          <div className="lead">
-            {mode === "login"
-              ? "Hisobingizga kiring va davom eting"
-              : "Bir daqiqada ro'yxatdan o'ting"}
           </div>
 
           {error && (
@@ -148,101 +265,264 @@ export default function Login() {
             </div>
           )}
 
-          {mode === "register" && (
-            <div className="afield">
-              <label>Ism familiya</label>
-              <div className="inp">
-                <i className="ti ti-user"></i>
-                <input
-                  placeholder="Aziz Karimov"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
+          {authType === "password" ? (
+            <form onSubmit={handleSubmitPassword}>
+              <div className="aseg">
+                <button
+                  type="button"
+                  className={mode === "login" ? "on" : ""}
+                  onClick={() => {
+                    setMode("login");
+                    setError("");
+                  }}
+                >
+                  Kirish
+                </button>
+                <button
+                  type="button"
+                  className={mode === "register" ? "on" : ""}
+                  onClick={() => {
+                    setMode("register");
+                    setError("");
+                  }}
+                >
+                  Ro&apos;yxatdan o&apos;tish
+                </button>
               </div>
-            </div>
-          )}
-          
-          <div className="afield">
-            <label>Telefon raqami</label>
-            <div className="inp" style={{ borderColor: !phoneValid ? "#d9534f" : undefined }}>
-              <i className="ti ti-phone"></i>
-              <input
-                placeholder="+998 90 123 45 67"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                required
-              />
-            </div>
-            {!phoneValid && (
-              <div style={{ color: "#d9534f", fontSize: 12, marginTop: 4 }}>
-                <i className="ti ti-alert-triangle" style={{ fontSize: 13 }}></i> +998 XX XXX XX XX formatida kiriting
-              </div>
-            )}
-          </div>
-          
-          <div className="afield">
-            <label>Parol</label>
-            <div className="inp" style={{ borderColor: passwordTooShort ? "#d9534f" : undefined }}>
-              <i className="ti ti-lock"></i>
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder="Kamida 6 ta belgi"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-              <i
-                className={showPassword ? "ti ti-eye-off" : "ti ti-eye"}
-                style={{ cursor: "pointer" }}
-                onClick={() => setShowPassword(!showPassword)}
-              ></i>
-            </div>
-            {passwordTooShort && (
-              <div style={{ color: "#d9534f", fontSize: 12, marginTop: 4 }}>
-                <i className="ti ti-alert-triangle" style={{ fontSize: 13 }}></i> Parol kamida 6 ta belgidan iborat bo&apos;lishi kerak
-              </div>
-            )}
-            {strength && password.length >= 1 && (
-              <div style={{ marginTop: 6 }}>
-                <div style={{ height: 4, borderRadius: 2, background: "#eee", overflow: "hidden" }}>
-                  <div style={{ height: "100%", width: strength.width, background: strength.color, borderRadius: 2, transition: "width 0.3s ease" }} />
-                </div>
-                <div style={{ fontSize: 11, color: strength.color, marginTop: 3, fontWeight: 600 }}>
-                  {strength.label}
-                </div>
-              </div>
-            )}
-          </div>
 
-          <button type="submit" className="btn-main" disabled={loading}>
-            <i
-              className={mode === "login" ? "ti ti-login-2" : "ti ti-user-plus"}
-            ></i>{" "}
-            {loading
-              ? "Kutilmoqda..."
-              : mode === "login"
-              ? "Kirish"
-              : "Ro'yxatdan o'tish"}
-          </button>
+              <h1 className="display">
+                {mode === "login" ? "Xush kelibsiz" : "Hisob yarating"}
+              </h1>
+              <div className="lead">
+                {mode === "login"
+                  ? "Hisobingizga kiring va davom eting"
+                  : "Bir daqiqada ro'yxatdan o'tish"}
+              </div>
 
-          {mode === "login" && (
-            <div style={{ textAlign: "center", marginTop: 10 }}>
-              <button
-                type="button"
-                onClick={() => alert("Tez kunda ishga tushadi")}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "var(--orange)",
-                  fontSize: 13,
-                  cursor: "pointer",
-                  fontWeight: 500,
-                  textDecoration: "underline",
-                }}
-              >
-                Parolni unutdingizmi?
+              {mode === "register" && (
+                <div className="afield">
+                  <label>Ism familiya</label>
+                  <div className="inp">
+                    <i className="ti ti-user"></i>
+                    <input
+                      placeholder="Aziz Karimov"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="afield">
+                <label>Telefon raqami</label>
+                <div className="inp" style={{ borderColor: !phoneValid ? "#d9534f" : undefined }}>
+                  <i className="ti ti-phone"></i>
+                  <input
+                    placeholder="+998 90 123 45 67"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    required
+                  />
+                </div>
+                {!phoneValid && (
+                  <div style={{ color: "#d9534f", fontSize: 12, marginTop: 4 }}>
+                    <i className="ti ti-alert-triangle" style={{ fontSize: 13 }}></i> +998 XX XXX XX XX formatida kiriting
+                  </div>
+                )}
+              </div>
+
+              <div className="afield">
+                <label>Parol</label>
+                <div className="inp" style={{ borderColor: passwordTooShort ? "#d9534f" : undefined }}>
+                  <i className="ti ti-lock"></i>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Kamida 6 ta belgi"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                  <i
+                    className={showPassword ? "ti ti-eye-off" : "ti ti-eye"}
+                    style={{ cursor: "pointer" }}
+                    onClick={() => setShowPassword(!showPassword)}
+                  ></i>
+                </div>
+                {passwordTooShort && (
+                  <div style={{ color: "#d9534f", fontSize: 12, marginTop: 4 }}>
+                    <i className="ti ti-alert-triangle" style={{ fontSize: 13 }}></i> Parol kamida 6 ta belgidan iborat bo&apos;lishi kerak
+                  </div>
+                )}
+                {strength && password.length >= 1 && (
+                  <div style={{ marginTop: 6 }}>
+                    <div style={{ height: 4, borderRadius: 2, background: "#eee", overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: strength.width, background: strength.color, borderRadius: 2, transition: "width 0.3s ease" }} />
+                    </div>
+                    <div style={{ fontSize: 11, color: strength.color, marginTop: 3, fontWeight: 600 }}>
+                      {strength.label}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <button type="submit" className="btn-main" disabled={loading}>
+                <i className={mode === "login" ? "ti ti-login-2" : "ti ti-user-plus"}></i>{" "}
+                {loading ? "Kutilmoqda..." : mode === "login" ? "Kirish" : "Ro'yxatdan o'tish"}
               </button>
+
+              {mode === "login" && (
+                <div style={{ textAlign: "center", marginTop: 10 }}>
+                  <button
+                    type="button"
+                    onClick={() => alert("Tez kunda ishga tushadi")}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "var(--orange)",
+                      fontSize: 13,
+                      cursor: "pointer",
+                      fontWeight: 500,
+                      textDecoration: "underline",
+                    }}
+                  >
+                    Parolni unutdingizmi?
+                  </button>
+                </div>
+              )}
+            </form>
+          ) : (
+            <div>
+              {smsStep === 1 && (
+                <form onSubmit={handleSendOtp}>
+                  <h1 className="display">SMS orqali kirish</h1>
+                  <div className="lead">Telefon raqamingizni kiriting va biz sizga tasdiqlash kodini yuboramiz</div>
+                  
+                  <div className="afield">
+                    <label>Telefon raqami</label>
+                    <div className="inp" style={{ borderColor: !phoneValid ? "#d9534f" : undefined }}>
+                      <i className="ti ti-phone"></i>
+                      <input
+                        placeholder="+998 90 123 45 67"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        required
+                      />
+                    </div>
+                    {!phoneValid && (
+                      <div style={{ color: "#d9534f", fontSize: 12, marginTop: 4 }}>
+                        <i className="ti ti-alert-triangle" style={{ fontSize: 13 }}></i> +998 XX XXX XX XX formatida kiriting
+                      </div>
+                    )}
+                  </div>
+
+                  <button type="submit" className="btn-main" disabled={loading}>
+                    <i className="ti ti-mail-fast"></i> {loading ? "Yuborilmoqda..." : "Tasdiqlash kodini yuborish"}
+                  </button>
+                </form>
+              )}
+
+              {smsStep === 2 && (
+                <form onSubmit={handleVerifyOtp}>
+                  <h1 className="display">Kodni tasdiqlash</h1>
+                  <div className="lead">Tasdiqlash kodi telefoningizga yuborildi.</div>
+
+                  {smsSuccessMsg && (
+                    <div
+                      style={{
+                        color: "var(--green, #1d9e75)",
+                        background: "var(--green-tint, #e1f5ee)",
+                        padding: "12px 14px",
+                        borderRadius: 12,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        marginBottom: 16,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        border: "0.5px solid var(--green)"
+                      }}
+                    >
+                      <i className="ti ti-mail-opened" style={{ fontSize: 16 }}></i>
+                      <span>{smsSuccessMsg}</span>
+                    </div>
+                  )}
+
+                  <div className="afield">
+                    <label>SMS Tasdiqlash Kodi</label>
+                    <div className="inp">
+                      <i className="ti ti-key"></i>
+                      <input
+                        placeholder="6 xonali kod"
+                        value={otpCode}
+                        onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                        maxLength={6}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <button type="submit" className="btn-main" disabled={loading}>
+                    <i className="ti ti-shield-check"></i> {loading ? "Kutilmoqda..." : "Kodni tasdiqlash"}
+                  </button>
+
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 14 }}>
+                    <button
+                      type="button"
+                      onClick={() => setSmsStep(1)}
+                      style={{ background: "none", border: "none", color: "var(--text2)", fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+                    >
+                      <i className="ti ti-arrow-left"></i> Telefonni o'zgartirish
+                    </button>
+
+                    {resendTimer > 0 ? (
+                      <span style={{ fontSize: 13, color: "var(--muted)" }}>Qayta yuborish: {resendTimer}s</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleSendOtp}
+                        style={{ background: "none", border: "none", color: "var(--orange)", fontSize: 13, cursor: "pointer", fontWeight: 600 }}
+                      >
+                        Kodni qayta yuborish
+                      </button>
+                    )}
+                  </div>
+                </form>
+              )}
+
+              {smsStep === 3 && (
+                <form onSubmit={handleCompleteRegister}>
+                  <h1 className="display">Ro'yxatdan o'tish</h1>
+                  <div className="lead">Tizimda yangi ekansiz. Davom etish uchun ism va familiyangizni kiriting:</div>
+
+                  <div className="afield">
+                    <label>Ism familiya</label>
+                    <div className="inp">
+                      <i className="ti ti-user"></i>
+                      <input
+                        placeholder="Aziz Karimov"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <button type="submit" className="btn-main" disabled={loading}>
+                    <i className="ti ti-user-plus"></i> {loading ? "Kutilmoqda..." : "Ro'yxatdan o'tishni yakunlash"}
+                  </button>
+
+                  <div style={{ marginTop: 14 }}>
+                    <button
+                      type="button"
+                      onClick={() => setSmsStep(2)}
+                      style={{ background: "none", border: "none", color: "var(--text2)", fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+                    >
+                      <i className="ti ti-arrow-left"></i> Ortga qaytish
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
           )}
 
@@ -255,7 +535,7 @@ export default function Login() {
               <i className="ti ti-brand-apple"></i> Apple
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

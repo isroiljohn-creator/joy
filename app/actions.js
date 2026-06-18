@@ -116,6 +116,96 @@ export async function registerAction(formData) {
   redirect("/profile");
 }
 
+// SMS OTP yuborish
+export async function sendOtpAction(phone) {
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  try {
+    await pool.query("DELETE FROM verification_codes WHERE phone = $1", [phone]);
+    await pool.query("INSERT INTO verification_codes (phone, code) VALUES ($1, $2)", [phone, code]);
+    
+    console.log(`[SMS OTP] Verification code for ${phone} is: ${code}`);
+    return { success: true, demoCode: code };
+  } catch (error) {
+    console.error("sendOtpAction error:", error);
+    return { error: "SMS kod yuborishda xatolik yuz berdi" };
+  }
+}
+
+// SMS OTP tekshirish va Kirish
+export async function verifyOtpAction(phone, code) {
+  try {
+    const { rows: codeRows } = await pool.query(
+      "SELECT * FROM verification_codes WHERE phone = $1 AND code = $2 AND created_at > NOW() - INTERVAL '5 minutes'",
+      [phone, code]
+    );
+
+    if (codeRows.length === 0) {
+      return { error: "Tasdiqlash kodi noto'g'ri yoki muddati o'tgan" };
+    }
+
+    const { rows: userRows } = await pool.query("SELECT * FROM users WHERE phone = $1", [phone]);
+    
+    if (userRows.length > 0) {
+      await pool.query("DELETE FROM verification_codes WHERE phone = $1", [phone]);
+
+      const user = userRows[0];
+      const cookieStore = cookies();
+      cookieStore.set("user_id", String(user.id), COOKIE_OPTIONS);
+      cookieStore.set("user_name", user.name, COOKIE_OPTIONS);
+      cookieStore.set("user_phone", user.phone, COOKIE_OPTIONS);
+      cookieStore.set("user_role", user.role || "user", PUBLIC_COOKIE_OPTIONS);
+      cookieStore.set("is_logged_in", "true", PUBLIC_COOKIE_OPTIONS);
+      
+      return { success: true, exists: true };
+    } else {
+      return { success: true, exists: false };
+    }
+  } catch (error) {
+    console.error("verifyOtpAction error:", error);
+    return { error: "Kod tekshirishda xatolik yuz berdi" };
+  }
+}
+
+// SMS orqali ro'yxatdan o'tishni yakunlash
+export async function completeSmsRegisterAction(phone, code, name) {
+  try {
+    const { rows: codeRows } = await pool.query(
+      "SELECT * FROM verification_codes WHERE phone = $1 AND code = $2 AND created_at > NOW() - INTERVAL '5 minutes'",
+      [phone, code]
+    );
+
+    if (codeRows.length === 0) {
+      return { error: "Tasdiqlash kodi noto'g'ri yoki muddati o'tgan. Iltimos, qaytadan kod oling." };
+    }
+
+    await pool.query("DELETE FROM verification_codes WHERE phone = $1", [phone]);
+
+    const { rows: existingUser } = await pool.query("SELECT * FROM users WHERE phone = $1", [phone]);
+    if (existingUser.length > 0) {
+      return { error: "Ushbu telefon raqami allaqachon ro'yxatdan o'tgan" };
+    }
+
+    const dummyPassword = hashPassword(Math.random().toString(36));
+    const { rows: userRows } = await pool.query(
+      "INSERT INTO users (name, phone, password) VALUES ($1, $2, $3) RETURNING *",
+      [name, phone, dummyPassword]
+    );
+
+    const user = userRows[0];
+    const cookieStore = cookies();
+    cookieStore.set("user_id", String(user.id), COOKIE_OPTIONS);
+    cookieStore.set("user_name", user.name, COOKIE_OPTIONS);
+    cookieStore.set("user_phone", user.phone, COOKIE_OPTIONS);
+    cookieStore.set("user_role", user.role || "user", PUBLIC_COOKIE_OPTIONS);
+    cookieStore.set("is_logged_in", "true", PUBLIC_COOKIE_OPTIONS);
+
+    return { success: true };
+  } catch (error) {
+    console.error("completeSmsRegisterAction error:", error);
+    return { error: "Ro'yxatdan o'tishda xatolik yuz berdi" };
+  }
+}
+
 // Tizimdan chiqish (Logout)
 export async function logoutAction() {
   const cookieStore = cookies();
