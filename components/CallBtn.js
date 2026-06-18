@@ -6,93 +6,62 @@ export default function CallBtn({ phone = "+998 90 123 45 67" }) {
 
   const cleanPhone = phone.replace(/\s/g, "");
 
-  const handleClick = (e) => {
-    if (!revealed) {
-      e.preventDefault();
-      setRevealed(true);
-    }
-  };
-
   if (!revealed) {
     return (
       <a
         href="#"
-        onClick={handleClick}
+        onClick={(e) => { e.preventDefault(); setRevealed(true); }}
         className="cbtn primary"
-        style={{
-          textDecoration: "none",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 8,
-          transition: "all 0.2s ease",
-        }}
+        style={{ textDecoration: "none" }}
       >
-        <i className="ti ti-phone"></i>
-        {"Qo'ng'iroq qilish"}
+        <i className="ti ti-phone" style={{ fontSize: 18, flexShrink: 0 }}></i>
+        Qo&apos;ng&apos;iroq qilish
       </a>
     );
   }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%" }}>
-      {/* Phone number display */}
+      {/* Telefon raqami */}
       <div style={{
         textAlign: "center",
-        fontWeight: 600,
-        fontSize: 15,
+        fontWeight: 700,
+        fontSize: 16,
         color: "var(--ink)",
-        padding: "6px 0",
+        padding: "4px 0 2px",
+        letterSpacing: "0.02em",
       }}>
         {phone}
       </div>
 
-      {/* Action buttons row */}
-      <div style={{ display: "flex", gap: 8 }}>
-        <a
-          href={`tel:${cleanPhone}`}
-          className="cbtn primary"
-          style={{
-            textDecoration: "none",
-            flex: 1,
-            padding: "11px 8px",
-            margin: 0,
-            fontSize: 13,
-          }}
-        >
-          <i className="ti ti-phone" style={{ fontSize: 17, flexShrink: 0 }}></i>
-          {"Qo'ng'iroq"}
-        </a>
+      {/* Qo'ng'iroq — katta tugma */}
+      <a
+        href={`tel:${cleanPhone}`}
+        className="cbtn primary"
+        style={{ textDecoration: "none" }}
+      >
+        <i className="ti ti-phone" style={{ fontSize: 18, flexShrink: 0 }}></i>
+        Qo&apos;ng&apos;iroq
+      </a>
 
+      {/* WhatsApp + Telegram — ikki teng tugma */}
+      <div style={{ display: "flex", gap: 8 }}>
         <a
           href={`https://wa.me/${cleanPhone}`}
           target="_blank"
           rel="noopener noreferrer"
           className="cbtn gh"
-          style={{
-            textDecoration: "none",
-            flex: 1,
-            padding: "11px 8px",
-            margin: 0,
-            fontSize: 13,
-          }}
+          style={{ textDecoration: "none", flex: 1 }}
         >
           <i className="ti ti-brand-whatsapp" style={{ fontSize: 17, flexShrink: 0 }}></i>
           WhatsApp
         </a>
-
         <a
           href={`https://t.me/${cleanPhone}`}
           target="_blank"
           rel="noopener noreferrer"
           className="cbtn gh"
-          style={{
-            textDecoration: "none",
-            flex: 1,
-            padding: "11px 8px",
-            margin: 0,
-            fontSize: 13,
-          }}
+          style={{ textDecoration: "none", flex: 1 }}
         >
           <i className="ti ti-brand-telegram" style={{ fontSize: 17, flexShrink: 0 }}></i>
           Telegram

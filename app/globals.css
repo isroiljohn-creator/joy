@@ -245,9 +245,10 @@ footer{border-top:1px solid var(--sand);padding:36px 0;display:flex;align-items:
 .oname{font-weight:600;font-size:15px;display:flex;align-items:center;gap:6px}
 .oname i{color:var(--orange);font-size:16px}
 .orole{font-size:13px;color:var(--muted)}
-.cbtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border-radius:16px;font-weight:600;font-size:15px;cursor:pointer;border:none;white-space:nowrap;overflow:hidden;min-width:0}
-.cbtn.primary{background:var(--orange);color:#fff;margin-bottom:10px}.cbtn.primary:hover{background:var(--orange-dark)}
+.cbtn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:13px 10px;border-radius:14px;font-weight:600;font-size:14px;cursor:pointer;border:none;white-space:nowrap;overflow:hidden;min-width:0;transition:all .2s}
+.cbtn.primary{background:var(--orange);color:#fff}.cbtn.primary:hover{background:var(--orange-dark)}
 .cbtn.gh{background:#fff;border:1px solid var(--sand);color:var(--ink)}.cbtn.gh:hover{border-color:var(--orange);color:var(--orange)}
+.side-actions{display:flex;flex-direction:column;gap:10px;margin-top:4px}
 .mort{margin-top:18px;background:var(--cream);border-radius:16px;padding:16px}
 .mort .mv{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:22px;margin:4px 0}
 @media(max-width:880px){.dbody{grid-template-columns:1fr}.keyspecs{grid-template-columns:1fr 1fr}.gal{height:auto;grid-template-columns:1fr}.gal .g{height:200px}.gal .main{grid-row:auto;height:280px}}

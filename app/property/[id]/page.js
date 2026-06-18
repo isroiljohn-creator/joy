@@ -242,9 +242,10 @@ export default async function Property({ params }) {
                 </div>
               </div>
               
-              <CallBtn phone={ownerPhone} />
-              
-              <MessageModal listingId={l.id} receiverOwner={l.owner} receiverId={l.ownerId} />
+              <div className="side-actions">
+                <CallBtn phone={ownerPhone} />
+                <MessageModal listingId={l.id} receiverOwner={l.owner} receiverId={l.ownerId} />
+              </div>
               
               <PropertyExtras priceNum={l.priceNum} listingId={l.id} />
             </aside>
