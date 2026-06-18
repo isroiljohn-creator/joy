@@ -19,26 +19,27 @@ async function probeSSL() {
       const host = match[4];
       const port = parseInt(match[5], 10);
       
-      dns.lookup(host, { all: true }, (err, addresses) => {
+      dns.resolve6(host, (err, addresses) => {
         if (err) {
-          return resolve(`DNS Lookup failed for ${host}: ${err.message}`);
+          return resolve(`DNS Resolve6 failed for ${host}: ${err.message}`);
         }
         
-        const addrInfo = addresses.map(a => `${a.address} (${a.family})`).join(", ");
-        
+        const ipv6 = addresses[0];
         const socket = new net.Socket();
-        socket.connect(port, host, () => {
+        
+        // Connect directly to the IPv6 address
+        socket.connect({ port, host: ipv6, family: 6 }, () => {
           const sslRequest = Buffer.from([0, 0, 0, 8, 4, 210, 22, 47]);
           socket.write(sslRequest);
         });
         
         socket.on("data", (data) => {
-          resolve(`DNS: ${addrInfo} | Host: ${host}:${port} | Hex: ${data.toString("hex")} | String: ${data.toString("utf8")}`);
+          resolve(`IPv6 Direct (${ipv6}:${port}) | Hex: ${data.toString("hex")} | String: ${data.toString("utf8")}`);
           socket.destroy();
         });
         
         socket.on("error", (err) => {
-          resolve(`DNS: ${addrInfo} | Host: ${host}:${port} | Socket error: ${err.message}`);
+          resolve(`IPv6 Direct (${ipv6}:${port}) | Socket error: ${err.message}`);
         });
       });
     } catch (e) {
