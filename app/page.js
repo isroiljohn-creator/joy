@@ -12,38 +12,16 @@ export const dynamic = "force-dynamic";
 async function probeSSL() {
   return new Promise((resolve) => {
     const url = process.env.DATABASE_URL;
-    if (!url) return resolve("No DATABASE_URL");
     try {
-      const match = url.match(/([^:]+):\/\/([^:]+):([^@]+)@([^:]+):([^\/]+)\/(.+)/);
-      if (!match) return resolve("Failed regex parse of DATABASE_URL");
-      const host = match[4];
-      const port = parseInt(match[5], 10);
-      
-      dns.resolve6(host, (err, addresses) => {
-        if (err) {
-          return resolve(`DNS Resolve6 failed for ${host}: ${err.message}`);
-        }
-        
-        const ipv6 = addresses[0];
-        const socket = new net.Socket();
-        
-        // Connect directly to the IPv6 address
-        socket.connect({ port, host: ipv6, family: 6 }, () => {
-          const sslRequest = Buffer.from([0, 0, 0, 8, 4, 210, 22, 47]);
-          socket.write(sslRequest);
-        });
-        
-        socket.on("data", (data) => {
-          resolve(`IPv6 Direct (${ipv6}:${port}) | Hex: ${data.toString("hex")} | String: ${data.toString("utf8")}`);
-          socket.destroy();
-        });
-        
-        socket.on("error", (err) => {
-          resolve(`IPv6 Direct (${ipv6}:${port}) | Socket error: ${err.message}`);
+      dns.resolve6("postgres.railway.internal", (err1, addrs1) => {
+        dns.resolve6("joy.railway.internal", (err2, addrs2) => {
+          const pgIPs = err1 ? `Error: ${err1.message}` : addrs1.join(", ");
+          const joyIPs = err2 ? `Error: ${err2.message}` : addrs2.join(", ");
+          resolve(`postgres.railway.internal resolved: [${pgIPs}] | joy.railway.internal resolved: [${joyIPs}]`);
         });
       });
     } catch (e) {
-      resolve(`Error parsing URL: ${e.message}`);
+      resolve(`Error in probe: ${e.message}`);
     }
   });
 }
