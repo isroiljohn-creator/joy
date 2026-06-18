@@ -12,29 +12,25 @@ export const dynamic = "force-dynamic";
 async function probeSSL() {
   return new Promise((resolve) => {
     try {
-      const host = "acela.proxy.rlwy.net";
-      const port = 19142;
+      const host = "postgres.railway.internal";
+      const port = 5432;
       
-      dns.resolve4(host, (err, addresses) => {
-        if (err) {
-          return resolve(`DNS Resolve4 failed for ${host}: ${err.message}`);
-        }
-        
-        const ipv4 = addresses[0];
+      dns.resolve6(host, (err, addresses) => {
+        if (err) return resolve(`DNS failed: ${err.message}`);
+        const ipv6 = addresses[0];
         const socket = new net.Socket();
         
-        socket.connect({ port, host: ipv4, family: 4 }, () => {
-          const sslRequest = Buffer.from([0, 0, 0, 8, 4, 210, 22, 47]);
-          socket.write(sslRequest);
+        socket.connect({ port, host: ipv6, family: 6 }, () => {
+          socket.write("GET / HTTP/1.1\r\nHost: postgres.railway.internal\r\nConnection: close\r\n\r\n");
         });
         
         socket.on("data", (data) => {
-          resolve(`IPv4 Direct (${ipv4}:${port}) | Hex: ${data.toString("hex")} | String: ${data.toString("utf8")}`);
+          resolve(`HTTP GET Response from ${host}: ${data.toString("utf8")}`);
           socket.destroy();
         });
         
         socket.on("error", (err) => {
-          resolve(`IPv4 Direct (${ipv4}:${port}) | Socket error: ${err.message}`);
+          resolve(`HTTP GET Error: ${err.message}`);
         });
       });
     } catch (e) {
