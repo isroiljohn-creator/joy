@@ -4,45 +4,10 @@ import SearchBox from "@/components/SearchBox";
 import Footer from "@/components/Footer";
 import MobileHome from "@/components/MobileHome";
 import { getListings, getListingCount, categories } from "@/lib/data";
-import net from "net";
-import dns from "dns";
 
 export const dynamic = "force-dynamic";
 
-async function probeSSL() {
-  return new Promise((resolve) => {
-    try {
-      const host = "postgres.railway.internal";
-      const port = 5432;
-      
-      dns.resolve6(host, (err, addresses) => {
-        if (err) return resolve(`DNS failed: ${err.message}`);
-        const ipv6 = addresses[0];
-        const socket = new net.Socket();
-        
-        socket.connect({ port, host: ipv6, family: 6 }, () => {
-          socket.write("GET / HTTP/1.1\r\nHost: postgres.railway.internal\r\nConnection: close\r\n\r\n");
-        });
-        
-        socket.on("data", (data) => {
-          resolve(`HTTP GET Response from ${host}: ${data.toString("utf8")}`);
-          socket.destroy();
-        });
-        
-        socket.on("error", (err) => {
-          resolve(`HTTP GET Error: ${err.message}`);
-        });
-      });
-    } catch (e) {
-      resolve(`Error in probe: ${e.message}`);
-    }
-  });
-}
-
 export default async function Home() {
-  const probeResult = await probeSSL();
-  console.log("PROBE SSL RESULT:", probeResult);
-
   const allActive = await getListings();
   const featured = allActive.slice(0, 3);
   const count = await getListingCount();
