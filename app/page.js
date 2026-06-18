@@ -109,11 +109,23 @@ export default async function Home() {
             Hammasi <i className="ti ti-arrow-right"></i>
           </Link>
         </div>
-        <div className="grid">
-          {featured.map((l) => (
-            <ListingCard l={l} key={l.id} />
-          ))}
-        </div>
+        {featured.length === 0 ? (
+          <div style={{ padding: "48px 24px", background: "#fff", borderRadius: 24, textAlign: "center", border: ".5px solid var(--sand)" }}>
+            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "var(--orange-tint)", color: "var(--orange)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+              <i className="ti ti-search-off" style={{ fontSize: 28 }}></i>
+            </div>
+            <h3 style={{ fontFamily: "'Bricolage Grotesque',sans-serif", fontSize: 20, fontWeight: 700, margin: "0 0 8px", color: "var(--ink)" }}>Tavsiyalar topilmadi</h3>
+            <p style={{ fontSize: 14, color: "var(--muted)", lineHeight: 1.5, margin: "0 0 20px" }}>
+              Hozircha tavsiya etilgan e&apos;lonlar mavjud emas yoki ma&apos;lumotlar bazasi bilan aloqa uzilgan. Sahifani qayta yuklab ko&apos;ring.
+            </p>
+          </div>
+        ) : (
+          <div className="grid">
+            {featured.map((l) => (
+              <ListingCard l={l} key={l.id} />
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="wrap">
