@@ -99,7 +99,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="wrap">
+      <section className="wrap" style={{ paddingBottom: 50 }}>
         <div className="sec-head">
           <div>
             <h2 className="display">Sotuvga tavsiyalar</h2>

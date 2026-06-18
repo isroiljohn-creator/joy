@@ -9,7 +9,7 @@ html,body{background:var(--cream);color:var(--ink);overflow-x:hidden;max-width:1
 body{font-family:'Plus Jakarta Sans',sans-serif;-webkit-font-smoothing:antialiased}
 .display{font-family:'Bricolage Grotesque',sans-serif;letter-spacing:-.02em}
 a{text-decoration:none;color:inherit}
-.wrap{max-width:1400px;margin:0 auto;padding-left:48px;padding-right:48px;overflow-x:hidden}
+.wrap{max-width:1400px;margin:0 auto;padding:0 48px;overflow-x:hidden}
 ::selection{background:var(--orange-tint)}
 button{font-family:inherit}
 
@@ -97,7 +97,7 @@ nav{position:sticky;top:0;z-index:50;background:rgba(251,247,243,.85);backdrop-f
 @media(max-width:860px){.hero{grid-template-columns:1fr;padding:40px 0 32px}.hero h1{font-size:42px}.hero-art{height:340px}}
 @media(max-width:768px){
   /* Barcha konteynerlar bir xil padding */
-  .wrap{padding-left:20px!important;padding-right:20px!important;overflow-x:hidden}
+  .wrap{padding:0 20px!important;overflow-x:hidden}
   .nav-in{padding:10px 20px;gap:10px}
   .nav-links{display:none!important}
   .theme-toggle{width:34px;height:34px;font-size:15px}
@@ -413,7 +413,7 @@ html { scroll-behavior: smooth }
   /* Hide desktop elements */
   nav, footer, .hero-art, .sec-head .display + .sub,
   .why, .cta, .feats { display: none !important; }
-  .wrap { padding-left: 0 !important; padding-right: 0 !important; max-width: 100% !important; }
+  .wrap { padding: 0 !important; max-width: 100% !important; }
 
   /* Listings page mobile */
   .tabs-row { padding: 10px 16px; gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
