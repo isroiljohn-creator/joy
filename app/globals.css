@@ -70,7 +70,7 @@ nav{position:sticky;top:0;z-index:50;background:rgba(251,247,243,.85);backdrop-f
 
 /* HERO */
 .hero{padding-top:60px;padding-bottom:48px;display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
-.tagline{display:inline-flex;align-items:center;gap:7px;background:var(--orange);color:var(--ink);font-size:13px;font-weight:600;padding:7px 14px;border-radius:20px;margin-bottom:22px}
+.tagline{display:inline-flex;align-items:center;gap:7px;background:var(--orange);color:#fff;font-size:13px;font-weight:600;padding:7px 14px;border-radius:20px;margin-bottom:22px}
 .hero h1{font-family:'Bricolage Grotesque',sans-serif;font-size:54px;line-height:1.05;font-weight:700;letter-spacing:-.03em;overflow-wrap:break-word;word-break:break-word}
 .hero h1 .acc{color:var(--orange)}
 .hero p{font-size:17px;color:var(--text2);line-height:1.6;margin:20px 0 28px;max-width:460px}
