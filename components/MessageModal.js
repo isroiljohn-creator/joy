@@ -26,9 +26,9 @@ export default function MessageModal({ listingId, receiverOwner, receiverId, btn
       return acc;
     }, {});
 
-    if (cookiesList.user_id && cookiesList.user_name) {
+    if (cookiesList.is_logged_in === "true" && cookiesList.user_display_name) {
       setIsLoggedIn(true);
-      setSenderName(decodeURIComponent(cookiesList.user_name));
+      setSenderName(decodeURIComponent(cookiesList.user_display_name));
       setSenderPhone(decodeURIComponent(cookiesList.user_phone || ""));
     }
   }, [isOpen]);

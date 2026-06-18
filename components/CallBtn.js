@@ -54,17 +54,13 @@ export default function CallBtn({ phone = "+998 90 123 45 67" }) {
           className="cbtn primary"
           style={{
             textDecoration: "none",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 6,
             flex: 1,
-            padding: "10px 0",
+            padding: "11px 8px",
             margin: 0,
             fontSize: 13,
           }}
         >
-          <i className="ti ti-phone" style={{ fontSize: 18 }}></i>
+          <i className="ti ti-phone" style={{ fontSize: 17, flexShrink: 0 }}></i>
           {"Qo'ng'iroq"}
         </a>
 
@@ -75,18 +71,13 @@ export default function CallBtn({ phone = "+998 90 123 45 67" }) {
           className="cbtn gh"
           style={{
             textDecoration: "none",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 6,
             flex: 1,
-            padding: "10px 0",
+            padding: "11px 8px",
             margin: 0,
             fontSize: 13,
-            color: "var(--ink)",
           }}
         >
-          <i className="ti ti-brand-whatsapp" style={{ fontSize: 18 }}></i>
+          <i className="ti ti-brand-whatsapp" style={{ fontSize: 17, flexShrink: 0 }}></i>
           WhatsApp
         </a>
 
@@ -97,18 +88,13 @@ export default function CallBtn({ phone = "+998 90 123 45 67" }) {
           className="cbtn gh"
           style={{
             textDecoration: "none",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 6,
             flex: 1,
-            padding: "10px 0",
+            padding: "11px 8px",
             margin: 0,
             fontSize: 13,
-            color: "var(--ink)",
           }}
         >
-          <i className="ti ti-brand-telegram" style={{ fontSize: 18 }}></i>
+          <i className="ti ti-brand-telegram" style={{ fontSize: 17, flexShrink: 0 }}></i>
           Telegram
         </a>
       </div>
