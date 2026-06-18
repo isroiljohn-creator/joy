@@ -1,5 +1,6 @@
 import "./globals.css";
 import MobileNav from "@/components/MobileNav";
+import AlertProvider from "@/components/AlertProvider";
 
 export const metadata = {
   title: "Joy — Ko'chmas mulk platformasi",
@@ -39,8 +40,10 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
-        {children}
-        <MobileNav />
+        <AlertProvider>
+          {children}
+          <MobileNav />
+        </AlertProvider>
       </body>
     </html>
   );

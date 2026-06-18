@@ -206,6 +206,47 @@ export async function completeSmsRegisterAction(phone, code, name) {
   }
 }
 
+// Google orqali kirish / ro'yxatdan o'tish
+export async function googleLoginAction(email, name) {
+  try {
+    const { rows: existingUser } = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+    
+    if (existingUser.length > 0) {
+      const user = existingUser[0];
+      const cookieStore = cookies();
+      cookieStore.set("user_id", String(user.id), COOKIE_OPTIONS);
+      cookieStore.set("user_name", user.name, COOKIE_OPTIONS);
+      cookieStore.set("user_phone", user.phone, COOKIE_OPTIONS);
+      cookieStore.set("user_role", user.role || "user", PUBLIC_COOKIE_OPTIONS);
+      cookieStore.set("is_logged_in", "true", PUBLIC_COOKIE_OPTIONS);
+      
+      return { success: true };
+    } else {
+      const randomDigits = Math.floor(1000000 + Math.random() * 9000000).toString();
+      const placeholderPhone = `google_${randomDigits}`;
+      const dummyPassword = hashPassword(Math.random().toString(36));
+
+      const { rows: newUser } = await pool.query(
+        "INSERT INTO users (name, phone, password, email) VALUES ($1, $2, $3, $4) RETURNING *",
+        [name, placeholderPhone, dummyPassword, email]
+      );
+
+      const user = newUser[0];
+      const cookieStore = cookies();
+      cookieStore.set("user_id", String(user.id), COOKIE_OPTIONS);
+      cookieStore.set("user_name", user.name, COOKIE_OPTIONS);
+      cookieStore.set("user_phone", user.phone, COOKIE_OPTIONS);
+      cookieStore.set("user_role", user.role || "user", PUBLIC_COOKIE_OPTIONS);
+      cookieStore.set("is_logged_in", "true", PUBLIC_COOKIE_OPTIONS);
+
+      return { success: true };
+    }
+  } catch (error) {
+    console.error("googleLoginAction error:", error);
+    return { error: "Google orqali tizimga kirishda xatolik yuz berdi" };
+  }
+}
+
 // Tizimdan chiqish (Logout)
 export async function logoutAction() {
   const cookieStore = cookies();
