@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const allActive = await getListings();
+  console.log("LISTINGS FETCHED:", allActive.length);
   const featured = allActive.slice(0, 3);
   const count = await getListingCount();
 
