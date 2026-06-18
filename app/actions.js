@@ -78,6 +78,7 @@ export async function loginAction(formData) {
     const cookieStore = cookies();
     cookieStore.set("user_id", String(user.id), COOKIE_OPTIONS);
     cookieStore.set("user_name", user.name, COOKIE_OPTIONS);
+    cookieStore.set("user_display_name", user.name, PUBLIC_COOKIE_OPTIONS);
     cookieStore.set("user_phone", user.phone, COOKIE_OPTIONS);
     cookieStore.set("user_role", user.role || "user", PUBLIC_COOKIE_OPTIONS);
     cookieStore.set("is_logged_in", "true", PUBLIC_COOKIE_OPTIONS);
@@ -105,6 +106,7 @@ export async function registerAction(formData) {
     const cookieStore = cookies();
     cookieStore.set("user_id", String(user.id), COOKIE_OPTIONS);
     cookieStore.set("user_name", user.name, COOKIE_OPTIONS);
+    cookieStore.set("user_display_name", user.name, PUBLIC_COOKIE_OPTIONS);
     cookieStore.set("user_phone", user.phone, COOKIE_OPTIONS);
     cookieStore.set("user_role", user.role || "user", PUBLIC_COOKIE_OPTIONS);
     cookieStore.set("is_logged_in", "true", PUBLIC_COOKIE_OPTIONS);
@@ -152,6 +154,7 @@ export async function verifyOtpAction(phone, code) {
       const cookieStore = cookies();
       cookieStore.set("user_id", String(user.id), COOKIE_OPTIONS);
       cookieStore.set("user_name", user.name, COOKIE_OPTIONS);
+      cookieStore.set("user_display_name", user.name, PUBLIC_COOKIE_OPTIONS);
       cookieStore.set("user_phone", user.phone, COOKIE_OPTIONS);
       cookieStore.set("user_role", user.role || "user", PUBLIC_COOKIE_OPTIONS);
       cookieStore.set("is_logged_in", "true", PUBLIC_COOKIE_OPTIONS);
@@ -195,6 +198,7 @@ export async function completeSmsRegisterAction(phone, code, name) {
     const cookieStore = cookies();
     cookieStore.set("user_id", String(user.id), COOKIE_OPTIONS);
     cookieStore.set("user_name", user.name, COOKIE_OPTIONS);
+    cookieStore.set("user_display_name", user.name, PUBLIC_COOKIE_OPTIONS);
     cookieStore.set("user_phone", user.phone, COOKIE_OPTIONS);
     cookieStore.set("user_role", user.role || "user", PUBLIC_COOKIE_OPTIONS);
     cookieStore.set("is_logged_in", "true", PUBLIC_COOKIE_OPTIONS);
@@ -216,6 +220,7 @@ export async function googleLoginAction(email, name) {
       const cookieStore = cookies();
       cookieStore.set("user_id", String(user.id), COOKIE_OPTIONS);
       cookieStore.set("user_name", user.name, COOKIE_OPTIONS);
+      cookieStore.set("user_display_name", user.name, PUBLIC_COOKIE_OPTIONS);
       cookieStore.set("user_phone", user.phone, COOKIE_OPTIONS);
       cookieStore.set("user_role", user.role || "user", PUBLIC_COOKIE_OPTIONS);
       cookieStore.set("is_logged_in", "true", PUBLIC_COOKIE_OPTIONS);
@@ -235,6 +240,7 @@ export async function googleLoginAction(email, name) {
       const cookieStore = cookies();
       cookieStore.set("user_id", String(user.id), COOKIE_OPTIONS);
       cookieStore.set("user_name", user.name, COOKIE_OPTIONS);
+      cookieStore.set("user_display_name", user.name, PUBLIC_COOKIE_OPTIONS);
       cookieStore.set("user_phone", user.phone, COOKIE_OPTIONS);
       cookieStore.set("user_role", user.role || "user", PUBLIC_COOKIE_OPTIONS);
       cookieStore.set("is_logged_in", "true", PUBLIC_COOKIE_OPTIONS);
@@ -252,6 +258,7 @@ export async function logoutAction() {
   const cookieStore = cookies();
   cookieStore.delete("user_id");
   cookieStore.delete("user_name");
+  cookieStore.delete("user_display_name");
   cookieStore.delete("user_phone");
   cookieStore.delete("user_role");
   cookieStore.delete("is_logged_in");
@@ -612,6 +619,7 @@ export async function updateSettingsAction(formData) {
     // Cookie-larni yangilaymiz
     const cookieStore = cookies();
     cookieStore.set("user_name", name, COOKIE_OPTIONS);
+    cookieStore.set("user_display_name", name, PUBLIC_COOKIE_OPTIONS);
     cookieStore.set("user_phone", phone, COOKIE_OPTIONS);
     
     revalidatePath("/profile");

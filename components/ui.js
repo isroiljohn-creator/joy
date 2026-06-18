@@ -23,10 +23,10 @@ export function Nav() {
       return acc;
     }, {});
 
-    if (cookiesList.user_id && cookiesList.user_name) {
+    if (cookiesList.is_logged_in === "true" && cookiesList.user_display_name) {
       setUser({
-        id: cookiesList.user_id,
-        name: decodeURIComponent(cookiesList.user_name),
+        id: cookiesList.is_logged_in,
+        name: decodeURIComponent(cookiesList.user_display_name),
         role: cookiesList.user_role || "user"
       });
     }
@@ -52,8 +52,10 @@ export function Nav() {
   const handleLogout = () => {
     document.cookie = "user_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
     document.cookie = "user_name=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+    document.cookie = "user_display_name=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
     document.cookie = "user_phone=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
     document.cookie = "user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+    document.cookie = "is_logged_in=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
     window.location.href = "/";
   };
 
