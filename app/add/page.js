@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef } from "react";
-import { Nav } from "@/components/ui";
+import { Nav, CustomSelect } from "@/components/ui";
 import { createListingAction } from "@/app/actions";
 
 const cats = [
@@ -176,27 +176,21 @@ export default function Add() {
               <div className="frow">
                 <div className="field">
                   <label>Xonalar soni</label>
-                  <select
+                  <CustomSelect
                     value={rooms}
-                    onChange={(e) => setRooms(e.target.value)}
-                  >
-                    <option>1 xona</option>
-                    <option>2 xona</option>
-                    <option>3 xona</option>
-                    <option>4 xona</option>
-                    <option>5+ xona</option>
-                  </select>
+                    onChange={setRooms}
+                    options={["1 xona", "2 xona", "3 xona", "4 xona", "5+ xona"]}
+                    placeholder="Xonalar soni"
+                  />
                 </div>
                 <div className="field">
                   <label>Hammomlar</label>
-                  <select
+                  <CustomSelect
                     value={baths}
-                    onChange={(e) => setBaths(e.target.value)}
-                  >
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                  </select>
+                    onChange={setBaths}
+                    options={["1", "2", "3"]}
+                    placeholder="Hammomlar"
+                  />
                 </div>
               </div>
               <div className="frow">
@@ -237,14 +231,12 @@ export default function Add() {
                 </div>
                 <div className="field">
                   <label>To&apos;lov turi</label>
-                  <select
+                  <CustomSelect
                     value={paymentType}
-                    onChange={(e) => setPaymentType(e.target.value)}
-                  >
-                    <option>Sotuv</option>
-                    <option>Oylik ijara</option>
-                    <option>Kunlik ijara</option>
-                  </select>
+                    onChange={setPaymentType}
+                    options={["Sotuv", "Oylik ijara", "Kunlik ijara"]}
+                    placeholder="To'lov turi"
+                  />
                 </div>
               </div>
             </div>
@@ -256,15 +248,15 @@ export default function Add() {
               <div className="frow">
                 <div className="field">
                   <label>Tuman</label>
-                  <select
+                  <CustomSelect
                     value={district}
-                    onChange={(e) => setDistrict(e.target.value)}
-                  >
-                    <option value="">Tanlang...</option>
-                    {districts.map(d => (
-                      <option key={d}>{d}</option>
-                    ))}
-                  </select>
+                    onChange={setDistrict}
+                    options={[
+                      { value: "", label: "Tanlang..." },
+                      ...districts.map(d => ({ value: d, label: d }))
+                    ]}
+                    placeholder="Tanlang..."
+                  />
                 </div>
                 <div className="field">
                   <label>Mahalla / kvartal</label>

@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { Nav } from "@/components/ui";
+import { Nav, CustomSelect } from "@/components/ui";
 import { 
   adminApproveListingAction, 
   adminToggleTopListingAction, 
@@ -515,26 +515,30 @@ export default function AdminClient({ user, stats, listings, users, messages }) 
                 value={listingsSearch}
                 onChange={(e) => setListingsSearch(e.target.value)}
               />
-              <select
-                className="admin-select"
+              <CustomSelect
                 value={listingsStatus}
-                onChange={(e) => setListingsStatus(e.target.value)}
-              >
-                <option value="all">Barcha statuslar</option>
-                <option value="active">Faol</option>
-                <option value="pending">Moderatsiyada</option>
-              </select>
-              <select
-                className="admin-select"
+                onChange={setListingsStatus}
+                options={[
+                  { value: "all", label: "Barcha statuslar" },
+                  { value: "active", label: "Faol" },
+                  { value: "pending", label: "Moderatsiyada" },
+                ]}
+                placeholder="Barcha statuslar"
+                className="admin-csel"
+              />
+              <CustomSelect
                 value={listingsCategory}
-                onChange={(e) => setListingsCategory(e.target.value)}
-              >
-                <option value="all">Barcha toifalar</option>
-                <option value="Yangi uylar">Yangi uylar</option>
-                <option value="Ikkilamchi">Ikkilamchi</option>
-                <option value="Ijara">Ijara</option>
-                <option value="Ofis">Ofis</option>
-              </select>
+                onChange={setListingsCategory}
+                options={[
+                  { value: "all", label: "Barcha toifalar" },
+                  { value: "Yangi uylar", label: "Yangi uylar" },
+                  { value: "Ikkilamchi", label: "Ikkilamchi" },
+                  { value: "Ijara", label: "Ijara" },
+                  { value: "Ofis", label: "Ofis" },
+                ]}
+                placeholder="Barcha toifalar"
+                className="admin-csel"
+              />
             </div>
 
             {filteredListings.length === 0 ? (

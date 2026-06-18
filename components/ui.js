@@ -337,3 +337,71 @@ export function ListingCard({ l, isFavorite = false }) {
     </Link>
   );
 }
+
+// ─── Custom Select ────────────────────────────────────────────────────────────
+export function CustomSelect({ value, onChange, options, placeholder, className = "" }) {
+  const [open, setOpen] = useState(false);
+  const ref = useState(null);
+  const containerRef = { current: null };
+
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const selected = options.find((o) => (typeof o === "string" ? o : o.value) === value);
+  const label = selected
+    ? typeof selected === "string" ? selected : selected.label
+    : placeholder || "Tanlang...";
+
+  return (
+    <div
+      className={"csel-wrap " + className}
+      ref={(el) => { containerRef.current = el; }}
+      style={{ position: "relative" }}
+    >
+      <button
+        type="button"
+        className={"csel-trigger" + (open ? " open" : "")}
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        <span className="csel-label">{label}</span>
+        <i className={"ti " + (open ? "ti-chevron-up" : "ti-chevron-down") + " csel-arrow"}></i>
+      </button>
+
+      {open && (
+        <div className="csel-dropdown" role="listbox">
+          {options.map((o) => {
+            const val = typeof o === "string" ? o : o.value;
+            const lbl = typeof o === "string" ? o : o.label;
+            const active = val === value;
+            return (
+              <button
+                key={val}
+                type="button"
+                role="option"
+                aria-selected={active}
+                className={"csel-option" + (active ? " active" : "")}
+                onClick={() => {
+                  onChange(val);
+                  setOpen(false);
+                }}
+              >
+                {active && <i className="ti ti-check csel-check"></i>}
+                {lbl}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}

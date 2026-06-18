@@ -1,6 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { CustomSelect } from "@/components/ui";
 
 const TYPES = [
   { key: "Yangi uylar", icon: "ti-building-skyscraper" },
@@ -264,16 +265,15 @@ export default function SearchBox() {
             {/* Tuman */}
             <div className="fp-section">
               <div className="fp-label">Tuman</div>
-              <select
-                className="fp-select"
+              <CustomSelect
                 value={district}
-                onChange={(e) => setDistrict(e.target.value)}
-              >
-                <option value="">Barcha tumanlar</option>
-                {DISTRICTS.map((d) => (
-                  <option key={d} value={d}>{d}</option>
-                ))}
-              </select>
+                onChange={setDistrict}
+                options={[
+                  { value: "", label: "Barcha tumanlar" },
+                  ...DISTRICTS.map(d => ({ value: d, label: d }))
+                ]}
+                placeholder="Barcha tumanlar"
+              />
             </div>
 
             {/* Amallar */}
