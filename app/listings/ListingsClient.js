@@ -26,6 +26,7 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
 
   // URL-dagi toifani dastlabki holat qilib olamiz
   const urlCat = searchParams.get("cat");
+  const viewParam = searchParams.get("view");
   const [active, setActive] = useState(urlCat || "Yangi uylar");
   const [activePin, setActivePin] = useState(null);
   const [hoveredCardId, setHoveredCardId] = useState(null);
@@ -33,7 +34,7 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
   // Saralash holatlari
   const [sortBy, setSortBy] = useState("recommended");
   const [sortOpen, setSortOpen] = useState(false);
-  const [viewMode, setViewMode] = useState("list"); // list or map
+  const [viewMode, setViewMode] = useState(viewParam === "map" ? "map" : "list"); // list or map
   const sortRef = useRef(null);
 
   // Filtr holatlari
@@ -53,6 +54,15 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
       setActive(urlCat);
     }
   }, [urlCat]);
+
+  // URL-dagi viewParam o'zgarsa, xarita yoki ro'yxat rejimiga o'tamiz
+  useEffect(() => {
+    if (viewParam === "map") {
+      setViewMode("map");
+    } else {
+      setViewMode("list");
+    }
+  }, [viewParam]);
 
   // Sort dropdown tashqarisiga bosilganda yopish
   useEffect(() => {
