@@ -247,7 +247,7 @@ export default async function Property({ params }) {
                 <MessageModal listingId={l.id} receiverOwner={l.owner} receiverId={l.ownerId} />
               </div>
               
-              <PropertyExtras priceNum={l.priceNum} listingId={l.id} hasMortgage={l.hasMortgage} />
+            <PropertyExtras priceNum={l.priceNum} listingId={l.id} listing={l} hasMortgage={l.hasMortgage} />
             </aside>
           </div>
         </div>

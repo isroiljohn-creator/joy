@@ -5,6 +5,17 @@ export default function AlertProvider({ children }) {
   const [alertState, setAlertState] = useState({ visible: false, message: "" });
 
   useEffect(() => {
+    try {
+      const saved = localStorage.getItem("joy-theme");
+      if (saved === "dark") {
+        document.documentElement.setAttribute("data-theme", "dark");
+      } else {
+        document.documentElement.removeAttribute("data-theme");
+      }
+    } catch (e) {}
+  }, []);
+
+  useEffect(() => {
     // Intercept native browser alert
     const originalAlert = window.alert;
     

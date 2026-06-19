@@ -24,7 +24,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="uz">
+    <html lang="uz" suppressHydrationWarning>
       <head>
         <meta name="theme-color" content="#F2591F" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />

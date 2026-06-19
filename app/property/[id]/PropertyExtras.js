@@ -1,16 +1,18 @@
 "use client";
 import { useState, useEffect } from "react";
 import { incrementViewAction } from "@/app/actions";
+import { trackView } from "@/lib/userPrefs";
 
-export default function PropertyExtras({ priceNum, listingId, hasMortgage = false }) {
+export default function PropertyExtras({ priceNum, listingId, listing = null, hasMortgage = false }) {
   const [downPayment, setDownPayment] = useState(20);
   const [term, setTerm] = useState(25);
   const [rate, setRate] = useState(12);
 
-  // View counter — bir marta ko'rishlar sonini oshirish
+  // View counter + shaxsiy tavsiya uchun tracking
   useEffect(() => {
     incrementViewAction(listingId);
-  }, [listingId]);
+    if (listing) trackView(listing);
+  }, [listingId, listing]);
 
   // Ipoteka hisoblash
   const loanAmount = priceNum * (1 - downPayment / 100);
