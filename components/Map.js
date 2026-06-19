@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import L from "leaflet";
 
 // Toshkent tumanlari koordinatalari
 const DISTRICT_COORDS = {
@@ -36,25 +37,16 @@ export default function Map({ listings, activePin, onPinClick }) {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const LRef = useRef(null);
-
   useEffect(() => {
     if (mapInstance.current || !mapRef.current) return;
 
     let active = true;
     let resizeObserverInstance = null;
 
-    const initMap = async () => {
+    const initMap = () => {
       if (!active || mapInstance.current || !mapRef.current) return;
 
       try {
-        // Dynamically import Leaflet only on the client side
-        const L = (await import("leaflet")).default || await import("leaflet");
-        
-        if (!active || mapInstance.current || !mapRef.current) return;
-
-        LRef.current = L;
-
         // Setup Leaflet icon defaults to bypass 404s
         if (L.Icon && L.Icon.Default) {
           delete L.Icon.Default.prototype._getIconUrl;
@@ -128,8 +120,7 @@ export default function Map({ listings, activePin, onPinClick }) {
   }, []);
 
   useEffect(() => {
-    const L = LRef.current;
-    if (!mapInstance.current || !L) return;
+    if (!mapInstance.current) return;
     // Update markers
     markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
