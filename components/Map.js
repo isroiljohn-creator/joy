@@ -36,17 +36,57 @@ export default function Map({ listings, activePin, onPinClick }) {
   const markersRef = useRef([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [logs, setLogs] = useState(["Component mounted"]);
+
+  const addLog = (msg) => {
+    setLogs((prev) => [...prev.slice(-25), `${new Date().toLocaleTimeString()}: ${msg}`]);
+  };
 
   useEffect(() => {
-    if (mapInstance.current || !mapRef.current) return;
+    addLog("useEffect triggered");
+    if (mapInstance.current) {
+      addLog("Abort: mapInstance already exists");
+      return;
+    }
+    if (!mapRef.current) {
+      addLog("Abort: mapRef.current is null");
+      return;
+    }
 
     let active = true;
     let resizeObserverInstance = null;
 
-    const initMap = () => {
-      if (!active || mapInstance.current || !mapRef.current) return;
+    const initMap = (retryCount = 0) => {
+      if (!active) {
+        addLog("initMap aborted: inactive");
+        return;
+      }
+      if (mapInstance.current) {
+        addLog("initMap aborted: mapInstance already exists");
+        return;
+      }
+      if (!mapRef.current) {
+        addLog("initMap aborted: mapRef is null");
+        return;
+      }
+
+      const w = mapRef.current.clientWidth;
+      const h = mapRef.current.clientHeight;
+      addLog(`initMap size: ${w}x${h} (retry #${retryCount})`);
+
+      if (h === 0 && retryCount < 6) {
+        addLog("Height is 0, layout not ready. Retrying in 250ms...");
+        setTimeout(() => initMap(retryCount + 1), 250);
+        return;
+      }
 
       try {
+        addLog("Leaflet L check...");
+        if (!L) {
+          throw new Error("Leaflet namespace L is not loaded");
+        }
+        addLog("Leaflet L namespace is available");
+
         // Setup Leaflet icon defaults to bypass 404s
         if (L.Icon && L.Icon.Default) {
           delete L.Icon.Default.prototype._getIconUrl;
@@ -55,36 +95,53 @@ export default function Map({ listings, activePin, onPinClick }) {
             iconUrl: null,
             shadowUrl: null,
           });
+          addLog("Leaflet default icon options merged");
         }
 
+        addLog("Calling L.map()...");
         const map = L.map(mapRef.current, {
           center: [41.3111, 69.2797],
           zoom: 12,
           zoomControl: false,
           tap: false // Disable double-tap zoom delay on iOS Safari
         });
+        addLog("L.map() completed successfully");
 
         L.control.zoom({ position: "bottomright" }).addTo(map);
+        addLog("Zoom controls added");
 
         // CartoDB Voyager tiles (never blocked, extremely fast, modern look)
+        addLog("Adding Voyager TileLayer...");
         L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png", {
           attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://openstreetmap.org">OSM</a>',
           maxZoom: 18,
         }).addTo(map);
+        addLog("TileLayer added successfully");
 
         mapInstance.current = map;
+        addLog("Adding markers to map...");
         addMarkers(L, map, listings);
+        addLog("Markers added successfully");
 
         // Invalidate map size on container resize
         if (typeof ResizeObserver !== "undefined") {
+          addLog("Setting up ResizeObserver...");
           const ro = new ResizeObserver(() => {
+            if (mapRef.current) {
+              const rw = mapRef.current.clientWidth;
+              const rh = mapRef.current.clientHeight;
+              addLog(`ResizeObserver fired: mapRef size is ${rw}x${rh}`);
+            }
             map.invalidateSize();
           });
           ro.observe(mapRef.current);
           resizeObserverInstance = ro;
+          addLog("ResizeObserver observe started");
         } else {
+          addLog("ResizeObserver missing, using window resize event...");
           // Fallback to window resize event for older browsers (e.g. Safari on older iOS)
           const handleResize = () => {
+            addLog("Window resize event fired");
             map.invalidateSize();
           };
           window.addEventListener("resize", handleResize);
@@ -92,7 +149,9 @@ export default function Map({ listings, activePin, onPinClick }) {
         }
         
         setLoading(false);
+        addLog("Initialization completed successfully");
       } catch (err) {
+        addLog(`Error during initialization: ${err.message}`);
         console.error("Map initialization failed:", err);
         setError(err.message + "\n" + err.stack);
         setLoading(false);
@@ -100,9 +159,10 @@ export default function Map({ listings, activePin, onPinClick }) {
     };
 
     // Wait 200ms once for layout rendering reflow to complete
-    const timer = setTimeout(initMap, 200);
+    const timer = setTimeout(() => initMap(0), 200);
 
     return () => {
+      addLog("Cleaning up Map component...");
       active = false;
       clearTimeout(timer);
       if (resizeObserverInstance) {
@@ -285,6 +345,39 @@ export default function Map({ listings, activePin, onPinClick }) {
       width: "100%",
       height: "100%"
     }}>
+      {/* MAGENTA TELEMETRY LOGS OVERLAY */}
+      <div style={{
+        position: "fixed",
+        bottom: 74,
+        right: 16,
+        zIndex: 999999,
+        background: "rgba(239, 68, 68, 0.95)",
+        color: "#ffffff",
+        padding: "10px 14px",
+        borderRadius: "14px",
+        fontSize: "11px",
+        fontFamily: "monospace",
+        fontWeight: "bold",
+        boxShadow: "0 6px 20px rgba(0,0,0,0.3)",
+        border: "2px solid #ffffff",
+        width: "280px",
+        maxHeight: "35vh",
+        overflowY: "auto",
+        pointerEvents: "auto",
+        textAlign: "left",
+        lineHeight: "1.4"
+      }}>
+        <div style={{ borderBottom: "1px solid rgba(255,255,255,0.4)", paddingBottom: "4px", marginBottom: "6px", fontSize: "12px", textTransform: "uppercase", display: "flex", justifyContent: "space-between" }}>
+          <span>Map Telemetry Logs</span>
+          <span style={{ color: "#ffff00" }}>{loading ? "LOAD" : "OK"}</span>
+        </div>
+        {logs.map((log, idx) => (
+          <div key={idx} style={{ borderBottom: "1px dotted rgba(255,255,255,0.15)", padding: "2px 0", wordBreak: "break-all" }}>
+            {log}
+          </div>
+        ))}
+      </div>
+
       {loading && (
         <div style={{
           position: "absolute",

@@ -4,7 +4,28 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Nav, ListingCard } from "@/components/ui";
 import dynamic from "next/dynamic";
 
-const Map = dynamic(() => import("@/components/Map"), { ssr: false });
+const Map = dynamic(() => import("@/components/Map"), {
+  ssr: false,
+  loading: () => (
+    <div style={{
+      position: "absolute",
+      inset: 0,
+      background: "#FFF7F2",
+      color: "#F2591F",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 9999,
+      fontWeight: "bold",
+      fontFamily: "sans-serif",
+      fontSize: "14px",
+      border: "2px dashed var(--orange)"
+    }}>
+      <i className="ti ti-loader animate-spin" style={{ marginRight: 6 }}></i>
+      Loading map module...
+    </div>
+  )
+});
 
 const tabs = [
   { key: "Yangi uylar", icon: "ti-building-skyscraper" },
@@ -34,6 +55,8 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
   // Client hydration check and mobile view check
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const mapwrapRef = useRef(null);
+  const [mapwrapSize, setMapwrapSize] = useState({ w: 0, h: 0 });
 
   useEffect(() => {
     setMounted(true);
@@ -44,6 +67,33 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    const measure = () => {
+      if (mapwrapRef.current) {
+        setMapwrapSize({
+          w: mapwrapRef.current.clientWidth,
+          h: mapwrapRef.current.clientHeight
+        });
+      }
+    };
+    // Measure at once and layout shifts
+    const t = setTimeout(measure, 100);
+    window.addEventListener("resize", measure);
+    
+    let observer;
+    if (mapwrapRef.current && typeof MutationObserver !== "undefined") {
+      observer = new MutationObserver(measure);
+      observer.observe(mapwrapRef.current, { attributes: true, attributeFilter: ["class", "style"] });
+    }
+
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("resize", measure);
+      if (observer) observer.disconnect();
+    };
+  }, [mounted, viewMode]);
 
   // Saralash holatlari
   const [sortBy, setSortBy] = useState("recommended");
@@ -542,7 +592,7 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
         </div>
 
         {/* Desktop/Mobile map */}
-        <div className="mapwrap" style={{ position: "relative" }}>
+        <div ref={mapwrapRef} className="mapwrap" style={{ position: "relative" }}>
           <div style={{
             position: "absolute",
             top: 70,
@@ -557,7 +607,7 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
             fontWeight: "bold",
             boxShadow: "0 4px 10px rgba(0,0,0,0.3)"
           }}>
-            MAPWRAP DEBUG: {mounted ? "Mounted" : "Not Mounted"} | view: {viewMode} | mobile: {isMobile ? "Yes" : "No"}
+            MAPWRAP DEBUG: {mounted ? "Mounted" : "Not Mounted"} | view: {viewMode} | mobile: {isMobile ? "Yes" : "No"} | size: {mapwrapSize.w}x{mapwrapSize.h}
           </div>
           {mounted && (!isMobile || viewMode === "map") && (
             <Map
