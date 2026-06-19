@@ -13,10 +13,17 @@ const tabs = [
   { key: "Ofis", icon: "ti-briefcase" },
 ];
 
+const SORT_OPTIONS = [
+  { key: "recommended", label: "Tavsiya etilgan" },
+  { key: "price-asc", label: "Arzonroq birinchi" },
+  { key: "price-desc", label: "Qimmatroq birinchi" },
+  { key: "area-desc", label: "Kattaroq maydon" },
+];
+
 export default function ListingsClient({ initialListings, favoriteIds = [] }) {
   const searchParams = useSearchParams();
   const router = useRouter();
-  
+
   // URL-dagi toifani dastlabki holat qilib olamiz
   const urlCat = searchParams.get("cat");
   const [active, setActive] = useState(urlCat || "Yangi uylar");
@@ -24,7 +31,7 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
   const [hoveredCardId, setHoveredCardId] = useState(null);
 
   // Saralash holatlari
-  const [sortBy, setSortBy] = useState("recommended"); // recommended, price-asc, price-desc, area-desc
+  const [sortBy, setSortBy] = useState("recommended");
   const [sortOpen, setSortOpen] = useState(false);
   const [viewMode, setViewMode] = useState("list"); // list or map
   const sortRef = useRef(null);
@@ -33,7 +40,7 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
   const [filterOpen, setFilterOpen] = useState(false);
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
-  const [roomsFilter, setRoomsFilter] = useState("all"); // all, 1, 2, 3, 4 (4+ uchun)
+  const [roomsFilter, setRoomsFilter] = useState("all");
 
   // Qo'llanilgan filtrlar (state)
   const [appliedMinPrice, setAppliedMinPrice] = useState("");
@@ -81,16 +88,9 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
 
   // 1. Toifa va filtr bo'yicha e'lonlarni saralaymiz
   const filtered = initialListings.filter((l) => {
-    // A. Toifa filtri
     if (l.cat !== active) return false;
-
-    // B. Min narx filtri
     if (appliedMinPrice && l.priceNum < parseInt(appliedMinPrice)) return false;
-
-    // C. Max narx filtri
     if (appliedMaxPrice && l.priceNum > parseInt(appliedMaxPrice)) return false;
-
-    // D. Xona filtri
     if (appliedRoomsFilter !== "all") {
       const r = parseInt(appliedRoomsFilter);
       if (r === 4) {
@@ -99,7 +99,6 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
         if (l.rooms !== r) return false;
       }
     }
-
     return true;
   });
 
@@ -108,21 +107,22 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
     if (sortBy === "price-asc") return a.priceNum - b.priceNum;
     if (sortBy === "price-desc") return b.priceNum - a.priceNum;
     if (sortBy === "area-desc") return b.area - a.area;
-    return 0; // default / recommended
+    return 0;
   });
 
   const searchQuery = searchParams.get("q");
 
   const getSortLabel = () => {
-    if (sortBy === "price-asc") return "Arzonroq birinchi";
-    if (sortBy === "price-desc") return "Qimmatroq birinchi";
-    if (sortBy === "area-desc") return "Kattaroq maydon";
-    return "Tavsiya etilgan";
+    const opt = SORT_OPTIONS.find((o) => o.key === sortBy);
+    return opt ? opt.label : "Tavsiya etilgan";
   };
+
+  const hasActiveFilters = appliedMinPrice || appliedMaxPrice || appliedRoomsFilter !== "all";
 
   return (
     <>
       <Nav />
+      {/* Desktop tabs row — mobilda yashirilgan */}
       <div className="tabs-row">
         {tabs.map((t) => (
           <div
@@ -140,7 +140,7 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
         ))}
         <div className="filters-btn" onClick={() => setFilterOpen(true)}>
           <i className="ti ti-adjustments-horizontal"></i> Filtrlar
-          {(appliedMinPrice || appliedMaxPrice || appliedRoomsFilter !== "all") && (
+          {hasActiveFilters && (
             <span style={{
               background: "var(--orange)",
               color: "#fff",
@@ -160,8 +160,11 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
 
       <div className={`split ${viewMode === "map" ? "show-map" : "show-list"}`}>
         <div className="split-list">
-          {/* Mobile Map Preview */}
-          <div className="mobile-only mobile-map-container" onClick={() => setViewMode("map")}>
+          {/* Mobile Map Preview — tepada mini xarita */}
+          <div
+            className="mobile-only mobile-map-container"
+            onClick={() => setViewMode("map")}
+          >
             <div className="mobile-map-overlay">
               <span><i className="ti ti-map"></i> Xaritani ko&apos;rsatish</span>
             </div>
@@ -174,10 +177,12 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
             </div>
           </div>
 
+          {/* Listings header: Toshkent • X ta e'lon / Saralash */}
           <div className="split-meta" style={{ position: "relative" }}>
             <div>
               <h1 className="display">
-                Toshkent · <span className="count">{shown.length} ta e&apos;lon</span>
+                Toshkent <span style={{ color: "var(--muted)", fontWeight: 400 }}>•</span>{" "}
+                <span className="count">{shown.length} ta e&apos;lon</span>
               </h1>
               {searchQuery && (
                 <div style={{ fontSize: 14, color: "var(--orange-dark)", marginTop: 4, fontWeight: 500 }}>
@@ -185,10 +190,20 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
                 </div>
               )}
             </div>
-            
+
+            {/* Saralash tugmasi — mobilda filterni, desktopda sortni ochadi */}
             <div style={{ position: "relative" }} ref={sortRef}>
-              <div 
-                style={{ fontSize: 13, color: "var(--text2)", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+              <div
+                style={{
+                  fontSize: 13,
+                  color: "var(--text2)",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                  padding: "6px 0",
+                  userSelect: "none",
+                }}
                 onClick={() => {
                   if (typeof window !== "undefined" && window.innerWidth <= 880) {
                     setFilterOpen(true);
@@ -197,7 +212,9 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
                   }
                 }}
               >
-                Saralash: <strong>{getSortLabel()}</strong> <i className="ti ti-chevron-down" style={{ fontSize: 12 }}></i>
+                <span style={{ color: "var(--muted)" }}>Saralash:</span>{" "}
+                <strong style={{ color: "var(--ink)" }}>{getSortLabel()}</strong>{" "}
+                <i className="ti ti-chevron-down" style={{ fontSize: 12, color: "var(--muted)" }}></i>
               </div>
               {sortOpen && (
                 <div style={{
@@ -210,16 +227,11 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
                   boxShadow: "0 10px 25px rgba(26,19,14,0.1)",
                   padding: 6,
                   zIndex: 20,
-                  width: 170,
+                  width: 180,
                   marginTop: 6
                 }}>
-                  {[
-                    { key: "recommended", label: "Tavsiya etilgan" },
-                    { key: "price-asc", label: "Arzonroq birinchi" },
-                    { key: "price-desc", label: "Qimmatroq birinchi" },
-                    { key: "area-desc", label: "Kattaroq maydon" }
-                  ].map(opt => (
-                    <div 
+                  {SORT_OPTIONS.map(opt => (
+                    <div
                       key={opt.key}
                       style={{
                         padding: "8px 12px",
@@ -257,9 +269,9 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
               <p style={{ color: 'var(--text2)', fontSize: 14, maxWidth: 300, margin: '0 auto' }}>
                 Kiritilgan filtrlar bo&apos;yicha hozircha e&apos;lonlar mavjud emas. Filtrlarni o&apos;zgartirib ko&apos;ring.
               </p>
-              <button 
+              <button
                 onClick={handleClearFilters}
-                className="btn-ghost" 
+                className="btn-ghost"
                 style={{ marginTop: 16, cursor: "pointer", padding: "10px 20px" }}
               >
                 Filtrlarni tozalash
@@ -267,114 +279,115 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
             </div>
           ) : (
             <>
-            <div className="split-grid desktop-only">
-              {shown.map((l, idx) => (
-                <div 
-                  key={l.id}
-                  onMouseEnter={() => {
-                    setHoveredCardId(l.id);
-                    setActivePin(idx);
-                  }}
-                  onMouseLeave={() => {
-                    setHoveredCardId(null);
-                    setActivePin(null);
-                  }}
-                  style={{
-                    transform: hoveredCardId === l.id ? 'translateY(-4px)' : 'none',
-                    transition: 'transform 0.2s ease',
-                    borderRadius: 20
-                  }}
-                >
-                  <ListingCard l={l} isFavorite={favoriteIds.includes(l.id)} />
-                </div>
-              ))}
-            </div>
-
-            {/* Mobile compact list */}
-            <div className="mobile-only" style={{ paddingBottom: 110 }}>
-              {shown.map((l) => (
-                <div
-                  key={l.id}
-                  onClick={() => router.push(`/property/${l.id}`)}
-                  style={{ background: "var(--card-bg)", borderRadius: 18, overflow: "hidden", margin: "0 0 12px", display: "flex", gap: 12, padding: 10, cursor: "pointer" }}
-                >
-                  <div style={{ width: 96, height: 96, borderRadius: 14, backgroundSize: "cover", backgroundPosition: "center", backgroundColor: "#C9BDA8", flexShrink: 0, position: "relative", backgroundImage: `url('${l.photo}')` }}>
-                    {l.top && <span style={{ position: "absolute", top: 6, left: 6, background: "var(--orange)", color: "#fff", fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 8 }}>TOP</span>}
+              <div className="split-grid desktop-only">
+                {shown.map((l, idx) => (
+                  <div
+                    key={l.id}
+                    onMouseEnter={() => {
+                      setHoveredCardId(l.id);
+                      setActivePin(idx);
+                    }}
+                    onMouseLeave={() => {
+                      setHoveredCardId(null);
+                      setActivePin(null);
+                    }}
+                    style={{
+                      transform: hoveredCardId === l.id ? 'translateY(-4px)' : 'none',
+                      transition: 'transform 0.2s ease',
+                      borderRadius: 20
+                    }}
+                  >
+                    <ListingCard l={l} isFavorite={favoriteIds.includes(l.id)} />
                   </div>
-                  <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", minWidth: 0 }}>
-                    <div>
-                      <div style={{ fontFamily: "'Bricolage Grotesque',sans-serif", fontWeight: 700, fontSize: 17, color: "var(--orange)" }}>{l.price}</div>
-                      
-                      {l.priceStatus && (
-                        <div style={{ marginTop: 2, display: "flex", alignItems: "center" }}>
-                          {l.priceStatus === "cheap" && (
-                            <span style={{
-                              background: "rgba(34, 197, 94, 0.1)",
-                              color: "#16a34a",
-                              fontSize: 10,
-                              fontWeight: 600,
-                              padding: "1px 6px",
-                              borderRadius: 8,
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 2
-                            }}>
-                              <i className="ti ti-trending-down"></i> {Math.abs(l.priceDiffPercent)}% arzonroq
-                            </span>
-                          )}
-                          {l.priceStatus === "expensive" && (
-                            <span style={{
-                              background: "rgba(239, 68, 68, 0.1)",
-                              color: "#dc2626",
-                              fontSize: 10,
-                              fontWeight: 600,
-                              padding: "1px 6px",
-                              borderRadius: 8,
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 2
-                            }}>
-                              <i className="ti ti-trending-up"></i> {l.priceDiffPercent}% qimmatroq
-                            </span>
-                          )}
-                          {l.priceStatus === "average" && (
-                            <span style={{
-                              background: "rgba(107, 114, 128, 0.1)",
-                              color: "var(--muted)",
-                              fontSize: 10,
-                              fontWeight: 500,
-                              padding: "1px 6px",
-                              borderRadius: 8,
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 2
-                            }}>
-                              <i className="ti ti-minus"></i> Bozor narxida
-                            </span>
-                          )}
-                        </div>
-                      )}
+                ))}
+              </div>
 
-                      <div style={{ fontSize: 13, fontWeight: 600, marginTop: 2 }}>{l.type}</div>
-                      <div style={{ fontSize: 11, color: "var(--muted)", display: "flex", alignItems: "center", gap: 3 }}>
-                        <i className="ti ti-map-pin" style={{ fontSize: 13 }}></i> {l.addr}
+              {/* Mobile compact list */}
+              <div className="mobile-only" style={{ paddingBottom: 110 }}>
+                {shown.map((l) => (
+                  <div
+                    key={l.id}
+                    onClick={() => router.push(`/property/${l.id}`)}
+                    style={{ background: "var(--card-bg)", borderRadius: 18, overflow: "hidden", margin: "0 0 12px", display: "flex", gap: 12, padding: 10, cursor: "pointer" }}
+                  >
+                    <div style={{ width: 96, height: 96, borderRadius: 14, backgroundSize: "cover", backgroundPosition: "center", backgroundColor: "#C9BDA8", flexShrink: 0, position: "relative", backgroundImage: `url('${l.photo}')` }}>
+                      {l.top && <span style={{ position: "absolute", top: 6, left: 6, background: "var(--orange)", color: "#fff", fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 8 }}>TOP</span>}
+                    </div>
+                    <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", minWidth: 0 }}>
+                      <div>
+                        <div style={{ fontFamily: "'Bricolage Grotesque',sans-serif", fontWeight: 700, fontSize: 17, color: "var(--orange)" }}>{l.price}</div>
+
+                        {l.priceStatus && (
+                          <div style={{ marginTop: 2, display: "flex", alignItems: "center" }}>
+                            {l.priceStatus === "cheap" && (
+                              <span style={{
+                                background: "rgba(34, 197, 94, 0.1)",
+                                color: "#16a34a",
+                                fontSize: 10,
+                                fontWeight: 600,
+                                padding: "1px 6px",
+                                borderRadius: 8,
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 2
+                              }}>
+                                <i className="ti ti-trending-down"></i> {Math.abs(l.priceDiffPercent)}% arzonroq
+                              </span>
+                            )}
+                            {l.priceStatus === "expensive" && (
+                              <span style={{
+                                background: "rgba(239, 68, 68, 0.1)",
+                                color: "#dc2626",
+                                fontSize: 10,
+                                fontWeight: 600,
+                                padding: "1px 6px",
+                                borderRadius: 8,
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 2
+                              }}>
+                                <i className="ti ti-trending-up"></i> {l.priceDiffPercent}% qimmatroq
+                              </span>
+                            )}
+                            {l.priceStatus === "average" && (
+                              <span style={{
+                                background: "rgba(107, 114, 128, 0.1)",
+                                color: "var(--muted)",
+                                fontSize: 10,
+                                fontWeight: 500,
+                                padding: "1px 6px",
+                                borderRadius: 8,
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 2
+                              }}>
+                                <i className="ti ti-minus"></i> Bozor narxida
+                              </span>
+                            )}
+                          </div>
+                        )}
+
+                        <div style={{ fontSize: 13, fontWeight: 600, marginTop: 2 }}>{l.type}</div>
+                        <div style={{ fontSize: 11, color: "var(--muted)", display: "flex", alignItems: "center", gap: 3 }}>
+                          <i className="ti ti-map-pin" style={{ fontSize: 13 }}></i> {l.addr}
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", gap: 10, fontSize: 11, color: "var(--text2)", marginTop: 4 }}>
+                        <span style={{ display: "flex", alignItems: "center", gap: 3 }}><i className="ti ti-bed" style={{ fontSize: 13 }}></i>{l.rooms}</span>
+                        <span style={{ display: "flex", alignItems: "center", gap: 3 }}><i className="ti ti-bath" style={{ fontSize: 13 }}></i>{l.baths}</span>
+                        <span style={{ display: "flex", alignItems: "center", gap: 3 }}><i className="ti ti-ruler-2" style={{ fontSize: 13 }}></i>{l.area}m²</span>
+                        <span style={{ display: "flex", alignItems: "center", gap: 3 }}><i className="ti ti-stairs" style={{ fontSize: 13 }}></i>{l.floor}</span>
                       </div>
                     </div>
-                    <div style={{ display: "flex", gap: 10, fontSize: 11, color: "var(--text2)", marginTop: 4 }}>
-                      <span style={{ display: "flex", alignItems: "center", gap: 3 }}><i className="ti ti-bed" style={{ fontSize: 13 }}></i>{l.rooms}</span>
-                      <span style={{ display: "flex", alignItems: "center", gap: 3 }}><i className="ti ti-bath" style={{ fontSize: 13 }}></i>{l.baths}</span>
-                      <span style={{ display: "flex", alignItems: "center", gap: 3 }}><i className="ti ti-ruler-2" style={{ fontSize: 13 }}></i>{l.area}m²</span>
-                      <span style={{ display: "flex", alignItems: "center", gap: 3 }}><i className="ti ti-stairs" style={{ fontSize: 13 }}></i>{l.floor}</span>
-                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
             </>
           )}
         </div>
 
-        <div className="mapwrap">
+        {/* Desktop map */}
+        <div className="mapwrap" style={{ position: "relative" }}>
           <Map
             listings={shown}
             activePin={activePin}
@@ -383,12 +396,40 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
               router.push(`/property/${shown[i]?.id}`);
             }}
           />
+          {/* Mobile fullscreen map uchun orqaga tugmasi */}
+          {viewMode === "map" && (
+            <button
+              className="mobile-only"
+              onClick={() => setViewMode("list")}
+              style={{
+                position: "absolute",
+                top: 16,
+                left: 16,
+                zIndex: 1000,
+                width: 44,
+                height: 44,
+                borderRadius: "50%",
+                background: "var(--card-bg)",
+                border: "1px solid var(--sand)",
+                boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                fontSize: 20,
+                color: "var(--ink)",
+              }}
+              aria-label="Orqaga qaytish"
+            >
+              <i className="ti ti-arrow-left"></i>
+            </button>
+          )}
         </div>
       </div>
 
-      {/* 3. Filtr Slayd-Paneli (Drawer Modal) */}
+      {/* Filtr va Saralash Drawer Modal */}
       {filterOpen && (
-        <div 
+        <div
           style={{
             position: "fixed",
             inset: 0,
@@ -400,7 +441,7 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
           }}
           onClick={() => setFilterOpen(false)}
         >
-          <div 
+          <div
             style={{
               width: "100%",
               maxWidth: 380,
@@ -410,82 +451,144 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
               display: "flex",
               flexDirection: "column",
               boxShadow: "-10px 0 30px rgba(0,0,0,0.1)",
-              borderLeft: "1px solid var(--sand)"
+              borderLeft: "1px solid var(--sand)",
+              overflowY: "auto",
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 30 }}>
-              <h2 className="display" style={{ fontSize: 22 }}>Filtrlar</h2>
-              <button 
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
+              <h2 className="display" style={{ fontSize: 22 }}>Filtr va Saralash</h2>
+              <button
                 onClick={() => setFilterOpen(false)}
-                style={{ background: "none", border: "none", fontSize: 24, cursor: "pointer" }}
+                style={{ background: "none", border: "none", fontSize: 24, cursor: "pointer", color: "var(--ink)" }}
               >
                 <i className="ti ti-x"></i>
               </button>
             </div>
 
-            <div style={{ flex: 1, overflowY: "auto" }}>
-              {/* Narx oralig'i */}
-              <div style={{ marginBottom: 24 }}>
-                <label style={{ fontSize: 13, fontWeight: 600, color: "var(--text2)", display: "block", marginBottom: 8 }}>Narx oralig&apos;i (USD)</label>
-                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                  <input 
-                    type="number" 
-                    placeholder="Min" 
-                    value={minPrice}
-                    onChange={(e) => setMinPrice(e.target.value)}
-                    style={{ flex: 1, padding: 12, borderRadius: 12, border: "1px solid var(--sand)", outline: "none", fontSize: 14 }}
-                  />
-                  <span style={{ color: "var(--muted)" }}>-</span>
-                  <input 
-                    type="number" 
-                    placeholder="Max" 
-                    value={maxPrice}
-                    onChange={(e) => setMaxPrice(e.target.value)}
-                    style={{ flex: 1, padding: 12, borderRadius: 12, border: "1px solid var(--sand)", outline: "none", fontSize: 14 }}
-                  />
-                </div>
+            {/* Saralash qismi */}
+            <div style={{ marginBottom: 28 }}>
+              <label style={{ fontSize: 13, fontWeight: 700, color: "var(--text2)", display: "block", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                Saralash tartibi
+              </label>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {SORT_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.key}
+                    type="button"
+                    onClick={() => setSortBy(opt.key)}
+                    style={{
+                      padding: "11px 16px",
+                      borderRadius: 12,
+                      border: "1.5px solid",
+                      borderColor: sortBy === opt.key ? "var(--orange)" : "var(--sand)",
+                      background: sortBy === opt.key ? "var(--orange-tint)" : "var(--card-bg)",
+                      color: sortBy === opt.key ? "var(--orange-dark)" : "var(--ink)",
+                      fontWeight: sortBy === opt.key ? 700 : 500,
+                      fontSize: 14,
+                      cursor: "pointer",
+                      textAlign: "left",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    {opt.label}
+                    {sortBy === opt.key && (
+                      <i className="ti ti-check" style={{ fontSize: 16, color: "var(--orange)" }}></i>
+                    )}
+                  </button>
+                ))}
               </div>
+            </div>
 
-              {/* Xonalar soni */}
-              <div style={{ marginBottom: 24 }}>
-                <label style={{ fontSize: 13, fontWeight: 600, color: "var(--text2)", display: "block", marginBottom: 8 }}>Xonalar soni</label>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6 }}>
-                  {["all", "1", "2", "3", "4"].map(val => (
-                    <button
-                      key={val}
-                      type="button"
-                      onClick={() => setRoomsFilter(val)}
-                      style={{
-                        padding: "10px 0",
-                        borderRadius: 10,
-                        border: "1px solid",
-                        borderColor: roomsFilter === val ? "var(--orange)" : "var(--sand)",
-                        background: roomsFilter === val ? "var(--orange-tint)" : "#fff",
-                        color: roomsFilter === val ? "var(--orange-dark)" : "inherit",
-                        fontWeight: 600,
-                        fontSize: 13,
-                        cursor: "pointer",
-                        transition: "all 0.15s ease"
-                      }}
-                    >
-                      {val === "all" ? "Barchasi" : val === "4" ? "4+" : val}
-                    </button>
-                  ))}
-                </div>
+            <div style={{ height: 1, background: "var(--sand)", marginBottom: 24 }}></div>
+
+            {/* Narx oralig'i */}
+            <div style={{ marginBottom: 24 }}>
+              <label style={{ fontSize: 13, fontWeight: 700, color: "var(--text2)", display: "block", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                Narx oralig&apos;i (USD)
+              </label>
+              <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                <input
+                  type="number"
+                  placeholder="Min"
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(e.target.value)}
+                  style={{
+                    flex: 1,
+                    padding: "12px 14px",
+                    borderRadius: 12,
+                    border: "1.5px solid var(--sand)",
+                    outline: "none",
+                    fontSize: 14,
+                    background: "var(--card-bg)",
+                    color: "var(--ink)",
+                    boxSizing: "border-box",
+                  }}
+                />
+                <span style={{ color: "var(--muted)", flexShrink: 0 }}>—</span>
+                <input
+                  type="number"
+                  placeholder="Max"
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(e.target.value)}
+                  style={{
+                    flex: 1,
+                    padding: "12px 14px",
+                    borderRadius: 12,
+                    border: "1.5px solid var(--sand)",
+                    outline: "none",
+                    fontSize: 14,
+                    background: "var(--card-bg)",
+                    color: "var(--ink)",
+                    boxSizing: "border-box",
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Xonalar soni */}
+            <div style={{ marginBottom: 28 }}>
+              <label style={{ fontSize: 13, fontWeight: 700, color: "var(--text2)", display: "block", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                Xonalar soni
+              </label>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6 }}>
+                {["all", "1", "2", "3", "4"].map(val => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setRoomsFilter(val)}
+                    style={{
+                      padding: "11px 0",
+                      borderRadius: 10,
+                      border: "1.5px solid",
+                      borderColor: roomsFilter === val ? "var(--orange)" : "var(--sand)",
+                      background: roomsFilter === val ? "var(--orange-tint)" : "var(--card-bg)",
+                      color: roomsFilter === val ? "var(--orange-dark)" : "var(--ink)",
+                      fontWeight: 600,
+                      fontSize: 13,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease"
+                    }}
+                  >
+                    {val === "all" ? "Bari" : val === "4" ? "4+" : val}
+                  </button>
+                ))}
               </div>
             </div>
 
             {/* Pastki tugmalar */}
-            <div style={{ display: "flex", gap: 10, borderTop: "1px solid var(--sand)", paddingTop: 20 }}>
-              <button 
+            <div style={{ marginTop: "auto", display: "flex", gap: 10, paddingTop: 20, borderTop: "1px solid var(--sand)" }}>
+              <button
                 onClick={handleClearFilters}
                 className="cbtn gh"
                 style={{ flex: 1, padding: 14 }}
               >
                 Tozalash
               </button>
-              <button 
+              <button
                 onClick={handleApplyFilters}
                 className="cbtn primary"
                 style={{ flex: 1, padding: 14, margin: 0 }}
@@ -496,6 +599,7 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
           </div>
         </div>
       )}
+
       {/* Floating View Toggle Button on Mobile */}
       <button
         onClick={() => setViewMode(viewMode === "list" ? "map" : "list")}

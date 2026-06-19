@@ -62,6 +62,12 @@ export default function Map({ listings, activePin, onPinClick }) {
 
       mapInstance.current = map;
       addMarkers(L, map, listings);
+
+      // Konteyner o'lchami o'zgarganda xaritani yangilaymiz
+      const ro = new ResizeObserver(() => {
+        map.invalidateSize();
+      });
+      ro.observe(mapRef.current);
     };
     document.head.appendChild(script);
 
