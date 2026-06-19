@@ -357,80 +357,144 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
                   <div
                     key={l.id}
                     onClick={() => router.push(`/property/${l.id}`)}
-                    style={{ background: "var(--card-bg)", borderRadius: 18, overflow: "hidden", margin: "0 0 12px", display: "flex", gap: 12, padding: 10, cursor: "pointer" }}
+                    style={{
+                      background: "var(--card-bg)",
+                      borderRadius: 18,
+                      overflow: "hidden",
+                      margin: "0 0 10px",
+                      display: "flex",
+                      gap: 12,
+                      padding: 12,
+                      cursor: "pointer",
+                      border: "1px solid var(--sand)",
+                    }}
                   >
-                    <div style={{ width: 96, height: 96, borderRadius: 14, backgroundSize: "cover", backgroundPosition: "center", backgroundColor: "#C9BDA8", flexShrink: 0, position: "relative", backgroundImage: `url('${l.photo}')` }}>
-                      {l.top && <span style={{ position: "absolute", top: 6, left: 6, background: "var(--orange)", color: "#fff", fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 8 }}>TOP</span>}
+                    {/* Rasm */}
+                    <div style={{
+                      width: 90,
+                      height: 90,
+                      borderRadius: 12,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      backgroundColor: "#C9BDA8",
+                      flexShrink: 0,
+                      position: "relative",
+                      backgroundImage: `url('${l.photo}')`,
+                    }}>
+                      {l.top && (
+                        <span style={{
+                          position: "absolute",
+                          top: 6,
+                          left: 6,
+                          background: "var(--orange)",
+                          color: "#fff",
+                          fontSize: 9,
+                          fontWeight: 700,
+                          padding: "2px 7px",
+                          borderRadius: 6,
+                          letterSpacing: "0.03em",
+                        }}>TOP</span>
+                      )}
                     </div>
-                    <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", minWidth: 0 }}>
-                      <div>
-                        <div style={{ fontFamily: "'Bricolage Grotesque',sans-serif", fontWeight: 700, fontSize: 17, color: "var(--orange)" }}>{l.price}</div>
 
-                        {l.priceStatus && (
-                          <div style={{ marginTop: 2, display: "flex", alignItems: "center" }}>
-                            {l.priceStatus === "cheap" && (
-                              <span style={{
-                                background: "rgba(34, 197, 94, 0.1)",
-                                color: "#16a34a",
-                                fontSize: 10,
-                                fontWeight: 600,
-                                padding: "1px 6px",
-                                borderRadius: 8,
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 2
-                              }}>
-                                <i className="ti ti-trending-down"></i> {Math.abs(l.priceDiffPercent)}% arzonroq
-                              </span>
-                            )}
-                            {l.priceStatus === "expensive" && (
-                              <span style={{
-                                background: "rgba(239, 68, 68, 0.1)",
-                                color: "#dc2626",
-                                fontSize: 10,
-                                fontWeight: 600,
-                                padding: "1px 6px",
-                                borderRadius: 8,
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 2
-                              }}>
-                                <i className="ti ti-trending-up"></i> {l.priceDiffPercent}% qimmatroq
-                              </span>
-                            )}
-                            {l.priceStatus === "average" && (
-                              <span style={{
-                                background: "rgba(107, 114, 128, 0.1)",
-                                color: "var(--muted)",
-                                fontSize: 10,
-                                fontWeight: 500,
-                                padding: "1px 6px",
-                                borderRadius: 8,
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 2
-                              }}>
-                                <i className="ti ti-minus"></i> Bozor narxida
-                              </span>
-                            )}
-                          </div>
+                    {/* Matn qismi */}
+                    <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 4 }}>
+
+                      {/* 1. Tur — birinchi o'qiladi */}
+                      <div style={{
+                        fontSize: 14,
+                        fontWeight: 700,
+                        color: "var(--ink)",
+                        lineHeight: 1.2,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}>{l.type}</div>
+
+                      {/* 2. Narx + narx holati — bir qatorda */}
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                        <span style={{
+                          fontFamily: "'Bricolage Grotesque',sans-serif",
+                          fontWeight: 800,
+                          fontSize: 17,
+                          color: "var(--orange)",
+                          lineHeight: 1,
+                        }}>{l.price}</span>
+
+                        {l.priceStatus === "cheap" && (
+                          <span style={{
+                            background: "rgba(34,197,94,0.12)",
+                            color: "#15803d",
+                            fontSize: 10,
+                            fontWeight: 700,
+                            padding: "2px 7px",
+                            borderRadius: 20,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 2,
+                          }}>
+                            <i className="ti ti-trending-down" style={{ fontSize: 10 }}></i>
+                            {Math.abs(l.priceDiffPercent)}% arzon
+                          </span>
                         )}
+                        {l.priceStatus === "expensive" && (
+                          <span style={{
+                            background: "rgba(239,68,68,0.1)",
+                            color: "#dc2626",
+                            fontSize: 10,
+                            fontWeight: 700,
+                            padding: "2px 7px",
+                            borderRadius: 20,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 2,
+                          }}>
+                            <i className="ti ti-trending-up" style={{ fontSize: 10 }}></i>
+                            {l.priceDiffPercent}% qimmat
+                          </span>
+                        )}
+                      </div>
 
-                        <div style={{ fontSize: 13, fontWeight: 600, marginTop: 2 }}>{l.type}</div>
-                        <div style={{ fontSize: 11, color: "var(--muted)", display: "flex", alignItems: "center", gap: 3 }}>
-                          <i className="ti ti-map-pin" style={{ fontSize: 13 }}></i> {l.addr}
-                        </div>
+                      {/* 3. Manzil */}
+                      <div style={{
+                        fontSize: 11,
+                        color: "var(--muted)",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 3,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}>
+                        <i className="ti ti-map-pin" style={{ fontSize: 11, flexShrink: 0 }}></i>
+                        <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{l.addr}</span>
                       </div>
-                      <div style={{ display: "flex", gap: 10, fontSize: 11, color: "var(--text2)", marginTop: 4 }}>
-                        <span style={{ display: "flex", alignItems: "center", gap: 3 }}><i className="ti ti-bed" style={{ fontSize: 13 }}></i>{l.rooms}</span>
-                        <span style={{ display: "flex", alignItems: "center", gap: 3 }}><i className="ti ti-bath" style={{ fontSize: 13 }}></i>{l.baths}</span>
-                        <span style={{ display: "flex", alignItems: "center", gap: 3 }}><i className="ti ti-ruler-2" style={{ fontSize: 13 }}></i>{l.area}m²</span>
-                        <span style={{ display: "flex", alignItems: "center", gap: 3 }}><i className="ti ti-stairs" style={{ fontSize: 13 }}></i>{l.floor}</span>
+
+                      {/* 4. Xususiyatlar — eng oxirida, ikkinchi darajali */}
+                      <div style={{
+                        display: "flex",
+                        gap: 0,
+                        fontSize: 11,
+                        color: "var(--text2)",
+                        marginTop: 2,
+                      }}>
+                        {[
+                          { icon: "ti-bed", val: `${l.rooms} xona` },
+                          { icon: "ti-ruler-2", val: `${l.area}m²` },
+                          { icon: "ti-stairs", val: l.floor },
+                        ].map((s, i) => (
+                          <span key={i} style={{ display: "flex", alignItems: "center", gap: 2, marginRight: 10 }}>
+                            <i className={`ti ${s.icon}`} style={{ fontSize: 12, color: "var(--orange)", opacity: 0.7 }}></i>
+                            {s.val}
+                          </span>
+                        ))}
                       </div>
+
                     </div>
                   </div>
                 ))}
               </div>
+
             </>
           )}
         </div>
