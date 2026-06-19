@@ -7,7 +7,8 @@ import {
   sendOtpAction, 
   verifyOtpAction, 
   completeSmsRegisterAction,
-  googleLoginAction
+  googleLoginAction,
+  getGoogleAccountsAction
 } from "@/app/actions";
 
 function getPasswordStrength(pw) {
@@ -44,6 +45,15 @@ export default function Login() {
   const [googleStep, setGoogleStep] = useState(1); // 1: Select, 2: Custom input
   const [googleCustomEmail, setGoogleCustomEmail] = useState("");
   const [googleCustomName, setGoogleCustomName] = useState("");
+  const [googleAccounts, setGoogleAccounts] = useState([]);
+
+  useEffect(() => {
+    if (showGoogleModal) {
+      getGoogleAccountsAction().then((rows) => {
+        setGoogleAccounts(rows || []);
+      });
+    }
+  }, [showGoogleModal]);
 
   const phoneValid = !phone || /^\+998\s?\d{2}\s?\d{3}\s?\d{2}\s?\d{2}$/.test(phone);
   const passwordTooShort = password.length > 0 && password.length < 6;
@@ -631,29 +641,28 @@ export default function Login() {
 
                 {/* Account list */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
-                  <button
-                    type="button"
-                    onClick={() => handleSelectGoogleAccount("aziz@gmail.com", "Aziz Karimov")}
-                    style={gAccountBtnStyle}
-                  >
-                    <div style={gAvatarStyle}>A</div>
-                    <div style={{ textAlign: "left" }}>
-                      <div style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)" }}>Aziz Karimov</div>
-                      <div style={{ fontSize: 12, color: "var(--muted)" }}>aziz@gmail.com</div>
-                    </div>
-                  </button>
+                  {googleAccounts.map((acc, idx) => (
+                    <button
+                      key={acc.email || idx}
+                      type="button"
+                      onClick={() => handleSelectGoogleAccount(acc.email, acc.name)}
+                      style={gAccountBtnStyle}
+                    >
+                      <div style={gAvatarStyle}>
+                        {acc.name ? acc.name[0].toUpperCase() : "G"}
+                      </div>
+                      <div style={{ textAlign: "left" }}>
+                        <div style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)" }}>{acc.name}</div>
+                        <div style={{ fontSize: 12, color: "var(--muted)" }}>{acc.email}</div>
+                      </div>
+                    </button>
+                  ))}
 
-                  <button
-                    type="button"
-                    onClick={() => handleSelectGoogleAccount("dilnoza@gmail.com", "Dilnoza Yusupova")}
-                    style={gAccountBtnStyle}
-                  >
-                    <div style={gAvatarStyle}>D</div>
-                    <div style={{ textAlign: "left" }}>
-                      <div style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)" }}>Dilnoza Yusupova</div>
-                      <div style={{ fontSize: 12, color: "var(--muted)" }}>dilnoza@gmail.com</div>
+                  {googleAccounts.length === 0 && (
+                    <div style={{ fontSize: 14, color: "var(--muted)", padding: "12px", border: "1px dashed var(--sand)", borderRadius: 12, textAlign: "center" }}>
+                      Hozircha tizimda Google akkauntlar mavjud emas
                     </div>
-                  </button>
+                  )}
                 </div>
 
                 <button
