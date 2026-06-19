@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import L from "leaflet";
 
 // Toshkent tumanlari koordinatalari
 const DISTRICT_COORDS = {
@@ -18,9 +17,12 @@ const DISTRICT_COORDS = {
 };
 
 function getCoords(addr) {
-  if (!addr) return [41.2995 + Math.random() * 0.06 - 0.03, 69.2401 + Math.random() * 0.08 - 0.04];
+  let address = "";
+  if (addr != null) {
+    address = String(addr).toLowerCase();
+  }
   for (const [district, coords] of Object.entries(DISTRICT_COORDS)) {
-    if (addr.toLowerCase().includes(district.toLowerCase())) {
+    if (address.includes(district.toLowerCase())) {
       return [coords[0] + (Math.random() - 0.5) * 0.012, coords[1] + (Math.random() - 0.5) * 0.015];
     }
   }
@@ -33,50 +35,74 @@ export default function Map({ listings, activePin, onPinClick }) {
   const markersRef = useRef([]);
   const resizeObserverRef = useRef(null);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (mapInstance.current || !mapRef.current) return;
 
-    try {
-      // Setup Leaflet icon defaults to bypass 404s
-      if (L.Icon && L.Icon.Default) {
-        delete L.Icon.Default.prototype._getIconUrl;
-        L.Icon.Default.mergeOptions({
-          iconRetinaUrl: null,
-          iconUrl: null,
-          shadowUrl: null,
+    let active = true;
+
+    // Delay 250ms to let the mobile browser reflow styles and apply position: fixed
+    const timer = setTimeout(() => {
+      if (!active || mapInstance.current || !mapRef.current) return;
+
+      // Load leaflet dynamically inside the client-side useEffect
+      import("leaflet")
+        .then((L) => {
+          if (!active || mapInstance.current || !mapRef.current) return;
+
+          try {
+            // Setup Leaflet icon defaults to bypass 404s
+            if (L.Icon && L.Icon.Default) {
+              delete L.Icon.Default.prototype._getIconUrl;
+              L.Icon.Default.mergeOptions({
+                iconRetinaUrl: null,
+                iconUrl: null,
+                shadowUrl: null,
+              });
+            }
+
+            const map = L.map(mapRef.current, {
+              center: [41.3111, 69.2797],
+              zoom: 12,
+              zoomControl: false,
+            });
+
+            L.control.zoom({ position: "bottomright" }).addTo(map);
+
+            // CartoDB Voyager tiles (never blocked, extremely fast, modern look)
+            L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png", {
+              attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://openstreetmap.org">OSM</a>',
+              maxZoom: 18,
+            }).addTo(map);
+
+            mapInstance.current = map;
+            addMarkers(L, map, listings);
+
+            // Invalidate map size on container resize
+            const ro = new ResizeObserver(() => {
+              map.invalidateSize();
+            });
+            ro.observe(mapRef.current);
+            resizeObserverRef.current = ro;
+            
+            setLoading(false);
+          } catch (err) {
+            console.error("Map initialization failed:", err);
+            setError(err.message + "\n" + err.stack);
+            setLoading(false);
+          }
+        })
+        .catch((err) => {
+          console.error("Leaflet import failed:", err);
+          setError("Leaflet import failed: " + err.message);
+          setLoading(false);
         });
-      }
-
-      const map = L.map(mapRef.current, {
-        center: [41.3111, 69.2797],
-        zoom: 12,
-        zoomControl: false,
-      });
-
-      L.control.zoom({ position: "bottomright" }).addTo(map);
-
-      // CartoDB Voyager tiles (never blocked, extremely fast, modern look)
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-        attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://openstreetmap.org">OSM</a>',
-        maxZoom: 18,
-      }).addTo(map);
-
-      mapInstance.current = map;
-      addMarkers(L, map, listings);
-
-      // Invalidate map size on div container resize
-      const ro = new ResizeObserver(() => {
-        map.invalidateSize();
-      });
-      ro.observe(mapRef.current);
-      resizeObserverRef.current = ro;
-    } catch (err) {
-      console.error("Map initialization failed:", err);
-      setError(err.message + "\n" + err.stack);
-    }
+    }, 250);
 
     return () => {
+      active = false;
+      clearTimeout(timer);
       if (resizeObserverRef.current) {
         resizeObserverRef.current.disconnect();
         resizeObserverRef.current = null;
@@ -93,7 +119,11 @@ export default function Map({ listings, activePin, onPinClick }) {
     // Update markers
     markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
-    addMarkers(L, mapInstance.current, listings);
+    import("leaflet").then((L) => {
+      if (mapInstance.current) {
+        addMarkers(L, mapInstance.current, listings);
+      }
+    });
   }, [listings]);
 
   useEffect(() => {
@@ -213,7 +243,7 @@ export default function Map({ listings, activePin, onPinClick }) {
       <div style={{
         padding: 24,
         color: "#dc2626",
-        background: "var(--card-bg, #fff)",
+        background: "#fee2e2",
         fontFamily: "monospace",
         fontSize: 12,
         whiteSpace: "pre-wrap",
@@ -221,15 +251,17 @@ export default function Map({ listings, activePin, onPinClick }) {
         height: "100%",
         minHeight: 400,
         borderRadius: 16,
-        border: "1px solid var(--sand)"
+        border: "2px solid #ef4444",
+        zIndex: 9999,
+        position: "relative"
       }}>
-        <h3 style={{ margin: "0 0 10px", color: "var(--ink)" }}>Xaritada yuklanish xatosi:</h3>
+        <h3 style={{ margin: "0 0 10px", color: "#991b1b" }}>Xaritada yuklanish xatosi:</h3>
         <p style={{ margin: "0 0 16px", lineHeight: 1.5 }}>{error}</p>
         <button
           onClick={() => window.location.reload()}
           style={{
             padding: "8px 16px",
-            background: "var(--orange)",
+            background: "#dc2626",
             color: "#fff",
             border: "none",
             borderRadius: 8,
@@ -244,9 +276,37 @@ export default function Map({ listings, activePin, onPinClick }) {
   }
 
   return (
-    <div
-      ref={mapRef}
-      style={{ width: "100%", height: "100%", minHeight: 400 }}
-    />
+    <div style={{ width: "100%", height: "100%", minHeight: 400, position: "relative" }}>
+      {loading && (
+        <div style={{
+          position: "absolute",
+          inset: 0,
+          background: "var(--cream, #FBF7F3)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 10,
+          flexDirection: "column",
+          gap: 12
+        }}>
+          <div style={{
+            width: 32,
+            height: 32,
+            border: "3px solid var(--sand)",
+            borderTopColor: "var(--orange)",
+            borderRadius: "50%",
+            animation: "spin 0.8s linear infinite"
+          }} />
+          <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 500 }}>Xarita yuklanmoqda...</div>
+          <style dangerouslySetInnerHTML={{__html: `
+            @keyframes spin { to { transform: rotate(360deg); } }
+          `}} />
+        </div>
+      )}
+      <div
+        ref={mapRef}
+        style={{ width: "100%", height: "100%", minHeight: 400 }}
+      />
+    </div>
   );
 }
