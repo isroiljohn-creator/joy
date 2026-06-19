@@ -11,6 +11,41 @@ import pool from "@/lib/db";
 import PropertyExtras from "./PropertyExtras";
 import MobileActions from "@/components/MobileActions";
 
+function getPriceComparison(priceNum, area, cat) {
+  const pricePerM2 = area > 0 ? Math.round(priceNum / area) : 0;
+  // Toshkent o'rtacha bozor narxlari (USD/m²)
+  const avgMarket = { "Yangi uylar": 850, "Ikkilamchi": 720, "Ijara": 12, "Ofis": 650 };
+  const avg = avgMarket[cat] || 750;
+  const ratio = pricePerM2 / avg;
+  
+  let label, type, icon, percentText;
+  if (ratio < 0.85) {
+    label = "Bozordan arzon";
+    type = "cheap";
+    icon = "ti-trending-down";
+    percentText = `${Math.round((1 - ratio) * 100)}% arzon`;
+  } else if (ratio <= 1.15) {
+    label = "Bozor narxida";
+    type = "average";
+    icon = "ti-minus";
+    percentText = "=";
+  } else {
+    label = "Bozordan qimmat";
+    type = "expensive";
+    icon = "ti-trending-up";
+    percentText = `${Math.round((ratio - 1) * 100)}% qimmat`;
+  }
+
+  return {
+    label,
+    type,
+    icon,
+    percentText,
+    pricePerM2,
+    avg
+  };
+}
+
 export const dynamic = "force-dynamic";
 
 export async function generateStaticParams() {
@@ -156,44 +191,23 @@ export default async function Property({ params }) {
 
               {/* Narx indikatori — bozor narxiga nisbatan */}
               {(() => {
-                const pricePerM2 = l.area > 0 ? Math.round(l.priceNum / l.area) : 0;
-                // Toshkent o'rtacha bozor narxlari (USD/m²)
-                const avgMarket = { "Yangi uylar": 850, "Ikkilamchi": 720, "Ijara": 12, "Ofis": 650 };
-                const avg = avgMarket[l.cat] || 750;
-                const ratio = pricePerM2 / avg;
-                let label, color, bg, icon;
-                if (ratio < 0.85) {
-                  label = "Bozordan arzon"; color = "#2d9d5c"; bg = "#e8f8ef"; icon = "ti-trending-down";
-                } else if (ratio <= 1.15) {
-                  label = "Bozor narxida"; color = "#b8860b"; bg = "#fef9ea"; icon = "ti-minus";
-                } else {
-                  label = "Bozordan qimmat"; color = "#c0392b"; bg = "#fdeaea"; icon = "ti-trending-up";
-                }
+                const comp = getPriceComparison(l.priceNum, l.area, l.cat);
                 return (
-                  <div style={{
-                    display: "flex", alignItems: "center", gap: 14,
-                    background: bg, border: `1px solid ${color}22`,
-                    borderRadius: 14, padding: "14px 20px", marginBottom: 8,
-                  }}>
-                    <div style={{
-                      width: 40, height: 40, borderRadius: 10,
-                      background: `${color}18`, display: "flex", alignItems: "center",
-                      justifyContent: "center", flexShrink: 0,
-                    }}>
-                      <i className={`ti ${icon}`} style={{ fontSize: 22, color }}></i>
+                  <div className={`price-indicator ${comp.type}`} style={{ marginBottom: 8 }}>
+                    <div className="pi-icon">
+                      <i className={`ti ${comp.icon}`} style={{ fontSize: 22 }}></i>
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 700, fontSize: 15, color }}>{label}</div>
+                      <div style={{ fontWeight: 700, fontSize: 15 }}>{comp.label}</div>
                       <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>
-                        ${pricePerM2.toLocaleString()}/m² · O&apos;rtacha: ${avg.toLocaleString()}/m²
+                        ${comp.pricePerM2.toLocaleString()}/m² · O&apos;rtacha: ${comp.avg.toLocaleString()}/m²
                       </div>
                     </div>
-                    <div style={{
-                      fontSize: 13, fontWeight: 700, color,
-                      background: `${color}14`, padding: "4px 10px", borderRadius: 8,
-                    }}>
-                      {ratio < 1 ? `${Math.round((1 - ratio) * 100)}% arzon` : ratio > 1 ? `${Math.round((ratio - 1) * 100)}% qimmat` : "="}
-                    </div>
+                    {comp.percentText !== "=" && (
+                      <div className="pi-badge">
+                        {comp.percentText}
+                      </div>
+                    )}
                   </div>
                 );
               })()}
@@ -318,6 +332,29 @@ export default async function Property({ params }) {
               <div className="msl">Qavat</div>
             </div>
           </div>
+
+          {/* Narx indikatori — bozor narxiga nisbatan */}
+          {(() => {
+            const comp = getPriceComparison(l.priceNum, l.area, l.cat);
+            return (
+              <div className={`price-indicator ${comp.type}`} style={{ margin: "0 0 16px" }}>
+                <div className="pi-icon">
+                  <i className={`ti ${comp.icon}`} style={{ fontSize: 20 }}></i>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14 }}>{comp.label}</div>
+                  <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>
+                    ${comp.pricePerM2.toLocaleString()}/m² · O&apos;rtacha: ${comp.avg.toLocaleString()}/m²
+                  </div>
+                </div>
+                {comp.percentText !== "=" && (
+                  <div className="pi-badge">
+                    {comp.percentText}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           <div className="mdowner">
             <div className="mdoav">{initials}</div>

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import {
   saveSearch,
   removeSearch,
@@ -82,25 +82,52 @@ export default function MobileHome({ listings = [], count = 0 }) {
   const inputRef = useRef(null);
   const overlayInputRef = useRef(null);
 
+  /* Region holatlari */
+  const [selectedRegion, setSelectedRegion] = useState("Toshkent");
+  const [regionOpen, setRegionOpen] = useState(false);
+
   /* Preferences holatlari */
   const [recentSearches, setRecentSearches] = useState([]);
   const [recommended, setRecommended]       = useState([]);
 
+  // Filtrlab olingan e'lonlar
+  const regionListings = useMemo(() => {
+    return listings.filter((l) => {
+      if (selectedRegion === "Toshkent") return true;
+      return l.addr?.toLowerCase().includes(selectedRegion.toLowerCase());
+    });
+  }, [listings, selectedRegion]);
+
   /* Preference'larni yuklash */
   const loadPrefs = useCallback(() => {
     setRecentSearches(getRecentSearches());
-    if (listings.length > 0) {
-      setRecommended(scoreListings(listings).slice(0, 8));
+    if (regionListings.length > 0) {
+      setRecommended(scoreListings(regionListings).slice(0, 8));
+    } else {
+      setRecommended([]);
     }
-  }, [listings]);
+  }, [regionListings]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("joy-region");
+    if (saved) {
+      setSelectedRegion(saved);
+    }
+  }, []);
 
   useEffect(() => {
     loadPrefs();
   }, [loadPrefs]);
 
+  const handleSelectRegion = (r) => {
+    setSelectedRegion(r);
+    localStorage.setItem("joy-region", r);
+    setRegionOpen(false);
+  };
+
   /* Qidiruvni topish (overlay qidiruv qismi uchun) */
   const filtered = query.trim()
-    ? listings.filter((l) => {
+    ? regionListings.filter((l) => {
         const q = query.toLowerCase();
         return (
           l.type?.toLowerCase().includes(q) ||
@@ -113,7 +140,7 @@ export default function MobileHome({ listings = [], count = 0 }) {
 
   /* Bosh sahifadagi qidiruv natijalarini filtrlaymiz */
   const searchResults = urlQuery.trim()
-    ? listings.filter((l) => {
+    ? regionListings.filter((l) => {
         const q = urlQuery.toLowerCase();
         return (
           l.type?.toLowerCase().includes(q) ||
@@ -149,8 +176,8 @@ export default function MobileHome({ listings = [], count = 0 }) {
     setQuery("");
   };
 
-  const featured = listings[0];
-  const rest = listings.slice(1, 4);
+  const featured = regionListings[0];
+  const rest = regionListings.slice(1, 4);
 
   /* Rekommendatsiya bo'limi bor-yo'qligini aniqlash */
   const hasRecs = recommended.length > 0;
@@ -160,10 +187,13 @@ export default function MobileHome({ listings = [], count = 0 }) {
 
       {/* ====== TOP BAR ====== */}
       <div style={{ padding: "16px 16px 8px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ textAlign: "center" }}>
+        <div
+          onClick={() => setRegionOpen(true)}
+          style={{ textAlign: "center", cursor: "pointer" }}
+        >
           <div style={{ fontSize: 11, color: "var(--muted)" }}>Sizning hududingiz</div>
           <div style={{ fontSize: 15, fontWeight: 600, display: "flex", alignItems: "center", gap: 3, justifyContent: "center" }}>
-            Toshkent, UZ <i className="ti ti-chevron-down" style={{ fontSize: 14 }}></i>
+            {selectedRegion}, UZ <i className="ti ti-chevron-down" style={{ fontSize: 14 }}></i>
           </div>
         </div>
       </div>
@@ -311,16 +341,29 @@ export default function MobileHome({ listings = [], count = 0 }) {
               <div style={{ width: 64, height: 64, borderRadius: "50%", background: "var(--orange-tint)", color: "var(--orange)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
                 <i className="ti ti-search-off" style={{ fontSize: 28 }}></i>
               </div>
-              <h3 style={{ fontFamily: "'Bricolage Grotesque',sans-serif", fontSize: 18, fontWeight: 700, margin: "0 0 8px", color: "var(--ink)" }}>E&apos;lonlar topilmadi</h3>
+              <h3 style={{ fontFamily: "'Bricolage Grotesque',sans-serif", fontSize: 18, fontWeight: 700, margin: "0 0 8px", color: "var(--ink)" }}>
+                {selectedRegion !== "Toshkent" ? "E'lonlar mavjud emas" : "E'lonlar topilmadi"}
+              </h3>
               <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.5, margin: "0 0 20px" }}>
-                Hozircha e&apos;lonlar mavjud emas. Sahifani qayta yuklang.
+                {selectedRegion !== "Toshkent"
+                  ? `Hozircha ${selectedRegion} hududida e'lonlar kiritilmagan.`
+                  : "Hozircha e'lonlar mavjud emas. Sahifani qayta yuklang."}
               </p>
-              <button
-                onClick={() => window.location.reload()}
-                style={{ background: "var(--orange)", color: "#fff", border: "none", borderRadius: 14, padding: "12px 24px", fontSize: 14, fontWeight: 600, cursor: "pointer" }}
-              >
-                <i className="ti ti-refresh" style={{ fontSize: 15 }}></i> Qayta yuklash
-              </button>
+              {selectedRegion !== "Toshkent" ? (
+                <button
+                  onClick={() => handleSelectRegion("Toshkent")}
+                  style={{ background: "var(--orange)", color: "#fff", border: "none", borderRadius: 14, padding: "12px 24px", fontSize: 14, fontWeight: 600, cursor: "pointer" }}
+                >
+                  Toshkentga qaytish
+                </button>
+              ) : (
+                <button
+                  onClick={() => window.location.reload()}
+                  style={{ background: "var(--orange)", color: "#fff", border: "none", borderRadius: 14, padding: "12px 24px", fontSize: 14, fontWeight: 600, cursor: "pointer" }}
+                >
+                  <i className="ti ti-refresh" style={{ fontSize: 15 }}></i> Qayta yuklash
+                </button>
+              )}
             </div>
           ) : (
             <>
@@ -572,10 +615,10 @@ export default function MobileHome({ listings = [], count = 0 }) {
                 )}
 
                 {/* Yangi e'lonlar (agar tavsiya yo'q bo'lsa) */}
-                {!hasRecs && listings.length > 0 && (
+                {!hasRecs && regionListings.length > 0 && (
                   <div>
                     <div style={{ fontSize:13, fontWeight:700, color:"var(--ink)", marginBottom:10 }}>So'nggi e&apos;lonlar</div>
-                    {listings.slice(0, 5).map((l) => (
+                    {regionListings.slice(0, 5).map((l) => (
                       <MiniCard
                         key={l.id}
                         l={l}
@@ -586,6 +629,98 @@ export default function MobileHome({ listings = [], count = 0 }) {
                 )}
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ====== REGION SELECTOR MODAL ====== */}
+      {regionOpen && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 350,
+            background: "rgba(26,19,14,0.5)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "flex-end",
+            animation: "fadeIn 0.2s ease",
+          }}
+          onClick={() => setRegionOpen(false)}
+        >
+          <div
+            style={{
+              width: "100%",
+              background: "var(--cream, #FBF7F3)",
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              padding: "24px 20px 40px",
+              boxShadow: "0 -10px 30px rgba(0,0,0,0.15)",
+              animation: "slideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+              maxHeight: "80vh",
+              overflowY: "auto",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <h3 style={{ fontFamily: "'Bricolage Grotesque',sans-serif", fontSize: 18, fontWeight: 700, margin: 0 }}>
+                Hududni tanlang
+              </h3>
+              <button
+                onClick={() => setRegionOpen(false)}
+                style={{ background: "none", border: "none", padding: 6, cursor: "pointer", color: "var(--muted)" }}
+              >
+                <i className="ti ti-x" style={{ fontSize: 20 }}></i>
+              </button>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {[
+                "Toshkent",
+                "Samarqand",
+                "Buxoro",
+                "Andijon",
+                "Farg'ona",
+                "Namangan",
+                "Navoiy",
+                "Qashqadaryo",
+                "Surxondaryo",
+                "Jizzax",
+                "Sirdaryo",
+                "Xorazm",
+                "Qoraqalpog'iston"
+              ].map((r) => {
+                const active = r === selectedRegion;
+                return (
+                  <button
+                    key={r}
+                    onClick={() => handleSelectRegion(r)}
+                    style={{
+                      width: "100%",
+                      textAlign: "left",
+                      padding: "14px 16px",
+                      borderRadius: 12,
+                      border: active ? "1.5px solid var(--orange)" : "1px solid var(--sand)",
+                      background: active ? "var(--orange-tint)" : "var(--card-bg)",
+                      color: active ? "var(--orange-dark)" : "var(--ink)",
+                      fontSize: 14,
+                      fontWeight: active ? 600 : 500,
+                      cursor: "pointer",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    <span>{r}</span>
+                    {active ? (
+                      <i className="ti ti-check" style={{ fontSize: 16 }}></i>
+                    ) : (
+                      <i className="ti ti-chevron-right" style={{ fontSize: 14, color: "var(--muted)" }}></i>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}

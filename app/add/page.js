@@ -115,26 +115,14 @@ export default function Add() {
         </div>
 
         {/* Progress indicator */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "20px 0 10px", justifyContent: "center" }}>
+        <div className="add-progress">
           {sectionsFilled.map((filled, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{
-                width: 28,
-                height: 28,
-                borderRadius: "50%",
-                background: filled ? "var(--orange)" : "#eee",
-                color: filled ? "#fff" : "var(--muted)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 12,
-                fontWeight: 700,
-                transition: "all 0.2s ease"
-              }}>
+            <div key={i} className="pstep-item">
+              <div className={`pstep-circle${filled ? " filled" : ""}`}>
                 {filled ? <i className="ti ti-check" style={{ fontSize: 14 }}></i> : i + 1}
               </div>
               {i < 5 && (
-                <div style={{ width: 24, height: 2, background: filled && sectionsFilled[i + 1] ? "var(--orange)" : "#eee", borderRadius: 1 }} />
+                <div className={`pstep-line${filled && sectionsFilled[i + 1] ? " filled" : ""}`} />
               )}
             </div>
           ))}
@@ -368,15 +356,7 @@ export default function Add() {
           </div>
 
           <div>
-            <div
-              className="side"
-              style={{
-                position: "sticky",
-                top: 84,
-                padding: 0,
-                overflow: "hidden",
-              }}
-            >
+            <div className="side add-side">
               <div
                 style={{
                   fontSize: 12,
@@ -396,7 +376,7 @@ export default function Add() {
                     borderRadius: 14,
                     overflow: "hidden",
                     border: "1px solid var(--sand)",
-                    background: "#fff"
+                    background: "var(--card-bg)"
                   }}
                 >
                   <div

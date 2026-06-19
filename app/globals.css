@@ -273,7 +273,7 @@ footer{border-top:1px solid var(--sand);padding:36px 0;display:flex;align-items:
 .field{display:flex;flex-direction:column;gap:6px}
 .field.full{grid-column:1/3}
 .field label{font-size:13px;font-weight:600;color:var(--text2)}
-.field input,.field select,.field textarea{font-family:inherit;font-size:14px;padding:12px 14px;border:1px solid var(--sand);border-radius:12px;background:#fff;outline:none;transition:.2s;color:var(--ink)}
+.field input,.field select,.field textarea{font-family:inherit;font-size:14px;padding:12px 14px;border:1px solid var(--sand);border-radius:12px;background:#fff;outline:none;transition:.2s;color:var(--ink);width:100%}
 .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--orange);box-shadow:0 0 0 3px var(--orange-tint)}
 .field textarea{resize:vertical;min-height:100px}
 .drop{border:2px dashed var(--sand);border-radius:16px;padding:34px;text-align:center;cursor:pointer;transition:.2s}
@@ -549,7 +549,7 @@ html { scroll-behavior: smooth }
   /* Hide desktop elements */
   nav, footer, .hero-art, .sec-head .display + .sub,
   .why, .cta, .feats { display: none !important; }
-  .wrap { padding: 0 !important; max-width: 100% !important; }
+  .wrap { padding: 0 16px !important; max-width: 100% !important; }
 
   /* Listings page mobile */
   .tabs-row { padding: 10px 16px; gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
@@ -724,3 +724,202 @@ html { scroll-behavior: smooth }
   .scroll-pad{padding-bottom:110px}
   body{padding-bottom:0}
 }
+
+/* PROGRESS INDICATOR RESPONSIVE */
+.add-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 20px 0 10px;
+  justify-content: center;
+  width: 100%;
+}
+.pstep-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pstep-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--sand);
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+.pstep-circle.filled {
+  background: var(--orange);
+  color: #fff;
+}
+.pstep-line {
+  width: 24px;
+  height: 2px;
+  background: var(--sand);
+  border-radius: 1px;
+}
+.pstep-line.filled {
+  background: var(--orange);
+}
+
+@media(max-width: 480px) {
+  .add-progress {
+    gap: 4px;
+  }
+  .pstep-item {
+    gap: 4px;
+  }
+  .pstep-circle {
+    width: 22px;
+    height: 22px;
+    font-size: 10px;
+  }
+  .pstep-line {
+    width: 12px;
+  }
+}
+
+/* FROW VERTICAL STACKING ON MOBILE */
+@media(max-width: 600px) {
+  .frow {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+  }
+  .field.full {
+    grid-column: 1 !important;
+  }
+  .fsection {
+    padding: 16px !important;
+  }
+}
+
+/* ADD SIDE PREVIEW PANEL RESPONSIVE */
+.add-side {
+  position: sticky;
+  top: 84px;
+  padding: 0 !important;
+  overflow: hidden;
+}
+@media(max-width: 880px) {
+  .add-side {
+    position: static !important;
+    margin-top: 24px;
+    margin-bottom: 90px;
+  }
+}
+
+/* PRICE COMPARISON INDICATOR */
+.price-indicator {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-radius: 14px;
+  padding: 14px 20px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+.price-indicator.cheap {
+  background: #e8f8ef;
+  border: 1px solid rgba(45, 157, 92, 0.14);
+  color: #2d9d5c;
+}
+.price-indicator.cheap .pi-icon {
+  background: rgba(45, 157, 92, 0.1);
+  color: #2d9d5c;
+}
+.price-indicator.cheap .pi-badge {
+  background: rgba(45, 157, 92, 0.08);
+  color: #2d9d5c;
+}
+
+.price-indicator.average {
+  background: #fef9ea;
+  border: 1px solid rgba(184, 134, 11, 0.14);
+  color: #b8860b;
+}
+.price-indicator.average .pi-icon {
+  background: rgba(184, 134, 11, 0.1);
+  color: #b8860b;
+}
+.price-indicator.average .pi-badge {
+  background: rgba(184, 134, 11, 0.08);
+  color: #b8860b;
+}
+
+.price-indicator.expensive {
+  background: #fdeaea;
+  border: 1px solid rgba(192, 57, 43, 0.14);
+  color: #c0392b;
+}
+.price-indicator.expensive .pi-icon {
+  background: rgba(192, 57, 43, 0.1);
+  color: #c0392b;
+}
+.price-indicator.expensive .pi-badge {
+  background: rgba(192, 57, 43, 0.08);
+  color: #c0392b;
+}
+
+.pi-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.pi-badge {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+/* Dark mode overrides for price indicator */
+[data-theme="dark"] .price-indicator.cheap {
+  background: rgba(60, 212, 159, 0.08);
+  border-color: rgba(60, 212, 159, 0.2);
+  color: #3cd49f;
+}
+[data-theme="dark"] .price-indicator.cheap .pi-icon {
+  background: rgba(60, 212, 159, 0.15);
+  color: #3cd49f;
+}
+[data-theme="dark"] .price-indicator.cheap .pi-badge {
+  background: rgba(60, 212, 159, 0.12);
+  color: #3cd49f;
+}
+
+[data-theme="dark"] .price-indicator.average {
+  background: rgba(243, 190, 77, 0.08);
+  border-color: rgba(243, 190, 77, 0.2);
+  color: #f3be4d;
+}
+[data-theme="dark"] .price-indicator.average .pi-icon {
+  background: rgba(243, 190, 77, 0.15);
+  color: #f3be4d;
+}
+[data-theme="dark"] .price-indicator.average .pi-badge {
+  background: rgba(243, 190, 77, 0.12);
+  color: #f3be4d;
+}
+
+[data-theme="dark"] .price-indicator.expensive {
+  background: rgba(255, 118, 117, 0.08);
+  border-color: rgba(255, 118, 117, 0.2);
+  color: #ff7675;
+}
+[data-theme="dark"] .price-indicator.expensive .pi-icon {
+  background: rgba(255, 118, 117, 0.15);
+  color: #ff7675;
+}
+[data-theme="dark"] .price-indicator.expensive .pi-badge {
+  background: rgba(255, 118, 117, 0.12);
+  color: #ff7675;
+}
+
