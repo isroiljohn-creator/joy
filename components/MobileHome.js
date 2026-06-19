@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState, useRef } from "react";
 
 const CATS = [
   { k: "Yangi uylar", i: "ti-building-skyscraper", bg: "var(--orange-tint)", fg: "var(--orange)", sub: "Novostroyka, JK" },
@@ -11,8 +12,29 @@ const CATS = [
 
 export default function MobileHome({ listings = [], count = 0 }) {
   const router = useRouter();
+  const [query, setQuery] = useState("");
+  const [focused, setFocused] = useState(false);
+  const inputRef = useRef(null);
   const featured = listings[0];
   const rest = listings.slice(1, 4);
+
+  const handleSearch = () => {
+    const q = query.trim();
+    if (q) {
+      router.push(`/listings?q=${encodeURIComponent(q)}`);
+    } else {
+      router.push("/listings");
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") handleSearch();
+    if (e.key === "Escape") {
+      setQuery("");
+      setFocused(false);
+      inputRef.current?.blur();
+    }
+  };
 
   return (
     <div className="mobile-only" style={{ background: "var(--cream, #FBF7F3)", minHeight: "100vh", paddingBottom: 90 }}>
@@ -29,12 +51,76 @@ export default function MobileHome({ listings = [], count = 0 }) {
 
       {/* Search */}
       <div
-        onClick={() => router.push("/listings")}
-        style={{ margin: "14px 16px 8px", background: "#fff", border: ".5px solid var(--sand)", borderRadius: 16, padding: "13px 14px", display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}
+        style={{
+          margin: "10px 16px 8px",
+          background: "var(--card-bg, #fff)",
+          border: focused ? "1.5px solid var(--orange)" : ".5px solid var(--sand)",
+          boxShadow: focused ? "0 0 0 3px var(--orange-tint)" : "none",
+          borderRadius: 16,
+          padding: "0 14px",
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          transition: "border-color 0.2s, box-shadow 0.2s",
+        }}
       >
-        <i className="ti ti-search" style={{ fontSize: 19, color: "var(--muted)" }}></i>
-        <span style={{ flex: 1, fontSize: 14, color: "var(--muted)" }}>Qidirishni boshlang...</span>
-        <i className="ti ti-adjustments-horizontal" style={{ fontSize: 19, paddingLeft: 8, borderLeft: "1px solid var(--sand)" }}></i>
+        <i className="ti ti-search" style={{ fontSize: 18, color: focused ? "var(--orange)" : "var(--muted)", flexShrink: 0, transition: "color 0.2s" }}></i>
+        <input
+          ref={inputRef}
+          type="text"
+          placeholder="Hudud, tur yoki manzil..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          onKeyDown={handleKeyDown}
+          style={{
+            flex: 1,
+            border: "none",
+            outline: "none",
+            fontSize: 14,
+            background: "none",
+            color: "var(--ink)",
+            padding: "13px 0",
+            fontFamily: "inherit",
+          }}
+        />
+        {query ? (
+          <button
+            onClick={() => setQuery("")}
+            style={{ background: "none", border: "none", padding: 4, cursor: "pointer", color: "var(--muted)", display: "flex", alignItems: "center" }}
+          >
+            <i className="ti ti-x" style={{ fontSize: 16 }}></i>
+          </button>
+        ) : (
+          <button
+            onClick={() => router.push("/listings")}
+            style={{ background: "none", border: "none", padding: "4px 0 4px 8px", borderLeft: "1px solid var(--sand)", cursor: "pointer", color: "var(--muted)", display: "flex", alignItems: "center" }}
+          >
+            <i className="ti ti-adjustments-horizontal" style={{ fontSize: 18 }}></i>
+          </button>
+        )}
+        {query && (
+          <button
+            onClick={handleSearch}
+            style={{
+              background: "var(--orange)",
+              border: "none",
+              borderRadius: 10,
+              padding: "7px 14px",
+              cursor: "pointer",
+              color: "#fff",
+              fontSize: 13,
+              fontWeight: 600,
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              flexShrink: 0,
+            }}
+          >
+            <i className="ti ti-arrow-right" style={{ fontSize: 14 }}></i>
+          </button>
+        )}
       </div>
 
       {/* Categories — 4 ta dumaloq */}
