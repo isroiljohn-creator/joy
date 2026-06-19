@@ -20,11 +20,17 @@ const PUBLIC_COOKIE_OPTIONS = {
 };
 
 export async function GET(request) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
   const error = searchParams.get("error");
   
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || origin;
+  const host = request.headers.get("host") || "localhost:3000";
+  let proto = "http";
+  if (!host.includes("localhost") && !host.includes("127.0.0.1")) {
+    const reqUrlObj = new URL(request.url);
+    proto = request.headers.get("x-forwarded-proto") || reqUrlObj.protocol.replace(":", "");
+  }
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || `${proto}://${host}`;
 
   if (error || !code) {
     return NextResponse.redirect(`${appUrl}/login?error=Google login rad etildi`);
