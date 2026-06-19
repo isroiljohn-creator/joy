@@ -2,6 +2,7 @@ import "./globals.css";
 import "leaflet/dist/leaflet.css";
 import MobileNav from "@/components/MobileNav";
 import AlertProvider from "@/components/AlertProvider";
+import Script from "next/script";
 
 export const metadata = {
   title: "Joy — Ko'chmas mulk platformasi",
@@ -38,6 +39,10 @@ export default function RootLayout({ children }) {
         <link
           href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css"
           rel="stylesheet"
+        />
+        <Script
+          src="/leaflet/leaflet.js?v=1.0.3"
+          strategy="beforeInteractive"
         />
         <script
           dangerouslySetInnerHTML={{

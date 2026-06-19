@@ -42,63 +42,57 @@ export default function Map({ listings, activePin, onPinClick }) {
 
     let active = true;
 
-    // Delay 250ms to let the mobile browser reflow styles and apply position: fixed
+    // Delay 200ms to let the browser compute dimensions and reflow styles
     const timer = setTimeout(() => {
       if (!active || mapInstance.current || !mapRef.current) return;
 
-      // Load leaflet dynamically inside the client-side useEffect
-      import("leaflet")
-        .then((L) => {
-          if (!active || mapInstance.current || !mapRef.current) return;
+      try {
+        const L = window.L;
+        if (!L) {
+          throw new Error("Xarita moduli (window.L) topilmadi. Sahifani qayta yuklab ko'ring.");
+        }
 
-          try {
-            // Setup Leaflet icon defaults to bypass 404s
-            if (L.Icon && L.Icon.Default) {
-              delete L.Icon.Default.prototype._getIconUrl;
-              L.Icon.Default.mergeOptions({
-                iconRetinaUrl: null,
-                iconUrl: null,
-                shadowUrl: null,
-              });
-            }
+        // Setup Leaflet icon defaults to bypass 404s
+        if (L.Icon && L.Icon.Default) {
+          delete L.Icon.Default.prototype._getIconUrl;
+          L.Icon.Default.mergeOptions({
+            iconRetinaUrl: null,
+            iconUrl: null,
+            shadowUrl: null,
+          });
+        }
 
-            const map = L.map(mapRef.current, {
-              center: [41.3111, 69.2797],
-              zoom: 12,
-              zoomControl: false,
-            });
-
-            L.control.zoom({ position: "bottomright" }).addTo(map);
-
-            // CartoDB Voyager tiles (never blocked, extremely fast, modern look)
-            L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png", {
-              attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://openstreetmap.org">OSM</a>',
-              maxZoom: 18,
-            }).addTo(map);
-
-            mapInstance.current = map;
-            addMarkers(L, map, listings);
-
-            // Invalidate map size on container resize
-            const ro = new ResizeObserver(() => {
-              map.invalidateSize();
-            });
-            ro.observe(mapRef.current);
-            resizeObserverRef.current = ro;
-            
-            setLoading(false);
-          } catch (err) {
-            console.error("Map initialization failed:", err);
-            setError(err.message + "\n" + err.stack);
-            setLoading(false);
-          }
-        })
-        .catch((err) => {
-          console.error("Leaflet import failed:", err);
-          setError("Leaflet import failed: " + err.message);
-          setLoading(false);
+        const map = L.map(mapRef.current, {
+          center: [41.3111, 69.2797],
+          zoom: 12,
+          zoomControl: false,
         });
-    }, 250);
+
+        L.control.zoom({ position: "bottomright" }).addTo(map);
+
+        // CartoDB Voyager tiles (never blocked, extremely fast, modern look)
+        L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png", {
+          attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://openstreetmap.org">OSM</a>',
+          maxZoom: 18,
+        }).addTo(map);
+
+        mapInstance.current = map;
+        addMarkers(L, map, listings);
+
+        // Invalidate map size on container resize
+        const ro = new ResizeObserver(() => {
+          map.invalidateSize();
+        });
+        ro.observe(mapRef.current);
+        resizeObserverRef.current = ro;
+        
+        setLoading(false);
+      } catch (err) {
+        console.error("Map initialization failed:", err);
+        setError(err.message + "\n" + err.stack);
+        setLoading(false);
+      }
+    }, 200);
 
     return () => {
       active = false;
@@ -115,15 +109,12 @@ export default function Map({ listings, activePin, onPinClick }) {
   }, []);
 
   useEffect(() => {
-    if (!mapInstance.current) return;
+    const L = window.L;
+    if (!mapInstance.current || !L) return;
     // Update markers
     markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
-    import("leaflet").then((L) => {
-      if (mapInstance.current) {
-        addMarkers(L, mapInstance.current, listings);
-      }
-    });
+    addMarkers(L, mapInstance.current, listings);
   }, [listings]);
 
   useEffect(() => {
