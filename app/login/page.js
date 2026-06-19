@@ -53,7 +53,8 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      const res = await getGoogleAuthUrlAction();
+      const origin = typeof window !== "undefined" ? window.location.origin : "";
+      const res = await getGoogleAuthUrlAction(origin);
       if (res?.error) {
         setError(res.error);
         alert("Google orqali kirishni sozlash uchun loyihaning environment o'zgaruvchilariga GOOGLE_CLIENT_ID va GOOGLE_CLIENT_SECRET ni kiritishingiz kerak.");

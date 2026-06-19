@@ -20,11 +20,11 @@ const PUBLIC_COOKIE_OPTIONS = {
 };
 
 export async function GET(request) {
-  const { searchParams } = new URL(request.url);
+  const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const error = searchParams.get("error");
   
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || origin;
 
   if (error || !code) {
     return NextResponse.redirect(`${appUrl}/login?error=Google login rad etildi`);

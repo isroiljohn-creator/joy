@@ -267,9 +267,9 @@ export async function getGoogleAccountsAction() {
 }
 
 // Google OAuth yo'naltirish URLini olish
-export async function getGoogleAuthUrlAction() {
+export async function getGoogleAuthUrlAction(clientOrigin) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const appUrl = clientOrigin || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
   const redirectUri = `${appUrl}/api/auth/google/callback`;
 
   if (!clientId) {
