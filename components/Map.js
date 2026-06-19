@@ -33,124 +33,102 @@ export default function Map({ listings, activePin, onPinClick }) {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const markersRef = useRef([]);
-  const resizeObserverRef = useRef(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const LRef = useRef(null);
 
   useEffect(() => {
     if (mapInstance.current || !mapRef.current) return;
 
     let active = true;
-    let checkCount = 0;
-    let scriptElement = null;
-    let handleScriptLoad = null;
-    let handleScriptError = null;
+    let resizeObserverInstance = null;
 
-    const initOrWait = () => {
+    const initMap = async () => {
       if (!active || mapInstance.current || !mapRef.current) return;
 
-      const L = window.L;
-      if (L) {
-        try {
-          // Setup Leaflet icon defaults to bypass 404s
-          if (L.Icon && L.Icon.Default) {
-            delete L.Icon.Default.prototype._getIconUrl;
-            L.Icon.Default.mergeOptions({
-              iconRetinaUrl: null,
-              iconUrl: null,
-              shadowUrl: null,
-            });
-          }
+      try {
+        // Dynamically import Leaflet only on the client side
+        const L = (await import("leaflet")).default || await import("leaflet");
+        
+        if (!active || mapInstance.current || !mapRef.current) return;
 
-          const map = L.map(mapRef.current, {
-            center: [41.3111, 69.2797],
-            zoom: 12,
-            zoomControl: false,
-            tap: false // Disable double-tap zoom delay on iOS Safari
+        LRef.current = L;
+
+        // Setup Leaflet icon defaults to bypass 404s
+        if (L.Icon && L.Icon.Default) {
+          delete L.Icon.Default.prototype._getIconUrl;
+          L.Icon.Default.mergeOptions({
+            iconRetinaUrl: null,
+            iconUrl: null,
+            shadowUrl: null,
           });
+        }
 
-          L.control.zoom({ position: "bottomright" }).addTo(map);
+        const map = L.map(mapRef.current, {
+          center: [41.3111, 69.2797],
+          zoom: 12,
+          zoomControl: false,
+          tap: false // Disable double-tap zoom delay on iOS Safari
+        });
 
-          // CartoDB Voyager tiles (never blocked, extremely fast, modern look)
-          L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png", {
-            attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://openstreetmap.org">OSM</a>',
-            maxZoom: 18,
-          }).addTo(map);
+        L.control.zoom({ position: "bottomright" }).addTo(map);
 
-          mapInstance.current = map;
-          addMarkers(L, map, listings);
+        // CartoDB Voyager tiles (never blocked, extremely fast, modern look)
+        L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png", {
+          attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://openstreetmap.org">OSM</a>',
+          maxZoom: 18,
+        }).addTo(map);
 
-          // Invalidate map size on container resize
+        mapInstance.current = map;
+        addMarkers(L, map, listings);
+
+        // Invalidate map size on container resize
+        if (typeof ResizeObserver !== "undefined") {
           const ro = new ResizeObserver(() => {
             map.invalidateSize();
           });
           ro.observe(mapRef.current);
-          resizeObserverRef.current = ro;
-          
-          setLoading(false);
-        } catch (err) {
-          console.error("Map initialization failed:", err);
-          setError(err.message + "\n" + err.stack);
-          setLoading(false);
-        }
-      } else {
-        if (checkCount < 10) {
-          checkCount++;
-          console.log(`window.L not found, retry #${checkCount} in 150ms...`);
-          setTimeout(initOrWait, 150);
+          resizeObserverInstance = ro;
         } else {
-          console.log("Fallback: Dynamically injecting leaflet.js...");
-          let script = document.querySelector('script[src*="leaflet.js"]');
-          if (!script) {
-            script = document.createElement("script");
-            script.src = "/leaflet/leaflet.js?v=1.0.3";
-            document.head.appendChild(script);
-          }
-          scriptElement = script;
-          
-          handleScriptLoad = () => {
-            if (window.L) {
-              initOrWait();
-            } else {
-              setError("Global window.L could not be loaded via fallback script tag.");
-              setLoading(false);
-            }
+          // Fallback to window resize event for older browsers (e.g. Safari on older iOS)
+          const handleResize = () => {
+            map.invalidateSize();
           };
-
-          handleScriptError = () => {
-            setError("Failed to load Leaflet script via fallback injection.");
-            setLoading(false);
-          };
-
-          script.addEventListener("load", handleScriptLoad);
-          script.addEventListener("error", handleScriptError);
+          window.addEventListener("resize", handleResize);
+          map._handleResizeFallback = handleResize;
         }
+        
+        setLoading(false);
+      } catch (err) {
+        console.error("Map initialization failed:", err);
+        setError(err.message + "\n" + err.stack);
+        setLoading(false);
       }
     };
 
     // Wait 200ms once for layout rendering reflow to complete
-    const timer = setTimeout(initOrWait, 200);
+    const timer = setTimeout(initMap, 200);
 
     return () => {
       active = false;
       clearTimeout(timer);
-      if (scriptElement) {
-        if (handleScriptLoad) scriptElement.removeEventListener("load", handleScriptLoad);
-        if (handleScriptError) scriptElement.removeEventListener("error", handleScriptError);
-      }
-      if (resizeObserverRef.current) {
-        resizeObserverRef.current.disconnect();
-        resizeObserverRef.current = null;
+      if (resizeObserverInstance) {
+        resizeObserverInstance.disconnect();
       }
       if (mapInstance.current) {
-        mapInstance.current.remove();
+        const map = mapInstance.current;
+        if (map._handleResizeFallback) {
+          window.removeEventListener("resize", map._handleResizeFallback);
+        }
+        map.remove();
         mapInstance.current = null;
       }
     };
   }, []);
 
   useEffect(() => {
-    const L = window.L;
+    const L = LRef.current;
     if (!mapInstance.current || !L) return;
     // Update markers
     markersRef.current.forEach((m) => m.remove());
