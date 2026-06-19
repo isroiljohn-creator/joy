@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import L from "leaflet";
 
 // Toshkent tumanlari koordinatalari
 const DISTRICT_COORDS = {
@@ -31,113 +32,51 @@ export default function Map({ listings, activePin, onPinClick }) {
   const mapInstance = useRef(null);
   const markersRef = useRef([]);
   const resizeObserverRef = useRef(null);
-  const retryCountRef = useRef(0);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (mapInstance.current) return;
+    if (mapInstance.current || !mapRef.current) return;
 
-    const initMap = (L) => {
-      try {
-        if (!mapRef.current || mapInstance.current) return;
-
-        const width = mapRef.current.offsetWidth;
-        const height = mapRef.current.offsetHeight;
-        
-        // If the map container is not yet fully laid out or visible (size is 0),
-        // we must delay initialization. Otherwise Leaflet sets up zoom/center invalidly.
-        if (width === 0 || height === 0) {
-          if (retryCountRef.current >= 15) {
-            const computedStyle = window.getComputedStyle(mapRef.current);
-            throw new Error(
-              `Map container size is 0x0 (width: ${width}, height: ${height}) after 15 retries.\n` +
-              `Style details: display=${computedStyle.display}, visibility=${computedStyle.visibility}, ` +
-              `position=${computedStyle.position}, height=${computedStyle.height}, width=${computedStyle.width}, ` +
-              `offsetParent=${mapRef.current.offsetParent ? mapRef.current.offsetParent.tagName + '.' + mapRef.current.offsetParent.className : 'null'}`
-            );
-          }
-          retryCountRef.current += 1;
-          console.log(`Map container size is 0x0. Retry #${retryCountRef.current} in 100ms...`);
-          setTimeout(() => initMap(L), 100);
-          return;
-        }
-        retryCountRef.current = 0; // reset on success
-
-        // Override default icon options to prevent Leaflet from querying missing asset files
-        if (L.Icon && L.Icon.Default) {
-          delete L.Icon.Default.prototype._getIconUrl;
-          L.Icon.Default.mergeOptions({
-            iconRetinaUrl: null,
-            iconUrl: null,
-            shadowUrl: null,
-          });
-        }
-
-        const map = L.map(mapRef.current, {
-          center: [41.3111, 69.2797],
-          zoom: 12,
-          zoomControl: false,
+    try {
+      // Setup Leaflet icon defaults to bypass 404s
+      if (L.Icon && L.Icon.Default) {
+        delete L.Icon.Default.prototype._getIconUrl;
+        L.Icon.Default.mergeOptions({
+          iconRetinaUrl: null,
+          iconUrl: null,
+          shadowUrl: null,
         });
-
-        L.control.zoom({ position: "bottomright" }).addTo(map);
-
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          attribution: '&copy; <a href="https://openstreetmap.org">OSM</a>',
-          maxZoom: 18,
-        }).addTo(map);
-
-        mapInstance.current = map;
-        addMarkers(L, map, listings);
-
-        // Konteyner o'lchami o'zgarganda xaritani yangilaymiz
-        const ro = new ResizeObserver(() => {
-          map.invalidateSize();
-        });
-        ro.observe(mapRef.current);
-        resizeObserverRef.current = ro;
-      } catch (err) {
-        console.error("Map initialization failed:", err);
-        setError(err.message + "\n" + err.stack);
       }
-    };
 
-    let script = document.querySelector('script[src*="leaflet.js"]');
-    if (!script) {
-      script = document.createElement("script");
-      script.src = "/leaflet/leaflet.js";
-      document.head.appendChild(script);
-    }
+      const map = L.map(mapRef.current, {
+        center: [41.3111, 69.2797],
+        zoom: 12,
+        zoomControl: false,
+      });
 
-    const handleLoad = () => {
-      try {
-        if (!window.L) {
-          throw new Error("Leaflet script file loaded, but window.L is undefined!");
-        }
-        // Delay initialization slightly to let the browser compute dimensions and reflow styles
-        setTimeout(() => {
-          initMap(window.L);
-        }, 50);
-      } catch (err) {
-        setError(err.message + "\n" + err.stack);
-      }
-    };
+      L.control.zoom({ position: "bottomright" }).addTo(map);
 
-    const handleError = (e) => {
-      setError("Failed to load local Leaflet JS file: /leaflet/leaflet.js. Please verify file accessibility.");
-    };
+      // CartoDB Voyager tiles (never blocked, extremely fast, modern look)
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+        attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://openstreetmap.org">OSM</a>',
+        maxZoom: 18,
+      }).addTo(map);
 
-    if (window.L) {
-      handleLoad();
-    } else {
-      script.addEventListener("load", handleLoad);
-      script.addEventListener("error", handleError);
+      mapInstance.current = map;
+      addMarkers(L, map, listings);
+
+      // Invalidate map size on div container resize
+      const ro = new ResizeObserver(() => {
+        map.invalidateSize();
+      });
+      ro.observe(mapRef.current);
+      resizeObserverRef.current = ro;
+    } catch (err) {
+      console.error("Map initialization failed:", err);
+      setError(err.message + "\n" + err.stack);
     }
 
     return () => {
-      if (script) {
-        script.removeEventListener("load", handleLoad);
-        script.removeEventListener("error", handleError);
-      }
       if (resizeObserverRef.current) {
         resizeObserverRef.current.disconnect();
         resizeObserverRef.current = null;
@@ -150,11 +89,11 @@ export default function Map({ listings, activePin, onPinClick }) {
   }, []);
 
   useEffect(() => {
-    if (!mapInstance.current || !window.L) return;
-    // Markerlarni yangilash
+    if (!mapInstance.current) return;
+    // Update markers
     markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
-    addMarkers(window.L, mapInstance.current, listings);
+    addMarkers(L, mapInstance.current, listings);
   }, [listings]);
 
   useEffect(() => {
@@ -165,8 +104,7 @@ export default function Map({ listings, activePin, onPinClick }) {
     }
   }, [activePin]);
 
-  function addMarkers(L, map, items) {
-    // Global CSS for pins (bir marta)
+  function addMarkers(LInstance, map, items) {
     if (!document.getElementById("map-pin-style")) {
       const style = document.createElement("style");
       style.id = "map-pin-style";
@@ -233,14 +171,14 @@ export default function Map({ listings, activePin, onPinClick }) {
             : `$${l.priceNum.toLocaleString()}`
           : l.price || "$0";
 
-        const icon = L.divIcon({
+        const icon = LInstance.divIcon({
           className: "custom-pin",
           html: `<div class="joy-pin">${priceLabel}</div>`,
           iconAnchor: [0, 0],
           popupAnchor: [0, -5],
         });
 
-        const marker = L.marker(coords, { icon }).addTo(map);
+        const marker = LInstance.marker(coords, { icon }).addTo(map);
         marker.bindPopup(`
           <div style="min-width:140px">
             <div style="font-weight:700;font-size:14px;margin-bottom:3px;color:#1A130E">${l.type || "E'lon"}</div>
@@ -262,7 +200,7 @@ export default function Map({ listings, activePin, onPinClick }) {
 
     if (markersRef.current.length > 0) {
       try {
-        const bounds = L.latLngBounds(markersRef.current.map((m) => m.getLatLng()));
+        const bounds = LInstance.latLngBounds(markersRef.current.map((m) => m.getLatLng()));
         map.fitBounds(bounds, { padding: [40, 40] });
       } catch (err) {
         console.error("Error setting map bounds:", err);

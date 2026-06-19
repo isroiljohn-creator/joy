@@ -1,4 +1,5 @@
 import "./globals.css";
+import "leaflet/dist/leaflet.css";
 import MobileNav from "@/components/MobileNav";
 import AlertProvider from "@/components/AlertProvider";
 
@@ -37,10 +38,6 @@ export default function RootLayout({ children }) {
         <link
           href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css"
           rel="stylesheet"
-        />
-        <link
-          rel="stylesheet"
-          href="/leaflet/leaflet.css"
         />
         <script
           dangerouslySetInnerHTML={{
