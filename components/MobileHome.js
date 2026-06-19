@@ -320,18 +320,38 @@ export default function MobileHome({ listings = [], count = 0 }) {
         /* NORMAL HOME CONTENT */
         <>
           {/* ====== KATEGORIYALAR ====== */}
-          <div style={{ display: "flex", justifyContent: "space-around", padding: "12px 12px 16px" }}>
+          <div style={{
+            display: "flex",
+            justifyContent: "space-around",
+            padding: "18px 12px",
+            background: "linear-gradient(135deg, var(--orange) 0%, var(--orange-dark) 100%)",
+            margin: "8px 16px 16px",
+            borderRadius: 20,
+            boxShadow: "0 8px 24px rgba(242, 89, 31, 0.18)"
+          }}>
             {CATS.map((c) => (
               <Link
                 key={c.k}
                 href={`/listings?cat=${encodeURIComponent(c.k)}`}
                 onClick={() => trackCategory(c.k)}
-                style={{ textAlign: "center", width: 74, textDecoration: "none", color: "inherit" }}
+                style={{ textAlign: "center", width: 74, textDecoration: "none", color: "#ffffff" }}
               >
-                <div style={{ width: 58, height: 58, margin: "0 auto 6px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: c.bg, color: c.fg }}>
+                <div style={{
+                  width: 58,
+                  height: 58,
+                  margin: "0 auto 8px",
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "rgba(255, 255, 255, 0.18)",
+                  color: "#ffffff",
+                  transition: "all 0.15s ease",
+                  border: "1px solid rgba(255, 255, 255, 0.1)"
+                }}>
                   <i className={`ti ${c.i}`} style={{ fontSize: 25 }}></i>
                 </div>
-                <div style={{ fontSize: 11, color: "var(--text2)", lineHeight: 1.2, fontWeight: 500 }}>{c.k}</div>
+                <div style={{ fontSize: 11, color: "rgba(255, 255, 255, 0.95)", lineHeight: 1.2, fontWeight: 600 }}>{c.k}</div>
               </Link>
             ))}
           </div>
