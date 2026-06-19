@@ -17,21 +17,15 @@ export default function MobileHome({ listings = [], count = 0 }) {
   return (
     <div className="mobile-only" style={{ background: "var(--cream, #FBF7F3)", minHeight: "100vh", paddingBottom: 90 }}>
       {/* Top Bar */}
-      <div style={{ padding: "16px 16px 4px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ width: 40, height: 40, borderRadius: 12, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", border: ".5px solid var(--sand)" }}>
-          <i className="ti ti-menu-2" style={{ fontSize: 19 }}></i>
-        </div>
+      <div style={{ padding: "16px 16px 8px", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div style={{ textAlign: "center" }}>
           <div style={{ fontSize: 11, color: "var(--muted)" }}>Sizning hududingiz</div>
           <div style={{ fontSize: 15, fontWeight: 600, display: "flex", alignItems: "center", gap: 3, justifyContent: "center" }}>
             Toshkent, UZ <i className="ti ti-chevron-down" style={{ fontSize: 14 }}></i>
           </div>
         </div>
-        <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", border: ".5px solid var(--sand)", position: "relative" }}>
-          <i className="ti ti-bell" style={{ fontSize: 19 }}></i>
-          <span style={{ position: "absolute", top: 8, right: 9, width: 7, height: 7, borderRadius: "50%", background: "var(--orange)", border: "1.5px solid #fff" }}></span>
-        </div>
       </div>
+
 
       {/* Search */}
       <div
