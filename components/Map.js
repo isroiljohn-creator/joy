@@ -34,19 +34,9 @@ export default function Map({ listings, activePin, onPinClick }) {
   useEffect(() => {
     if (mapInstance.current) return;
 
-    // Leaflet CSS
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-    document.head.appendChild(link);
-
-    // Leaflet JS
-    const script = document.createElement("script");
-    script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-    script.onload = () => {
+    const initMap = (L) => {
       if (!mapRef.current || mapInstance.current) return;
 
-      const L = window.L;
       const map = L.map(mapRef.current, {
         center: [41.3111, 69.2797],
         zoom: 12,
@@ -69,7 +59,26 @@ export default function Map({ listings, activePin, onPinClick }) {
       });
       ro.observe(mapRef.current);
     };
-    document.head.appendChild(script);
+
+    if (window.L) {
+      initMap(window.L);
+    } else {
+      // Leaflet CSS
+      if (!document.querySelector('link[href*="leaflet.css"]')) {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+        document.head.appendChild(link);
+      }
+
+      // Leaflet JS
+      const script = document.createElement("script");
+      script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+      script.onload = () => {
+        initMap(window.L);
+      };
+      document.head.appendChild(script);
+    }
 
     return () => {
       if (mapInstance.current) {
@@ -154,9 +163,11 @@ export default function Map({ listings, activePin, onPinClick }) {
 
     items.forEach((l, i) => {
       const coords = getCoords(l.addr);
-      const priceLabel = l.priceNum >= 1000
-        ? `$${Math.round(l.priceNum / 1000)}k`
-        : `$${l.priceNum.toLocaleString()}`;
+      const priceLabel = l.priceNum != null
+        ? l.priceNum >= 1000
+          ? `$${Math.round(l.priceNum / 1000)}k`
+          : `$${l.priceNum.toLocaleString()}`
+        : l.price || "$0";
 
       const icon = L.divIcon({
         className: "custom-pin",
