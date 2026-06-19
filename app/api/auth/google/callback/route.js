@@ -44,8 +44,8 @@ export async function GET(request) {
     let email, name;
 
     if (!clientId || !clientSecret || code === "mock_dev_code") {
-      email = "developer@joy.uz";
-      name = "Developer Joy";
+      email = searchParams.get("email") || "developer@joy.uz";
+      name = searchParams.get("name") || "Developer Joy";
     } else {
       // Exchange code for tokens
       const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {

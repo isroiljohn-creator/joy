@@ -273,8 +273,8 @@ export async function getGoogleAuthUrlAction(clientOrigin) {
   const redirectUri = `${appUrl}/api/auth/google/callback`;
 
   if (!clientId) {
-    // Development/Local mode fallback redirect URL
-    return { url: `${redirectUri}?code=mock_dev_code` };
+    // Development/Local mode fallback - redirect to the gorgeous simulated Google Login page
+    return { url: `${appUrl}/login/google-oauth` };
   }
   
   const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent("openid email profile")}&state=google`;
