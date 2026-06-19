@@ -82,12 +82,42 @@ export default function Error({ error, reset }) {
           color: "var(--text2)",
           maxWidth: 420,
           lineHeight: 1.6,
-          marginBottom: 32,
+          marginBottom: 16,
         }}
       >
         Kutilmagan xatolik ro'y berdi. Iltimos, qayta urinib ko'ring yoki bosh
         sahifaga qayting.
       </p>
+
+      {error && (
+        <div style={{
+          background: "#fee2e2",
+          border: "1.5px solid #ef4444",
+          color: "#991b1b",
+          padding: 16,
+          borderRadius: 12,
+          fontSize: 13,
+          fontFamily: "monospace",
+          textAlign: "left",
+          maxWidth: 650,
+          width: "90%",
+          boxSizing: "border-box",
+          overflowX: "auto",
+          whiteSpace: "pre-wrap",
+          marginBottom: 32
+        }}>
+          <strong style={{ color: "#7f1d1d" }}>Xatolik tafsilotlari:</strong>
+          <div style={{ marginTop: 4 }}>{error.message || String(error)}</div>
+          {error.stack && (
+            <details style={{ marginTop: 10 }}>
+              <summary style={{ cursor: "pointer", fontWeight: "bold", outline: "none", color: "#7f1d1d" }}>
+                Stack trace ko&apos;rish
+              </summary>
+              <pre style={{ marginTop: 8, fontSize: 11, color: "#991b1b", overflowX: "auto" }}>{error.stack}</pre>
+            </details>
+          )}
+        </div>
+      )}
 
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
         <button
