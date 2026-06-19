@@ -41,62 +41,103 @@ export default function Map({ listings, activePin, onPinClick }) {
     if (mapInstance.current || !mapRef.current) return;
 
     let active = true;
+    let checkCount = 0;
+    let scriptElement = null;
+    let handleScriptLoad = null;
+    let handleScriptError = null;
 
-    // Delay 200ms to let the browser compute dimensions and reflow styles
-    const timer = setTimeout(() => {
+    const initOrWait = () => {
       if (!active || mapInstance.current || !mapRef.current) return;
 
-      try {
-        const L = window.L;
-        if (!L) {
-          throw new Error("Xarita moduli (window.L) topilmadi. Sahifani qayta yuklab ko'ring.");
-        }
+      const L = window.L;
+      if (L) {
+        try {
+          // Setup Leaflet icon defaults to bypass 404s
+          if (L.Icon && L.Icon.Default) {
+            delete L.Icon.Default.prototype._getIconUrl;
+            L.Icon.Default.mergeOptions({
+              iconRetinaUrl: null,
+              iconUrl: null,
+              shadowUrl: null,
+            });
+          }
 
-        // Setup Leaflet icon defaults to bypass 404s
-        if (L.Icon && L.Icon.Default) {
-          delete L.Icon.Default.prototype._getIconUrl;
-          L.Icon.Default.mergeOptions({
-            iconRetinaUrl: null,
-            iconUrl: null,
-            shadowUrl: null,
+          const map = L.map(mapRef.current, {
+            center: [41.3111, 69.2797],
+            zoom: 12,
+            zoomControl: false,
+            tap: false // Disable double-tap zoom delay on iOS Safari
           });
+
+          L.control.zoom({ position: "bottomright" }).addTo(map);
+
+          // CartoDB Voyager tiles (never blocked, extremely fast, modern look)
+          L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png", {
+            attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://openstreetmap.org">OSM</a>',
+            maxZoom: 18,
+          }).addTo(map);
+
+          mapInstance.current = map;
+          addMarkers(L, map, listings);
+
+          // Invalidate map size on container resize
+          const ro = new ResizeObserver(() => {
+            map.invalidateSize();
+          });
+          ro.observe(mapRef.current);
+          resizeObserverRef.current = ro;
+          
+          setLoading(false);
+        } catch (err) {
+          console.error("Map initialization failed:", err);
+          setError(err.message + "\n" + err.stack);
+          setLoading(false);
         }
+      } else {
+        if (checkCount < 10) {
+          checkCount++;
+          console.log(`window.L not found, retry #${checkCount} in 150ms...`);
+          setTimeout(initOrWait, 150);
+        } else {
+          console.log("Fallback: Dynamically injecting leaflet.js...");
+          let script = document.querySelector('script[src*="leaflet.js"]');
+          if (!script) {
+            script = document.createElement("script");
+            script.src = "/leaflet/leaflet.js?v=1.0.3";
+            document.head.appendChild(script);
+          }
+          scriptElement = script;
+          
+          handleScriptLoad = () => {
+            if (window.L) {
+              initOrWait();
+            } else {
+              setError("Global window.L could not be loaded via fallback script tag.");
+              setLoading(false);
+            }
+          };
 
-        const map = L.map(mapRef.current, {
-          center: [41.3111, 69.2797],
-          zoom: 12,
-          zoomControl: false,
-        });
+          handleScriptError = () => {
+            setError("Failed to load Leaflet script via fallback injection.");
+            setLoading(false);
+          };
 
-        L.control.zoom({ position: "bottomright" }).addTo(map);
-
-        // CartoDB Voyager tiles (never blocked, extremely fast, modern look)
-        L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png", {
-          attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://openstreetmap.org">OSM</a>',
-          maxZoom: 18,
-        }).addTo(map);
-
-        mapInstance.current = map;
-        addMarkers(L, map, listings);
-
-        // Invalidate map size on container resize
-        const ro = new ResizeObserver(() => {
-          map.invalidateSize();
-        });
-        ro.observe(mapRef.current);
-        resizeObserverRef.current = ro;
-        
-        setLoading(false);
-      } catch (err) {
-        console.error("Map initialization failed:", err);
-        setError(err.message + "\n" + err.stack);
-        setLoading(false);
+          script.addEventListener("load", handleScriptLoad);
+          script.addEventListener("error", handleScriptError);
+        }
       }
-    }, 200);
+    };
+
+    // Wait 200ms once for layout rendering reflow to complete
+    const timer = setTimeout(initOrWait, 200);
 
     return () => {
       active = false;
       clearTimeout(timer);
+      if (scriptElement) {
+        if (handleScriptLoad) scriptElement.removeEventListener("load", handleScriptLoad);
+        if (handleScriptError) scriptElement.removeEventListener("error", handleScriptError);
+      }
       if (resizeObserverRef.current) {
         resizeObserverRef.current.disconnect();
         resizeObserverRef.current = null;
@@ -232,6 +273,8 @@ export default function Map({ listings, activePin, onPinClick }) {
   if (error) {
     return (
       <div style={{
+        position: "absolute",
+        inset: 16,
         padding: 24,
         color: "#dc2626",
         background: "#fee2e2",
@@ -239,12 +282,9 @@ export default function Map({ listings, activePin, onPinClick }) {
         fontSize: 12,
         whiteSpace: "pre-wrap",
         overflowY: "auto",
-        height: "100%",
-        minHeight: 400,
         borderRadius: 16,
         border: "2px solid #ef4444",
-        zIndex: 9999,
-        position: "relative"
+        zIndex: 9999
       }}>
         <h3 style={{ margin: "0 0 10px", color: "#991b1b" }}>Xaritada yuklanish xatosi:</h3>
         <p style={{ margin: "0 0 16px", lineHeight: 1.5 }}>{error}</p>
@@ -267,7 +307,15 @@ export default function Map({ listings, activePin, onPinClick }) {
   }
 
   return (
-    <div style={{ width: "100%", height: "100%", minHeight: 400, position: "relative" }}>
+    <div style={{
+      position: "absolute",
+      top: 0,
+      bottom: 0,
+      left: 0,
+      right: 0,
+      width: "100%",
+      height: "100%"
+    }}>
       {loading && (
         <div style={{
           position: "absolute",
@@ -296,7 +344,15 @@ export default function Map({ listings, activePin, onPinClick }) {
       )}
       <div
         ref={mapRef}
-        style={{ width: "100%", height: "100%", minHeight: 400 }}
+        style={{
+          position: "absolute",
+          top: 0,
+          bottom: 0,
+          left: 0,
+          right: 0,
+          width: "100%",
+          height: "100%"
+        }}
       />
     </div>
   );
