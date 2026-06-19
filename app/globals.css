@@ -363,6 +363,15 @@ footer{border-top:1px solid var(--sand);padding:36px 0;display:flex;align-items:
   --sand: #2D2822;
   --muted: #8A837B;
   --text2: #B5AEA5;
+  --orange-tint: #2D201A;
+  --green-tint: #152A20;
+  --green: #3cd49f;
+  --amber-tint: #2C2114;
+  --amber: #f3be4d;
+  --blue-tint: #162435;
+  --blue: #52a1eb;
+  --purple-tint: #1D1932;
+  --purple: #a873e8;
 }
 [data-theme="dark"] body { background: #1A1612; color: #F5F0EB }
 [data-theme="dark"] nav { background: rgba(26, 22, 18, 0.85) }
