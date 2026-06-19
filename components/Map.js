@@ -181,41 +181,51 @@ export default function Map({ listings, activePin, onPinClick }) {
       document.head.appendChild(style);
     }
 
+    if (!Array.isArray(items)) return;
+
     items.forEach((l, i) => {
-      const coords = getCoords(l.addr);
-      const priceLabel = l.priceNum != null
-        ? l.priceNum >= 1000
-          ? `$${Math.round(l.priceNum / 1000)}k`
-          : `$${l.priceNum.toLocaleString()}`
-        : l.price || "$0";
+      try {
+        const coords = getCoords(l.addr);
+        const priceLabel = l.priceNum != null
+          ? l.priceNum >= 1000
+            ? `$${Math.round(l.priceNum / 1000)}k`
+            : `$${l.priceNum.toLocaleString()}`
+          : l.price || "$0";
 
-      const icon = L.divIcon({
-        className: "custom-pin",
-        html: `<div class="joy-pin">${priceLabel}</div>`,
-        iconSize: null,
-        iconAnchor: [0, 0],
-        popupAnchor: [0, -5],
-      });
+        const icon = L.divIcon({
+          className: "custom-pin",
+          html: `<div class="joy-pin">${priceLabel}</div>`,
+          iconAnchor: [0, 0],
+          popupAnchor: [0, -5],
+        });
 
-      const marker = L.marker(coords, { icon }).addTo(map);
-      marker.bindPopup(`
-        <div style="min-width:140px">
-          <div style="font-weight:700;font-size:14px;margin-bottom:3px;color:#1A130E">${l.type}</div>
-          <div style="color:#9B9286;font-size:12px;margin-bottom:6px;display:flex;align-items:center;gap:3px">
-            <i class="ti ti-map-pin" style="font-size:13px"></i> ${l.addr}
+        const marker = L.marker(coords, { icon }).addTo(map);
+        marker.bindPopup(`
+          <div style="min-width:140px">
+            <div style="font-weight:700;font-size:14px;margin-bottom:3px;color:#1A130E">${l.type || "E'lon"}</div>
+            <div style="color:#9B9286;font-size:12px;margin-bottom:6px;display:flex;align-items:center;gap:3px">
+              <i class="ti ti-map-pin" style="font-size:13px"></i> ${l.addr || ""}
+            </div>
+            <div style="color:#F2591F;font-weight:700;font-size:16px;font-family:'Bricolage Grotesque',sans-serif">${l.price || ""}</div>
           </div>
-          <div style="color:#F2591F;font-weight:700;font-size:16px;font-family:'Bricolage Grotesque',sans-serif">${l.price}</div>
-        </div>
-      `, { closeButton: false, offset: [0, -10] });
-      marker.on("click", () => {
-        if (onPinClick) onPinClick(i);
-      });
-      markersRef.current.push(marker);
+        `, { closeButton: false, offset: [0, -10] });
+        
+        marker.on("click", () => {
+          if (onPinClick) onPinClick(i);
+        });
+        markersRef.current.push(marker);
+      } catch (err) {
+        console.error("Error rendering marker for listing:", l, err);
+      }
     });
 
-    if (items.length > 0) {
-      const bounds = L.latLngBounds(markersRef.current.map((m) => m.getLatLng()));
-      map.fitBounds(bounds, { padding: [40, 40] });
+    if (markersRef.current.length > 0) {
+      try {
+        const bounds = L.latLngBounds(markersRef.current.map((m) => m.getLatLng()));
+        map.fitBounds(bounds, { padding: [40, 40] });
+      } catch (err) {
+        console.error("Error setting map bounds:", err);
+      }
     }
   }
 
