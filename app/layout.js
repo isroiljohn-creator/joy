@@ -2,6 +2,7 @@ import "./globals.css";
 import "leaflet/dist/leaflet.css";
 import MobileNav from "@/components/MobileNav";
 import AlertProvider from "@/components/AlertProvider";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import Script from "next/script";
 
 export const metadata = {
@@ -58,12 +59,14 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
-        <AlertProvider>
-          <div className="page-wrap">
-            {children}
-          </div>
-          <MobileNav />
-        </AlertProvider>
+        <ErrorBoundary>
+          <AlertProvider>
+            <div className="page-wrap">
+              {children}
+            </div>
+            <MobileNav />
+          </AlertProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );
