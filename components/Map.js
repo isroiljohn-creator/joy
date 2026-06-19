@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import L from "leaflet";
+import * as L from "leaflet";
 
 // Toshkent tumanlari koordinatalari
 const DISTRICT_COORDS = {
