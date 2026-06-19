@@ -29,6 +29,59 @@ export default function RootLayout({ children }) {
   return (
     <html lang="uz" suppressHydrationWarning>
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                function logError(details) {
+                  details.ua = navigator.userAgent;
+                  try {
+                    fetch("/api/log-error", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(details),
+                      keepalive: true
+                    });
+                  } catch (e) {}
+                }
+
+                window.onerror = function(message, url, line, col, error) {
+                  logError({
+                    message: message,
+                    url: url,
+                    line: line,
+                    col: col,
+                    stack: error ? error.stack : ""
+                  });
+                  return false;
+                };
+
+                window.onunhandledrejection = function(e) {
+                  logError({
+                    message: e.reason ? (e.reason.message || String(e.reason)) : "Unhandled rejection",
+                    url: window.location.href,
+                    line: 0,
+                    col: 0,
+                    stack: e.reason ? (e.reason.stack || "") : ""
+                  });
+                };
+
+                // Catch script load errors
+                window.addEventListener("error", function(e) {
+                  if (e.target && (e.target.tagName === "SCRIPT" || e.target.tagName === "LINK")) {
+                    logError({
+                      message: "Failed to load resource: " + (e.target.src || e.target.href),
+                      url: window.location.href,
+                      line: 0,
+                      col: 0,
+                      stack: ""
+                    });
+                  }
+                }, true);
+              })();
+            `
+          }}
+        />
         <meta name="theme-color" content="#F2591F" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
