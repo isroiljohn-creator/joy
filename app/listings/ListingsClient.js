@@ -184,7 +184,7 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
                   position: "absolute",
                   top: "100%",
                   right: 0,
-                  background: "#fff",
+                  background: "var(--card-bg)",
                   border: "1px solid var(--sand)",
                   borderRadius: 12,
                   boxShadow: "0 10px 25px rgba(26,19,14,0.1)",
@@ -227,7 +227,7 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
             <div className="empty-state" style={{
               textAlign: 'center',
               padding: '64px 20px',
-              background: '#fff',
+              background: "var(--card-bg)",
               borderRadius: 20,
               border: '1.5px dashed var(--sand)',
               marginTop: 20
@@ -276,7 +276,7 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
                 <div
                   key={l.id}
                   onClick={() => router.push(`/property/${l.id}`)}
-                  style={{ background: "#fff", borderRadius: 18, overflow: "hidden", margin: "0 0 12px", display: "flex", gap: 12, padding: 10, cursor: "pointer" }}
+                  style={{ background: "var(--card-bg)", borderRadius: 18, overflow: "hidden", margin: "0 0 12px", display: "flex", gap: 12, padding: 10, cursor: "pointer" }}
                 >
                   <div style={{ width: 96, height: 96, borderRadius: 14, backgroundSize: "cover", backgroundPosition: "center", backgroundColor: "#C9BDA8", flexShrink: 0, position: "relative", backgroundImage: `url('${l.photo}')` }}>
                     {l.top && <span style={{ position: "absolute", top: 6, left: 6, background: "var(--orange)", color: "#fff", fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 8 }}>TOP</span>}
@@ -384,7 +384,7 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
             style={{
               width: "100%",
               maxWidth: 380,
-              background: "#fff",
+              background: "var(--card-bg)",
               height: "100%",
               padding: 30,
               display: "flex",

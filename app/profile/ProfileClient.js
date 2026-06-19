@@ -173,7 +173,7 @@ export default function ProfileClient({ user, myListings, savedListings, message
               </span>
             </div>
           </div>
-          <div style={{ marginLeft: "auto", display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div className="phead-actions">
             {user?.role === "admin" && (
               <Link 
                 href="/admin" 
@@ -401,7 +401,7 @@ export default function ProfileClient({ user, myListings, savedListings, message
                 <div
                   key={m.id}
                   style={{
-                    background: "#fff",
+                    background: "var(--card-bg)",
                     border: m.isRead ? "1px solid var(--sand)" : "1.5px solid var(--orange)",
                     borderRadius: 18,
                     padding: 20,

@@ -61,7 +61,7 @@ export default function MobileHome({ listings = [], count = 0 }) {
 
       {/* Sotuvga tavsiyalar va Yangi e'lonlar */}
       {!featured && rest.length === 0 ? (
-        <div style={{ margin: "24px 16px", padding: "32px 16px", background: "#fff", borderRadius: 24, textAlign: "center", border: ".5px solid var(--sand)" }}>
+        <div style={{ margin: "24px 16px", padding: "32px 16px", background: "var(--card-bg)", borderRadius: 24, textAlign: "center", border: ".5px solid var(--sand)" }}>
           <div style={{ width: 64, height: 64, borderRadius: "50%", background: "var(--orange-tint)", color: "var(--orange)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
             <i className="ti ti-search-off" style={{ fontSize: 28 }}></i>
           </div>
@@ -90,7 +90,7 @@ export default function MobileHome({ listings = [], count = 0 }) {
                 style={{ margin: "0 16px 14px", borderRadius: 20, overflow: "hidden", cursor: "pointer" }}
               >
                 <div style={{ height: 180, backgroundSize: "cover", backgroundPosition: "center", backgroundColor: "#C9BDA8", backgroundImage: `url('${featured.photo}')` }}></div>
-                <div style={{ background: "#fff", borderRadius: 20, padding: 14, marginTop: -28, position: "relative", zIndex: 2 }}>
+                <div style={{ background: "var(--card-bg)", borderRadius: 20, padding: 14, marginTop: -28, position: "relative", zIndex: 2 }}>
                   <div style={{ display: "flex", alignItems: "flex-start", gap: 11 }}>
                     <div style={{ width: 40, height: 40, borderRadius: "50%", background: "var(--orange)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 19 }}>
                       <i className="ti ti-building-skyscraper"></i>
@@ -182,7 +182,7 @@ export default function MobileHome({ listings = [], count = 0 }) {
                 <div
                   key={l.id}
                   onClick={() => router.push(`/property/${l.id}`)}
-                  style={{ background: "#fff", borderRadius: 18, overflow: "hidden", margin: "0 16px 12px", display: "flex", gap: 12, padding: 10, cursor: "pointer" }}
+                  style={{ background: "var(--card-bg)", borderRadius: 18, overflow: "hidden", margin: "0 16px 12px", display: "flex", gap: 12, padding: 10, cursor: "pointer" }}
                 >
                   <div style={{ width: 96, height: 96, borderRadius: 14, backgroundSize: "cover", backgroundPosition: "center", backgroundColor: "#C9BDA8", flexShrink: 0, position: "relative", backgroundImage: `url('${l.photo}')` }}>
                     {l.top && <span style={{ position: "absolute", top: 6, left: 6, background: "var(--orange)", color: "#fff", fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 8 }}>TOP</span>}

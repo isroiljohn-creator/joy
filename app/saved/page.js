@@ -42,6 +42,7 @@ export default async function SavedPage() {
   }
 
   let savedListings = [];
+  let recommendations = [];
   try {
     const { rows } = await pool.query(
       `SELECT l.*, u.name as owner_name FROM listings l 
@@ -52,6 +53,17 @@ export default async function SavedPage() {
       [user.id]
     );
     savedListings = await attachPriceAnalysis(rows.map(mapListingFromDb));
+
+    if (savedListings.length === 0) {
+      const { rows: recRows } = await pool.query(
+        `SELECT l.*, u.name as owner_name FROM listings l
+         LEFT JOIN users u ON l.owner_id = u.id
+         WHERE l.status = 'active'
+         ORDER BY l.top DESC, l.id DESC
+         LIMIT 6`
+      );
+      recommendations = await attachPriceAnalysis(recRows.map(mapListingFromDb));
+    }
   } catch (error) {
     console.error("Error fetching saved listings:", error);
   }
@@ -65,15 +77,28 @@ export default async function SavedPage() {
           <h1 className="display" style={{ marginBottom: 24 }}>Saqlangan e&apos;lonlar</h1>
           
           {savedListings.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "80px 24px", background: "#fff", borderRadius: 24, border: ".5px solid var(--sand)" }}>
-              <div style={{ width: 64, height: 64, borderRadius: "50%", background: "var(--orange-tint)", color: "var(--orange)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
-                <i className="ti ti-heart-broken" style={{ fontSize: 28 }}></i>
+            <div>
+              <div style={{ textAlign: "center", padding: "80px 24px", background: "var(--card-bg)", borderRadius: 24, border: ".5px solid var(--sand)" }}>
+                <div style={{ width: 64, height: 64, borderRadius: "50%", background: "var(--orange-tint)", color: "var(--orange)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+                  <i className="ti ti-heart-broken" style={{ fontSize: 28 }}></i>
+                </div>
+                <h3 style={{ fontFamily: "'Bricolage Grotesque',sans-serif", fontSize: 18, fontWeight: 700, margin: "0 0 8px" }}>Saqlanganlar bo&apos;sh</h3>
+                <p style={{ fontSize: 14, color: "var(--muted)", margin: "0 0 20px" }}>Siz hali birorta ham e&apos;lonni saqlamadingiz.</p>
+                <Link href="/listings" className="btn-add" style={{ display: "inline-flex", width: "auto", textDecoration: "none" }}>
+                  E&apos;lonlarni ko&apos;rish
+                </Link>
               </div>
-              <h3 style={{ fontFamily: "'Bricolage Grotesque',sans-serif", fontSize: 18, fontWeight: 700, margin: "0 0 8px" }}>Saqlanganlar bo&apos;sh</h3>
-              <p style={{ fontSize: 14, color: "var(--muted)", margin: "0 0 20px" }}>Siz hali birorta ham e&apos;lonni saqlamadingiz.</p>
-              <Link href="/listings" className="btn-add" style={{ display: "inline-flex", width: "auto", textDecoration: "none" }}>
-                E&apos;lonlarni ko&apos;rish
-              </Link>
+
+              {recommendations.length > 0 && (
+                <div style={{ marginTop: 48 }}>
+                  <h2 className="display" style={{ fontSize: 22, marginBottom: 20 }}>Tavsiya etilgan uylar</h2>
+                  <div className="grid">
+                    {recommendations.map((l) => (
+                      <ListingCard l={l} key={l.id} />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="grid">
@@ -93,15 +118,28 @@ export default async function SavedPage() {
         </div>
 
         {savedListings.length === 0 ? (
-          <div style={{ margin: "24px 16px", padding: "48px 16px", background: "#fff", borderRadius: 24, textAlign: "center", border: ".5px solid var(--sand)" }}>
-            <div style={{ width: 56, height: 56, borderRadius: "50%", background: "var(--orange-tint)", color: "var(--orange)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
-              <i className="ti ti-heart-broken" style={{ fontSize: 24 }}></i>
+          <div>
+            <div style={{ margin: "24px 16px", padding: "48px 16px", background: "var(--card-bg)", borderRadius: 24, textAlign: "center", border: ".5px solid var(--sand)" }}>
+              <div style={{ width: 56, height: 56, borderRadius: "50%", background: "var(--orange-tint)", color: "var(--orange)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+                <i className="ti ti-heart-broken" style={{ fontSize: 24 }}></i>
+              </div>
+              <h3 style={{ fontFamily: "'Bricolage Grotesque',sans-serif", fontSize: 16, fontWeight: 700, margin: "0 0 8px" }}>Saqlanganlar bo&apos;sh</h3>
+              <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 20px" }}>Siz saqlagan e&apos;lonlar hozircha yo&apos;q.</p>
+              <Link href="/listings" style={{ background: "var(--orange)", color: "#fff", border: "none", borderRadius: 14, padding: "10px 20px", fontSize: 13, fontWeight: 600, textDecoration: "none", display: "inline-block" }}>
+                Izlash
+              </Link>
             </div>
-            <h3 style={{ fontFamily: "'Bricolage Grotesque',sans-serif", fontSize: 16, fontWeight: 700, margin: "0 0 8px" }}>Saqlanganlar bo&apos;sh</h3>
-            <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 20px" }}>Siz saqlagan e&apos;lonlar hozircha yo&apos;q.</p>
-            <Link href="/listings" style={{ background: "var(--orange)", color: "#fff", border: "none", borderRadius: 14, padding: "10px 20px", fontSize: 13, fontWeight: 600, textDecoration: "none", display: "inline-block" }}>
-              Izlash
-            </Link>
+
+            {recommendations.length > 0 && (
+              <div style={{ padding: "0 16px", marginTop: 24 }}>
+                <h2 style={{ fontFamily: "'Bricolage Grotesque',sans-serif", fontSize: 18, fontWeight: 700, marginBottom: 14 }}>Tavsiya etilgan uylar</h2>
+                <div className="grid">
+                  {recommendations.map((l) => (
+                    <ListingCard l={l} key={l.id} />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div style={{ padding: "0 16px" }}>
