@@ -32,15 +32,12 @@ export default function MobileNav() {
     { key: "home", icon: "ti-home", label: "Asosiy", href: "/" },
     { key: "saved", icon: "ti-bookmark", label: "Saqlangan", href: "/saved" },
     { key: "add", fab: true, href: "/add" },
-    { key: "map", icon: "ti-map-2", label: "Xarita", href: "/listings?view=map" },
+    { key: "map", icon: "ti-map-2", label: "Xarita", href: "/listings" },
     { key: "profile", icon: "ti-user", label: "Profil", href: isLoggedIn ? "/profile" : "/login" },
   ];
 
   const isActive = (href) => {
     if (href === "/") return path === "/";
-    if (href.startsWith("/listings?view=map")) {
-      return path === "/listings" && view === "map";
-    }
     return path.startsWith(href);
   };
 
