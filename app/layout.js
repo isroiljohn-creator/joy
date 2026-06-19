@@ -38,6 +38,10 @@ export default function RootLayout({ children }) {
           href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css"
           rel="stylesheet"
         />
+        <link
+          rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: `

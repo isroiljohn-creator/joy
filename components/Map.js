@@ -30,6 +30,7 @@ export default function Map({ listings, activePin, onPinClick }) {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const markersRef = useRef([]);
+  const resizeObserverRef = useRef(null);
 
   useEffect(() => {
     if (mapInstance.current) return;
@@ -58,29 +59,34 @@ export default function Map({ listings, activePin, onPinClick }) {
         map.invalidateSize();
       });
       ro.observe(mapRef.current);
+      resizeObserverRef.current = ro;
     };
 
-    if (window.L) {
-      initMap(window.L);
-    } else {
-      // Leaflet CSS
-      if (!document.querySelector('link[href*="leaflet.css"]')) {
-        const link = document.createElement("link");
-        link.rel = "stylesheet";
-        link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-        document.head.appendChild(link);
-      }
-
-      // Leaflet JS
-      const script = document.createElement("script");
+    let script = document.querySelector('script[src*="leaflet.js"]');
+    if (!script) {
+      script = document.createElement("script");
       script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-      script.onload = () => {
-        initMap(window.L);
-      };
       document.head.appendChild(script);
     }
 
+    const handleLoad = () => {
+      initMap(window.L);
+    };
+
+    if (window.L) {
+      handleLoad();
+    } else {
+      script.addEventListener("load", handleLoad);
+    }
+
     return () => {
+      if (script) {
+        script.removeEventListener("load", handleLoad);
+      }
+      if (resizeObserverRef.current) {
+        resizeObserverRef.current.disconnect();
+        resizeObserverRef.current = null;
+      }
       if (mapInstance.current) {
         mapInstance.current.remove();
         mapInstance.current = null;

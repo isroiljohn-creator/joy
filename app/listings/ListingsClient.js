@@ -31,6 +31,20 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
   const [activePin, setActivePin] = useState(null);
   const [hoveredCardId, setHoveredCardId] = useState(null);
 
+  // Client hydration check and mobile view check
+  const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 1080);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   // Saralash holatlari
   const [sortBy, setSortBy] = useState("recommended");
   const [sortOpen, setSortOpen] = useState(false);
@@ -509,16 +523,18 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
           )}
         </div>
 
-        {/* Desktop map */}
+        {/* Desktop/Mobile map */}
         <div className="mapwrap" style={{ position: "relative" }}>
-          <Map
-            listings={shown}
-            activePin={activePin}
-            onPinClick={(i) => {
-              setActivePin(i);
-              router.push(`/property/${shown[i]?.id}`);
-            }}
-          />
+          {mounted && (!isMobile || viewMode === "map") && (
+            <Map
+              listings={shown}
+              activePin={activePin}
+              onPinClick={(i) => {
+                setActivePin(i);
+                router.push(`/property/${shown[i]?.id}`);
+              }}
+            />
+          )}
           {/* Mobile fullscreen map uchun orqaga tugmasi */}
           {viewMode === "map" && (
             <button

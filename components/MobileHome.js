@@ -265,7 +265,7 @@ export default function MobileHome({ listings = [], count = 0 }) {
           {/* Xaritada ko'rish tugmasi (listings/map sahifasiga o'tkazadi) */}
           {searchResults.length > 0 && (
             <button
-              onClick={() => router.push(`/listings?q=${encodeURIComponent(urlQuery)}`)}
+              onClick={() => router.push(`/listings?q=${encodeURIComponent(urlQuery)}&view=map`)}
               style={{
                 width: "100%",
                 background: "var(--orange-tint)",
