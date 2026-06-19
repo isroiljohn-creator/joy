@@ -295,7 +295,21 @@ export function ListingCard({ l, isFavorite = false }) {
           backgroundImage: `url('${l.photo}')`,
         }}
       >
-        {l.top && <span className="badge">TOP</span>}
+        {l.top && (
+          <span 
+            className="badge" 
+            style={{ 
+              background: "var(--orange)", 
+              color: "#fff", 
+              boxShadow: "0 4px 10px rgba(255,140,0,0.3)",
+              display: "flex",
+              alignItems: "center",
+              gap: 4
+            }}
+          >
+            <i className="ti ti-star-filled" style={{ fontSize: 12 }}></i> TOP
+          </span>
+        )}
         <div className="heart" onClick={handleFavorite}>
           <i 
             className="ti ti-heart" 

@@ -46,20 +46,23 @@ export async function getCurrentUser() {
   if (!id) return null;
 
   try {
-    const { rows } = await pool.query("SELECT name, phone, email, role, created_at FROM users WHERE id = $1", [parseInt(id)]);
+    const { rows } = await pool.query("SELECT name, phone, email, role, is_verified, subscription_plan, balance, created_at FROM users WHERE id = $1", [parseInt(id)]);
     if (rows.length > 0) {
       return { 
         id: parseInt(id), 
         name: rows[0].name || name, 
         phone: rows[0].phone, 
         email: rows[0].email,
-        role: rows[0].role || 'user', 
+        role: rows[0].role || 'user',
+        isVerified: rows[0].is_verified || false,
+        subscriptionPlan: rows[0].subscription_plan || 'free',
+        balance: rows[0].balance || 0,
         createdAt: rows[0].created_at 
       };
     }
-    return { id: parseInt(id), name, phone: "", email: "", role: 'user', createdAt: null };
+    return { id: parseInt(id), name, phone: "", email: "", role: 'user', isVerified: false, subscriptionPlan: 'free', balance: 0, createdAt: null };
   } catch (error) {
-    return { id: parseInt(id), name, phone: "", email: "", role: 'user', createdAt: null };
+    return { id: parseInt(id), name, phone: "", email: "", role: 'user', isVerified: false, subscriptionPlan: 'free', balance: 0, createdAt: null };
   }
 }
 

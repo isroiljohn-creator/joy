@@ -161,7 +161,7 @@ export default function ProfileClient({ user, myListings, savedListings, message
           </div>
           <div>
             <div className="hname display">
-              {user?.name} <i className="ti ti-rosette-discount-check"></i>
+              {user?.name} {user?.isVerified && <i className="ti ti-rosette-discount-check-filled" style={{ color: "var(--orange)" }} title="Tasdiqlangan foydalanuvchi"></i>}
             </div>
             <div className="hmeta">
               {user?.phone && !user.phone.startsWith("google_") ? (
@@ -194,6 +194,11 @@ export default function ProfileClient({ user, myListings, savedListings, message
                 }}
               >
                 <i className="ti ti-shield" style={{ fontSize: 15 }}></i> Admin Panel
+              </Link>
+            )}
+            {!user?.isVerified && (
+              <Link href="/premium" className="editp" style={{ background: "var(--orange-tint)", color: "var(--orange)", borderColor: "transparent" }}>
+                <i className="ti ti-star" style={{ fontSize: 15, verticalAlign: -2 }}></i> Premium sotib olish
               </Link>
             )}
             <button className="editp" onClick={() => setTab("Sozlamalar")}>
@@ -372,6 +377,53 @@ export default function ProfileClient({ user, myListings, savedListings, message
                   >
                     <i className={deletingListing === l.id ? "ti ti-loader" : "ti ti-trash"}></i>
                   </button>
+                  
+                  {!l.top && (
+                    <button
+                      onClick={() => window.location.href = `/api/payments/create?type=pin_listing&listingId=${l.id}&amount=15000`} // Quick mock redirect logic
+                      style={{
+                        position: "absolute",
+                        top: 50,
+                        right: 10,
+                        background: "var(--orange-tint)",
+                        border: "1px solid var(--orange)",
+                        borderRadius: 8,
+                        padding: "6px 12px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 4,
+                        cursor: "pointer",
+                        zIndex: 5,
+                        color: "var(--orange)",
+                        fontSize: 12,
+                        fontWeight: 600
+                      }}
+                      title="Topga chiqarish (15,000 UZS)"
+                    >
+                      <i className="ti ti-arrow-up"></i> Top
+                    </button>
+                  )}
+                  {l.top && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: 50,
+                        right: 10,
+                        background: "var(--orange)",
+                        borderRadius: 8,
+                        padding: "6px 12px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 4,
+                        zIndex: 5,
+                        color: "#fff",
+                        fontSize: 12,
+                        fontWeight: 600
+                      }}
+                    >
+                      <i className="ti ti-rosette-discount-check-filled"></i> Topda
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

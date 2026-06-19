@@ -250,7 +250,7 @@ export default async function Property({ params }) {
                 <div className="oav">{initials}</div>
                 <div style={{ flex: 1 }}>
                   <div className="oname">
-                    {l.owner} <i className="ti ti-rosette-discount-check"></i>
+                    {l.owner} {l.ownerVerified && <i className="ti ti-rosette-discount-check-filled" style={{ color: "var(--orange)" }} title="Tasdiqlangan foydalanuvchi"></i>}
                   </div>
                   <div className="orole">Egasi · {ownerCount} ta e&apos;lon</div>
                 </div>
@@ -360,7 +360,7 @@ export default async function Property({ params }) {
             <div className="mdoav">{initials}</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 600, fontSize: 14, display: "flex", alignItems: "center", gap: 5 }}>
-                {l.owner} <i className="ti ti-rosette-discount-check" style={{ color: "var(--orange)", fontSize: 14 }}></i>
+                {l.owner} {l.ownerVerified && <i className="ti ti-rosette-discount-check-filled" style={{ color: "var(--orange)", fontSize: 14 }} title="Tasdiqlangan foydalanuvchi"></i>}
               </div>
               <div style={{ fontSize: 11, color: "var(--muted)" }}>Egasi · {ownerCount} ta e&apos;lon</div>
             </div>
