@@ -189,11 +189,12 @@ export default function MobileHome({ listings = [], count = 0 }) {
       <div style={{ padding: "16px 16px 8px", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <div
           onClick={() => setRegionOpen(true)}
-          style={{ textAlign: "center", cursor: "pointer" }}
+          style={{ textAlign: "center", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center" }}
         >
           <div style={{ fontSize: 11, color: "var(--muted)" }}>Sizning hududingiz</div>
-          <div style={{ fontSize: 15, fontWeight: 600, display: "flex", alignItems: "center", gap: 3, justifyContent: "center" }}>
-            {selectedRegion}, UZ <i className="ti ti-chevron-down" style={{ fontSize: 14 }}></i>
+          <div style={{ fontSize: 15, fontWeight: 600, display: "inline-flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+            {selectedRegion}, UZ
+            <i className="ti ti-chevron-down" style={{ fontSize: 14, position: "absolute", right: -18, top: "50%", transform: "translateY(-50%)" }}></i>
           </div>
         </div>
       </div>
