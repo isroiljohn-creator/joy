@@ -348,14 +348,15 @@ footer{border-top:1px solid var(--sand);padding:36px 0;display:flex;align-items:
 
   /* Mobile Map Preview Block */
   .mobile-map-container {
-    height: 220px !important;
-    border-radius: 0 !important;
+    aspect-ratio: 1 / 1 !important;
+    height: auto !important;
+    border-radius: 16px !important;
     overflow: hidden !important;
     position: relative !important;
-    margin: 0 -16px 16px !important;
+    margin: 12px 0 16px !important;
     box-sizing: border-box !important;
     cursor: pointer !important;
-    border-bottom: 1px solid var(--sand) !important;
+    border: 1px solid var(--sand) !important;
   }
   .mobile-map-overlay {
     position: absolute !important;
