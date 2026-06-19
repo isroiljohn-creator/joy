@@ -1,14 +1,14 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { 
   loginAction, 
   registerAction, 
   sendOtpAction, 
   verifyOtpAction, 
   completeSmsRegisterAction,
-  googleLoginAction,
-  getGoogleAccountsAction
+  getGoogleAuthUrlAction
 } from "@/app/actions";
 
 function getPasswordStrength(pw) {
@@ -25,6 +25,9 @@ function getPasswordStrength(pw) {
 }
 
 export default function Login() {
+  const searchParams = useSearchParams();
+  const errorParam = searchParams.get("error");
+
   const [authType, setAuthType] = useState("password"); // "password" | "sms"
   const [mode, setMode] = useState("login"); // "login" | "register"
   const [name, setName] = useState("");
@@ -40,20 +43,29 @@ export default function Login() {
   const [resendTimer, setResendTimer] = useState(0);
   const [smsSuccessMsg, setSmsSuccessMsg] = useState("");
 
-  // Google Flow States
-  const [showGoogleModal, setShowGoogleModal] = useState(false);
-  const [googleStep, setGoogleStep] = useState(1); // 1: Select, 2: Custom input
-  const [googleCustomEmail, setGoogleCustomEmail] = useState("");
-  const [googleCustomName, setGoogleCustomName] = useState("");
-  const [googleAccounts, setGoogleAccounts] = useState([]);
-
   useEffect(() => {
-    if (showGoogleModal) {
-      getGoogleAccountsAction().then((rows) => {
-        setGoogleAccounts(rows || []);
-      });
+    if (errorParam) {
+      setError(errorParam);
     }
-  }, [showGoogleModal]);
+  }, [errorParam]);
+
+  const handleGoogleLogin = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      const res = await getGoogleAuthUrlAction();
+      if (res?.error) {
+        setError(res.error);
+        alert("Google orqali kirishni sozlash uchun loyihaning environment o'zgaruvchilariga GOOGLE_CLIENT_ID va GOOGLE_CLIENT_SECRET ni kiritishingiz kerak.");
+      } else if (res.url) {
+        window.location.href = res.url;
+      }
+    } catch (err) {
+      setError("Google orqali kirishda xatolik yuz berdi");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const phoneValid = !phone || /^\+998\s?\d{2}\s?\d{3}\s?\d{2}\s?\d{2}$/.test(phone);
   const passwordTooShort = password.length > 0 && password.length < 6;
@@ -191,52 +203,6 @@ export default function Login() {
     }
   };
 
-  const handleSelectGoogleAccount = async (email, accountName) => {
-    setError("");
-    setLoading(true);
-    setShowGoogleModal(false);
-    try {
-      const res = await googleLoginAction(email, accountName);
-      if (res?.error) {
-        setError(res.error);
-      } else {
-        window.location.href = "/profile";
-      }
-    } catch (err) {
-      setError("Google orqali kirishda xatolik yuz berdi");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCustomGoogleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    
-    if (!googleCustomEmail || !/^\S+@\S+\.\S+$/.test(googleCustomEmail)) {
-      alert("Haqiqiy email manzilini kiriting!");
-      return;
-    }
-    if (!googleCustomName || googleCustomName.trim().length < 2) {
-      alert("Ism familiyangizni kiriting!");
-      return;
-    }
-
-    setLoading(true);
-    setShowGoogleModal(false);
-    try {
-      const res = await googleLoginAction(googleCustomEmail, googleCustomName);
-      if (res?.error) {
-        setError(res.error);
-      } else {
-        window.location.href = "/profile";
-      }
-    } catch (err) {
-      setError("Google orqali kirishda xatolik yuz berdi");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="shell">
@@ -595,10 +561,8 @@ export default function Login() {
             <button 
               type="button" 
               className="soc" 
-              onClick={() => {
-                setShowGoogleModal(true);
-                setGoogleStep(1);
-              }}
+              onClick={handleGoogleLogin}
+              disabled={loading}
             >
               <i className="ti ti-brand-google"></i> Google
             </button>
@@ -608,226 +572,6 @@ export default function Login() {
           </div>
         </div>
       </div>
-
-      {/* Google Account Selector Modal */}
-      {showGoogleModal && (
-        <div style={gOverlayStyle} onClick={() => setShowGoogleModal(false)}>
-          <div style={gBoxStyle} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ display: "inline-block", background: "var(--sand)", padding: 6, borderRadius: 8 }}>
-                  <svg viewBox="0 0 24 24" width="20" height="20" style={{ display: "block" }}>
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.85z" />
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.85c.87-2.6 3.3-4.53 6.16-4.53z" />
-                  </svg>
-                </span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text2)", fontFamily: "sans-serif" }}>Google Accounts</span>
-              </div>
-              <button 
-                type="button" 
-                onClick={() => setShowGoogleModal(false)}
-                style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "var(--text2)" }}
-              >
-                <i className="ti ti-x"></i>
-              </button>
-            </div>
-
-            {googleStep === 1 ? (
-              <div>
-                <h2 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 6px", fontFamily: "inherit", color: "var(--ink)", textAlign: "left" }}>Hisobni tanlang</h2>
-                <div style={{ fontSize: 14, color: "var(--muted)", marginBottom: 24, textAlign: "left" }}>Joy.uz platformasiga o&apos;tish uchun</div>
-
-                {/* Account list */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
-                  {googleAccounts.map((acc, idx) => (
-                    <button
-                      key={acc.email || idx}
-                      type="button"
-                      onClick={() => handleSelectGoogleAccount(acc.email, acc.name)}
-                      style={gAccountBtnStyle}
-                    >
-                      <div style={gAvatarStyle}>
-                        {acc.name ? acc.name[0].toUpperCase() : "G"}
-                      </div>
-                      <div style={{ textAlign: "left" }}>
-                        <div style={{ fontWeight: 600, fontSize: 14, color: "var(--ink)" }}>{acc.name}</div>
-                        <div style={{ fontSize: 12, color: "var(--muted)" }}>{acc.email}</div>
-                      </div>
-                    </button>
-                  ))}
-
-                  {googleAccounts.length === 0 && (
-                    <div style={{ fontSize: 14, color: "var(--muted)", padding: "12px", border: "1px dashed var(--sand)", borderRadius: 12, textAlign: "center" }}>
-                      Hozircha tizimda Google akkauntlar mavjud emas
-                    </div>
-                  )}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setGoogleStep(2)}
-                  style={{
-                    width: "100%",
-                    background: "none",
-                    border: "1px dashed var(--sand)",
-                    borderRadius: 12,
-                    padding: "12px",
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: "var(--orange)",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 8,
-                    transition: "background 0.2s",
-                    fontFamily: "inherit"
-                  }}
-                >
-                  <i className="ti ti-user-plus"></i> Boshqa hisobdan foydalanish
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleCustomGoogleSubmit}>
-                <h2 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 6px", fontFamily: "inherit", color: "var(--ink)", textAlign: "left" }}>Tizimga kirish</h2>
-                <div style={{ fontSize: 14, color: "var(--muted)", marginBottom: 20, textAlign: "left" }}>Google hisob ma&apos;lumotlarini kiriting</div>
-
-                <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 20, textAlign: "left" }}>
-                  <div>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text2)", display: "block", marginBottom: 6 }}>Ism familiyangiz</label>
-                    <input
-                      type="text"
-                      placeholder="Aziz Karimov"
-                      value={googleCustomName}
-                      onChange={(e) => setGoogleCustomName(e.target.value)}
-                      required
-                      style={gInputStyle}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text2)", display: "block", marginBottom: 6 }}>Google Email</label>
-                    <input
-                      type="email"
-                      placeholder="example@gmail.com"
-                      value={googleCustomEmail}
-                      onChange={(e) => setGoogleCustomEmail(e.target.value)}
-                      required
-                      style={gInputStyle}
-                    />
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", gap: 10 }}>
-                  <button
-                    type="button"
-                    onClick={() => setGoogleStep(1)}
-                    style={{
-                      flex: 1,
-                      background: "none",
-                      border: "1px solid var(--sand)",
-                      borderRadius: 12,
-                      padding: "12px 0",
-                      fontSize: 14,
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      fontFamily: "inherit"
-                    }}
-                  >
-                    Ortga
-                  </button>
-                  <button
-                    type="submit"
-                    style={{
-                      flex: 1,
-                      background: "var(--orange)",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: 12,
-                      padding: "12px 0",
-                      fontSize: 14,
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      fontFamily: "inherit"
-                    }}
-                  >
-                    Kirish
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
-
-// Styling (Google Account Selector)
-const gOverlayStyle = {
-  position: "fixed",
-  inset: 0,
-  background: "rgba(26, 19, 14, 0.6)",
-  backdropFilter: "blur(5px)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  zIndex: 999999
-};
-
-const gBoxStyle = {
-  background: "var(--card-bg)",
-  borderRadius: 16,
-  padding: 28,
-  width: "90%",
-  maxWidth: 420,
-  boxShadow: "0 24px 60px rgba(0,0,0,0.15)",
-  border: "1px solid var(--sand)",
-  boxSizing: "border-box",
-  color: "var(--ink)"
-};
-
-const gAccountBtnStyle = {
-  display: "flex",
-  alignItems: "center",
-  gap: 12,
-  width: "100%",
-  padding: "12px 14px",
-  background: "var(--card-bg)",
-  border: "1px solid var(--sand)",
-  color: "var(--ink)",
-  borderRadius: 12,
-  cursor: "pointer",
-  transition: "all 0.2s",
-  outline: "none",
-  fontFamily: "inherit"
-};
-
-const gAvatarStyle = {
-  width: 38,
-  height: 38,
-  borderRadius: "50%",
-  background: "var(--orange-tint)",
-  color: "var(--orange)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  fontWeight: 700,
-  fontSize: 16
-};
-
-const gInputStyle = {
-  width: "100%",
-  padding: "12px 14px",
-  border: "1px solid var(--sand)",
-  background: "var(--card-bg)",
-  color: "var(--ink)",
-  borderRadius: 8,
-  fontSize: 14,
-  outline: "none",
-  boxSizing: "border-box",
-  transition: "border-color 0.2s",
-  fontFamily: "inherit"
-};

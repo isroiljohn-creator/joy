@@ -266,6 +266,21 @@ export async function getGoogleAccountsAction() {
   }
 }
 
+// Google OAuth yo'naltirish URLini olish
+export async function getGoogleAuthUrlAction() {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  if (!clientId) {
+    return { error: "Loyiha sozlamalarida GOOGLE_CLIENT_ID topilmadi" };
+  }
+  
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const redirectUri = `${appUrl}/api/auth/google/callback`;
+  
+  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent("openid email profile")}&state=google`;
+  
+  return { url };
+}
+
 // Tizimdan chiqish (Logout)
 export async function logoutAction() {
   const cookieStore = cookies();
