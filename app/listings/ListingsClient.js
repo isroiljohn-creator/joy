@@ -525,6 +525,22 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
 
         {/* Desktop/Mobile map */}
         <div className="mapwrap" style={{ position: "relative" }}>
+          <div style={{
+            position: "absolute",
+            top: 70,
+            left: 20,
+            zIndex: 99999,
+            background: "rgba(0,0,0,0.85)",
+            color: "#00ff00",
+            padding: "8px 14px",
+            borderRadius: 8,
+            fontSize: 12,
+            fontFamily: "monospace",
+            fontWeight: "bold",
+            boxShadow: "0 4px 10px rgba(0,0,0,0.3)"
+          }}>
+            MAPWRAP DEBUG: {mounted ? "Mounted" : "Not Mounted"} | view: {viewMode} | mobile: {isMobile ? "Yes" : "No"}
+          </div>
           {mounted && (!isMobile || viewMode === "map") && (
             <Map
               listings={shown}
