@@ -31,6 +31,7 @@ export default function Map({ listings, activePin, onPinClick }) {
   const mapInstance = useRef(null);
   const markersRef = useRef([]);
   const resizeObserverRef = useRef(null);
+  const retryCountRef = useRef(0);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -46,10 +47,21 @@ export default function Map({ listings, activePin, onPinClick }) {
         // If the map container is not yet fully laid out or visible (size is 0),
         // we must delay initialization. Otherwise Leaflet sets up zoom/center invalidly.
         if (width === 0 || height === 0) {
-          console.log("Map container size is 0x0. Retrying in 100ms...");
+          if (retryCountRef.current >= 15) {
+            const computedStyle = window.getComputedStyle(mapRef.current);
+            throw new Error(
+              `Map container size is 0x0 (width: ${width}, height: ${height}) after 15 retries.\n` +
+              `Style details: display=${computedStyle.display}, visibility=${computedStyle.visibility}, ` +
+              `position=${computedStyle.position}, height=${computedStyle.height}, width=${computedStyle.width}, ` +
+              `offsetParent=${mapRef.current.offsetParent ? mapRef.current.offsetParent.tagName + '.' + mapRef.current.offsetParent.className : 'null'}`
+            );
+          }
+          retryCountRef.current += 1;
+          console.log(`Map container size is 0x0. Retry #${retryCountRef.current} in 100ms...`);
           setTimeout(() => initMap(L), 100);
           return;
         }
+        retryCountRef.current = 0; // reset on success
 
         // Override default icon options to prevent Leaflet from querying missing asset files
         if (L.Icon && L.Icon.Default) {
