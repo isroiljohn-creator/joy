@@ -55,8 +55,6 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
   // Client hydration check and mobile view check
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const mapwrapRef = useRef(null);
-  const [mapwrapSize, setMapwrapSize] = useState({ w: 0, h: 0 });
 
   useEffect(() => {
     setMounted(true);
@@ -85,32 +83,7 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
   const [appliedMaxPrice, setAppliedMaxPrice] = useState("");
   const [appliedRoomsFilter, setAppliedRoomsFilter] = useState("all");
 
-  useEffect(() => {
-    if (!mounted) return;
-    const measure = () => {
-      if (mapwrapRef.current) {
-        setMapwrapSize({
-          w: mapwrapRef.current.clientWidth,
-          h: mapwrapRef.current.clientHeight
-        });
-      }
-    };
-    // Measure at once and layout shifts
-    const t = setTimeout(measure, 100);
-    window.addEventListener("resize", measure);
-    
-    let observer;
-    if (mapwrapRef.current && typeof MutationObserver !== "undefined") {
-      observer = new MutationObserver(measure);
-      observer.observe(mapwrapRef.current, { attributes: true, attributeFilter: ["class", "style"] });
-    }
 
-    return () => {
-      clearTimeout(t);
-      window.removeEventListener("resize", measure);
-      if (observer) observer.disconnect();
-    };
-  }, [mounted, viewMode]);
 
   // URL-dagi toifa o'zgarsa, tabni ham o'zgartiramiz
   useEffect(() => {
@@ -196,24 +169,7 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
   return (
     <>
       <Nav />
-      {/* Visual debug overlay outside mapwrap */}
-      <div style={{
-        position: "fixed",
-        top: 80,
-        left: 20,
-        zIndex: 999999,
-        background: "rgba(0,0,0,0.85)",
-        color: "#ffff00",
-        padding: "8px 14px",
-        borderRadius: 8,
-        fontSize: 12,
-        fontFamily: "monospace",
-        fontWeight: "bold",
-        boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
-        pointerEvents: "none"
-      }}>
-        ROOT DEBUG: view={viewMode} | mobile={isMobile ? "Yes" : "No"} | mounted={mounted ? "Yes" : "No"} | listings={shown.length}
-      </div>
+
       {/* Desktop tabs row — mobilda yashirilgan */}
       <div className="tabs-row">
         {tabs.map((t) => (
@@ -592,23 +548,7 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
         </div>
 
         {/* Desktop/Mobile map */}
-        <div ref={mapwrapRef} className="mapwrap" style={{ position: "relative" }}>
-          <div style={{
-            position: "absolute",
-            top: 70,
-            left: 20,
-            zIndex: 99999,
-            background: "rgba(0,0,0,0.85)",
-            color: "#00ff00",
-            padding: "8px 14px",
-            borderRadius: 8,
-            fontSize: 12,
-            fontFamily: "monospace",
-            fontWeight: "bold",
-            boxShadow: "0 4px 10px rgba(0,0,0,0.3)"
-          }}>
-            MAPWRAP DEBUG: {mounted ? "Mounted" : "Not Mounted"} | view: {viewMode} | mobile: {isMobile ? "Yes" : "No"} | size: {mapwrapSize.w}x{mapwrapSize.h}
-          </div>
+        <div className="mapwrap" style={{ position: "relative" }}>
           {mounted && (!isMobile || viewMode === "map") && (
             <Map
               listings={shown}
