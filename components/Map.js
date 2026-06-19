@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // Toshkent tumanlari koordinatalari
 const DISTRICT_COORDS = {
@@ -31,46 +31,62 @@ export default function Map({ listings, activePin, onPinClick }) {
   const mapInstance = useRef(null);
   const markersRef = useRef([]);
   const resizeObserverRef = useRef(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (mapInstance.current) return;
 
     const initMap = (L) => {
-      if (!mapRef.current || mapInstance.current) return;
+      try {
+        if (!mapRef.current || mapInstance.current) return;
 
-      const width = mapRef.current.offsetWidth;
-      const height = mapRef.current.offsetHeight;
-      
-      // If the map container is not yet fully laid out or visible (size is 0),
-      // we must delay initialization. Otherwise Leaflet sets up zoom/center invalidly.
-      if (width === 0 || height === 0) {
-        console.log("Map container size is 0x0. Retrying in 100ms...");
-        setTimeout(() => initMap(L), 100);
-        return;
+        const width = mapRef.current.offsetWidth;
+        const height = mapRef.current.offsetHeight;
+        
+        // If the map container is not yet fully laid out or visible (size is 0),
+        // we must delay initialization. Otherwise Leaflet sets up zoom/center invalidly.
+        if (width === 0 || height === 0) {
+          console.log("Map container size is 0x0. Retrying in 100ms...");
+          setTimeout(() => initMap(L), 100);
+          return;
+        }
+
+        // Override default icon options to prevent Leaflet from querying missing asset files
+        if (L.Icon && L.Icon.Default) {
+          delete L.Icon.Default.prototype._getIconUrl;
+          L.Icon.Default.mergeOptions({
+            iconRetinaUrl: null,
+            iconUrl: null,
+            shadowUrl: null,
+          });
+        }
+
+        const map = L.map(mapRef.current, {
+          center: [41.3111, 69.2797],
+          zoom: 12,
+          zoomControl: false,
+        });
+
+        L.control.zoom({ position: "bottomright" }).addTo(map);
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: '&copy; <a href="https://openstreetmap.org">OSM</a>',
+          maxZoom: 18,
+        }).addTo(map);
+
+        mapInstance.current = map;
+        addMarkers(L, map, listings);
+
+        // Konteyner o'lchami o'zgarganda xaritani yangilaymiz
+        const ro = new ResizeObserver(() => {
+          map.invalidateSize();
+        });
+        ro.observe(mapRef.current);
+        resizeObserverRef.current = ro;
+      } catch (err) {
+        console.error("Map initialization failed:", err);
+        setError(err.message + "\n" + err.stack);
       }
-
-      const map = L.map(mapRef.current, {
-        center: [41.3111, 69.2797],
-        zoom: 12,
-        zoomControl: false,
-      });
-
-      L.control.zoom({ position: "bottomright" }).addTo(map);
-
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; <a href="https://openstreetmap.org">OSM</a>',
-        maxZoom: 18,
-      }).addTo(map);
-
-      mapInstance.current = map;
-      addMarkers(L, map, listings);
-
-      // Konteyner o'lchami o'zgarganda xaritani yangilaymiz
-      const ro = new ResizeObserver(() => {
-        map.invalidateSize();
-      });
-      ro.observe(mapRef.current);
-      resizeObserverRef.current = ro;
     };
 
     let script = document.querySelector('script[src*="leaflet.js"]');
@@ -81,21 +97,34 @@ export default function Map({ listings, activePin, onPinClick }) {
     }
 
     const handleLoad = () => {
-      // Delay initialization slightly to let the browser compute dimensions and reflow styles
-      setTimeout(() => {
-        initMap(window.L);
-      }, 50);
+      try {
+        if (!window.L) {
+          throw new Error("Leaflet script file loaded, but window.L is undefined!");
+        }
+        // Delay initialization slightly to let the browser compute dimensions and reflow styles
+        setTimeout(() => {
+          initMap(window.L);
+        }, 50);
+      } catch (err) {
+        setError(err.message + "\n" + err.stack);
+      }
+    };
+
+    const handleError = (e) => {
+      setError("Failed to load local Leaflet JS file: /leaflet/leaflet.js. Please verify file accessibility.");
     };
 
     if (window.L) {
       handleLoad();
     } else {
       script.addEventListener("load", handleLoad);
+      script.addEventListener("error", handleError);
     }
 
     return () => {
       if (script) {
         script.removeEventListener("load", handleLoad);
+        script.removeEventListener("error", handleError);
       }
       if (resizeObserverRef.current) {
         resizeObserverRef.current.disconnect();
@@ -227,6 +256,41 @@ export default function Map({ listings, activePin, onPinClick }) {
         console.error("Error setting map bounds:", err);
       }
     }
+  }
+
+  if (error) {
+    return (
+      <div style={{
+        padding: 24,
+        color: "#dc2626",
+        background: "var(--card-bg, #fff)",
+        fontFamily: "monospace",
+        fontSize: 12,
+        whiteSpace: "pre-wrap",
+        overflowY: "auto",
+        height: "100%",
+        minHeight: 400,
+        borderRadius: 16,
+        border: "1px solid var(--sand)"
+      }}>
+        <h3 style={{ margin: "0 0 10px", color: "var(--ink)" }}>Xaritada yuklanish xatosi:</h3>
+        <p style={{ margin: "0 0 16px", lineHeight: 1.5 }}>{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          style={{
+            padding: "8px 16px",
+            background: "var(--orange)",
+            color: "#fff",
+            border: "none",
+            borderRadius: 8,
+            cursor: "pointer",
+            fontWeight: 600
+          }}
+        >
+          Sahifani yangilash
+        </button>
+      </div>
+    );
   }
 
   return (
