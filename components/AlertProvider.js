@@ -68,7 +68,7 @@ const modalOverlayStyle = {
 };
 
 const modalBoxStyle = {
-  background: "#fff",
+  background: "var(--card-bg, #fff)",
   borderRadius: 24,
   padding: "32px 24px 24px",
   width: "90%",
