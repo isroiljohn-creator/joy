@@ -30,7 +30,7 @@ export default function ProfileClient({ user, myListings, savedListings, message
   
   // Sozlamalar oynasi state-lari
   const [name, setName] = useState(user?.name || "");
-  const [phone, setPhone] = useState(user?.phone || "");
+  const [phone, setPhone] = useState(user?.phone && !user.phone.startsWith("google_") ? user.phone : "");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
@@ -164,9 +164,15 @@ export default function ProfileClient({ user, myListings, savedListings, message
               {user?.name} <i className="ti ti-rosette-discount-check"></i>
             </div>
             <div className="hmeta">
-              <span>
-                <i className="ti ti-phone" style={{ fontSize: 15 }}></i> {user?.phone}
-              </span>
+              {user?.phone && !user.phone.startsWith("google_") ? (
+                <span>
+                  <i className="ti ti-phone" style={{ fontSize: 15 }}></i> {user?.phone}
+                </span>
+              ) : user?.email ? (
+                <span>
+                  <i className="ti ti-mail" style={{ fontSize: 15 }}></i> {user?.email}
+                </span>
+              ) : null}
               <span>
                 <i className="ti ti-calendar" style={{ fontSize: 15 }}></i> {memberYear}
                 {" "}yildan beri

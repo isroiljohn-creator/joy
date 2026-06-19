@@ -43,23 +43,23 @@ export async function getCurrentUser() {
   const cookieStore = cookies();
   const id = cookieStore.get("user_id")?.value;
   const name = cookieStore.get("user_name")?.value;
-  const phone = cookieStore.get("user_phone")?.value;
   if (!id) return null;
 
   try {
-    const { rows } = await pool.query("SELECT role, created_at FROM users WHERE id = $1", [parseInt(id)]);
+    const { rows } = await pool.query("SELECT name, phone, email, role, created_at FROM users WHERE id = $1", [parseInt(id)]);
     if (rows.length > 0) {
       return { 
         id: parseInt(id), 
-        name, 
-        phone, 
+        name: rows[0].name || name, 
+        phone: rows[0].phone, 
+        email: rows[0].email,
         role: rows[0].role || 'user', 
         createdAt: rows[0].created_at 
       };
     }
-    return { id: parseInt(id), name, phone, role: 'user', createdAt: null };
+    return { id: parseInt(id), name, phone: "", email: "", role: 'user', createdAt: null };
   } catch (error) {
-    return { id: parseInt(id), name, phone, role: 'user', createdAt: null };
+    return { id: parseInt(id), name, phone: "", email: "", role: 'user', createdAt: null };
   }
 }
 
