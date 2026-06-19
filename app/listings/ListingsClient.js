@@ -160,6 +160,20 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
 
       <div className={`split ${viewMode === "map" ? "show-map" : "show-list"}`}>
         <div className="split-list">
+          {/* Mobile Map Preview */}
+          <div className="mobile-only mobile-map-container" onClick={() => setViewMode("map")}>
+            <div className="mobile-map-overlay">
+              <span><i className="ti ti-map"></i> Xaritani ko&apos;rsatish</span>
+            </div>
+            <div className="mobile-map-preview-wrap">
+              <Map
+                listings={shown}
+                activePin={activePin}
+                onPinClick={() => setViewMode("map")}
+              />
+            </div>
+          </div>
+
           <div className="split-meta" style={{ position: "relative" }}>
             <div>
               <h1 className="display">
@@ -172,11 +186,16 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
               )}
             </div>
             
-            {/* Saralash Dropdown */}
             <div style={{ position: "relative" }} ref={sortRef}>
               <div 
                 style={{ fontSize: 13, color: "var(--text2)", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
-                onClick={() => setSortOpen(!sortOpen)}
+                onClick={() => {
+                  if (typeof window !== "undefined" && window.innerWidth <= 880) {
+                    setFilterOpen(true);
+                  } else {
+                    setSortOpen(!sortOpen);
+                  }
+                }}
               >
                 Saralash: <strong>{getSortLabel()}</strong> <i className="ti ti-chevron-down" style={{ fontSize: 12 }}></i>
               </div>
