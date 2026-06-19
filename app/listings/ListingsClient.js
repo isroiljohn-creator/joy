@@ -160,20 +160,69 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
 
       <div className={`split ${viewMode === "map" ? "show-map" : "show-list"}`}>
         <div className="split-list">
-          {/* Mobile Map Preview — tepada mini xarita */}
+          {/* Mobile Map Preview — tepada statik preview (bitta Map instansiya uchun) */}
           <div
             className="mobile-only mobile-map-container"
             onClick={() => setViewMode("map")}
           >
-            <div className="mobile-map-overlay">
-              <span><i className="ti ti-map"></i> Xaritani ko&apos;rsatish</span>
-            </div>
-            <div className="mobile-map-preview-wrap">
-              <Map
-                listings={shown}
-                activePin={activePin}
-                onPinClick={() => setViewMode("map")}
-              />
+            {/* Chiroyli dekorativ fon — haqiqiy xarita yuklanmaydi, faqat bitta Map bor */}
+            <div style={{
+              width: "100%",
+              height: "100%",
+              background: "linear-gradient(135deg, #e8f4e8 0%, #d4e8d4 30%, #c8dfc8 60%, #b8d4c0 100%)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              position: "relative",
+              overflow: "hidden",
+            }}>
+              {/* Grid ko'rinishi */}
+              <svg width="100%" height="100%" style={{ position: "absolute", inset: 0, opacity: 0.3 }}>
+                <defs>
+                  <pattern id="mgrid" width="30" height="30" patternUnits="userSpaceOnUse">
+                    <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#4a7a4a" strokeWidth="0.5"/>
+                  </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#mgrid)"/>
+                {/* Yo'l chiziqlari */}
+                <line x1="0" y1="40%" x2="100%" y2="38%" stroke="#fff" strokeWidth="3" opacity="0.7"/>
+                <line x1="0" y1="65%" x2="100%" y2="62%" stroke="#fff" strokeWidth="2" opacity="0.5"/>
+                <line x1="35%" y1="0" x2="32%" y2="100%" stroke="#fff" strokeWidth="2.5" opacity="0.6"/>
+                <line x1="70%" y1="0" x2="68%" y2="100%" stroke="#fff" strokeWidth="1.5" opacity="0.4"/>
+              </svg>
+              {/* Pin marker */}
+              <div style={{ position: "relative", zIndex: 2, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+                <div style={{
+                  background: "var(--orange)",
+                  color: "#fff",
+                  borderRadius: "50% 50% 50% 0",
+                  width: 40,
+                  height: 40,
+                  transform: "rotate(-45deg)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: "0 4px 14px rgba(242,89,31,0.5)",
+                }}>
+                  <i className="ti ti-map-pin" style={{ fontSize: 18, transform: "rotate(45deg)" }}></i>
+                </div>
+                <div style={{
+                  background: "var(--ink)",
+                  color: "var(--cream)",
+                  padding: "7px 16px",
+                  borderRadius: 20,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  whiteSpace: "nowrap",
+                }}>
+                  <i className="ti ti-map-2"></i>
+                  Xaritada ko&apos;rish · {shown.length} ta
+                </div>
+              </div>
             </div>
           </div>
 
