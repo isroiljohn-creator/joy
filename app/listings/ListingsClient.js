@@ -68,6 +68,23 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  // Saralash holatlari
+  const [sortBy, setSortBy] = useState("recommended");
+  const [sortOpen, setSortOpen] = useState(false);
+  const [viewMode, setViewMode] = useState(viewParam === "map" ? "map" : "list"); // list or map
+  const sortRef = useRef(null);
+
+  // Filtr holatlari
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [roomsFilter, setRoomsFilter] = useState("all");
+
+  // Qo'llanilgan filtrlar (state)
+  const [appliedMinPrice, setAppliedMinPrice] = useState("");
+  const [appliedMaxPrice, setAppliedMaxPrice] = useState("");
+  const [appliedRoomsFilter, setAppliedRoomsFilter] = useState("all");
+
   useEffect(() => {
     if (!mounted) return;
     const measure = () => {
@@ -94,23 +111,6 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
       if (observer) observer.disconnect();
     };
   }, [mounted, viewMode]);
-
-  // Saralash holatlari
-  const [sortBy, setSortBy] = useState("recommended");
-  const [sortOpen, setSortOpen] = useState(false);
-  const [viewMode, setViewMode] = useState(viewParam === "map" ? "map" : "list"); // list or map
-  const sortRef = useRef(null);
-
-  // Filtr holatlari
-  const [filterOpen, setFilterOpen] = useState(false);
-  const [minPrice, setMinPrice] = useState("");
-  const [maxPrice, setMaxPrice] = useState("");
-  const [roomsFilter, setRoomsFilter] = useState("all");
-
-  // Qo'llanilgan filtrlar (state)
-  const [appliedMinPrice, setAppliedMinPrice] = useState("");
-  const [appliedMaxPrice, setAppliedMaxPrice] = useState("");
-  const [appliedRoomsFilter, setAppliedRoomsFilter] = useState("all");
 
   // URL-dagi toifa o'zgarsa, tabni ham o'zgartiramiz
   useEffect(() => {
