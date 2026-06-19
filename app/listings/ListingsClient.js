@@ -26,6 +26,7 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
   // Saralash holatlari
   const [sortBy, setSortBy] = useState("recommended"); // recommended, price-asc, price-desc, area-desc
   const [sortOpen, setSortOpen] = useState(false);
+  const [viewMode, setViewMode] = useState("list"); // list or map
   const sortRef = useRef(null);
 
   // Filtr holatlari
@@ -157,7 +158,7 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
         </div>
       </div>
 
-      <div className="split">
+      <div className={`split ${viewMode === "map" ? "show-map" : "show-list"}`}>
         <div className="split-list">
           <div className="split-meta" style={{ position: "relative" }}>
             <div>
@@ -476,6 +477,21 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
           </div>
         </div>
       )}
+      {/* Floating View Toggle Button on Mobile */}
+      <button
+        onClick={() => setViewMode(viewMode === "list" ? "map" : "list")}
+        className="view-toggle-btn"
+      >
+        {viewMode === "list" ? (
+          <>
+            <i className="ti ti-map"></i> Xarita
+          </>
+        ) : (
+          <>
+            <i className="ti ti-list"></i> Ro&apos;yxat
+          </>
+        )}
+      </button>
     </>
   );
 }
