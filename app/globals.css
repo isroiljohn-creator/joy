@@ -923,3 +923,24 @@ html { scroll-behavior: smooth }
   color: #ff7675;
 }
 
+/* Mobile Map View Overrides - MUST BE AT THE BOTTOM TO OVERRIDE EVERYTHING ELSE */
+@media(max-width:1080px) {
+  /* Default: hide map on mobile/tablet */
+  .mapwrap {
+    display: none !important;
+  }
+  /* Show map only when show-map class is active */
+  .split.show-map .mapwrap {
+    display: block !important;
+    position: fixed !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 100vh !important;
+    width: 100vw !important;
+    z-index: 9999 !important;
+    background: var(--cream, #FBF7F3) !important;
+  }
+}
+
