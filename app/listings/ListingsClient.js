@@ -146,6 +146,24 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
   return (
     <>
       <Nav />
+      {/* Visual debug overlay outside mapwrap */}
+      <div style={{
+        position: "fixed",
+        top: 80,
+        left: 20,
+        zIndex: 999999,
+        background: "rgba(0,0,0,0.85)",
+        color: "#ffff00",
+        padding: "8px 14px",
+        borderRadius: 8,
+        fontSize: 12,
+        fontFamily: "monospace",
+        fontWeight: "bold",
+        boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
+        pointerEvents: "none"
+      }}>
+        ROOT DEBUG: view={viewMode} | mobile={isMobile ? "Yes" : "No"} | mounted={mounted ? "Yes" : "No"} | listings={shown.length}
+      </div>
       {/* Desktop tabs row — mobilda yashirilgan */}
       <div className="tabs-row">
         {tabs.map((t) => (
