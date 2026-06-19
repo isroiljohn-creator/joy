@@ -40,7 +40,7 @@ export default function RootLayout({ children }) {
         />
         <link
           rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"
+          href="/leaflet/leaflet.css"
         />
         <script
           dangerouslySetInnerHTML={{

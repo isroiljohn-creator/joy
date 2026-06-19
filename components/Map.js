@@ -76,7 +76,7 @@ export default function Map({ listings, activePin, onPinClick }) {
     let script = document.querySelector('script[src*="leaflet.js"]');
     if (!script) {
       script = document.createElement("script");
-      script.src = "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js";
+      script.src = "/leaflet/leaflet.js";
       document.head.appendChild(script);
     }
 
