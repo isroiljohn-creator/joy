@@ -24,7 +24,7 @@ export async function GET(request) {
   const code = searchParams.get("code");
   const error = searchParams.get("error");
   
-  const host = request.headers.get("host") || "localhost:3000";
+  const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || "localhost:3000";
   let proto = "http";
   if (!host.includes("localhost") && !host.includes("127.0.0.1")) {
     const reqUrlObj = new URL(request.url);
