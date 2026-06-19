@@ -38,6 +38,17 @@ export default function Map({ listings, activePin, onPinClick }) {
     const initMap = (L) => {
       if (!mapRef.current || mapInstance.current) return;
 
+      const width = mapRef.current.offsetWidth;
+      const height = mapRef.current.offsetHeight;
+      
+      // If the map container is not yet fully laid out or visible (size is 0),
+      // we must delay initialization. Otherwise Leaflet sets up zoom/center invalidly.
+      if (width === 0 || height === 0) {
+        console.log("Map container size is 0x0. Retrying in 100ms...");
+        setTimeout(() => initMap(L), 100);
+        return;
+      }
+
       const map = L.map(mapRef.current, {
         center: [41.3111, 69.2797],
         zoom: 12,
@@ -65,12 +76,15 @@ export default function Map({ listings, activePin, onPinClick }) {
     let script = document.querySelector('script[src*="leaflet.js"]');
     if (!script) {
       script = document.createElement("script");
-      script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+      script.src = "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js";
       document.head.appendChild(script);
     }
 
     const handleLoad = () => {
-      initMap(window.L);
+      // Delay initialization slightly to let the browser compute dimensions and reflow styles
+      setTimeout(() => {
+        initMap(window.L);
+      }, 50);
     };
 
     if (window.L) {
