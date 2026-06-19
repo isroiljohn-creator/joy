@@ -498,6 +498,8 @@ footer{border-top:1px solid var(--sand);padding:36px 0;display:flex;align-items:
 [data-theme="dark"] .mdowner { background: #231F1A }
 [data-theme="dark"] .bnav { background: #1A1612; border-top-color: #2D2822 }
 [data-theme="dark"] .bfab { border-color: #1A1612 }
+[data-theme="dark"] .mdphoto .mdbtn { background: rgba(35, 31, 26, 0.9) !important; color: #F5F0EB !important }
+
 
 /* Dark mode toggle tugmasi */
 .theme-toggle{background:none;border:1px solid var(--sand);width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--text2);transition:all .2s;flex-shrink:0}
@@ -700,7 +702,7 @@ html { scroll-behavior: smooth }
 .mdprice{font-family:'Bricolage Grotesque',sans-serif;font-size:28px;font-weight:700;color:var(--orange);margin:14px 0 6px}
 .mdpriceArea{font-size:12px;color:var(--muted);margin-bottom:18px}
 .mdspecs{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:22px}
-.mdspec{background:#fff;border:.5px solid var(--sand);border-radius:14px;padding:10px 6px;text-align:center}
+.mdspec{background:var(--card-bg);border:.5px solid var(--sand);border-radius:14px;padding:10px 6px;text-align:center}
 .mdspec i{font-size:18px;color:var(--orange)}
 .mdspec .msv{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:14px;margin-top:3px}
 .mdspec .msl{font-size:10px;color:var(--muted)}

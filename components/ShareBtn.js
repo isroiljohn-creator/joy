@@ -94,7 +94,7 @@ export default function ShareBtn({ btnClass = "ibtn" }) {
             top: "100%",
             right: 0,
             marginTop: 8,
-            background: "#fff",
+            background: "var(--card-bg)",
             borderRadius: 14,
             padding: 6,
             boxShadow: "0 8px 30px rgba(0,0,0,0.15)",
