@@ -38,6 +38,22 @@ export default function RootLayout({ children }) {
           href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css"
           rel="stylesheet"
         />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  const saved = localStorage.getItem("joy-theme");
+                  if (saved === "dark") {
+                    document.documentElement.setAttribute("data-theme", "dark");
+                  } else {
+                    document.documentElement.removeAttribute("data-theme");
+                  }
+                } catch (e) {}
+              })();
+            `
+          }}
+        />
       </head>
       <body>
         <AlertProvider>

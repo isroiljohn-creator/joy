@@ -343,7 +343,7 @@ footer{border-top:1px solid var(--sand);padding:36px 0;display:flex;align-items:
 
 /* AUTH */
 .shell{display:grid;grid-template-columns:1fr 1fr;min-height:100vh}
-.visual{background:var(--ink);position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:44px}
+.visual{background:#1A130E;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:44px}
 .visual .vbg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.5}
 .visual .ov{position:absolute;inset:0;background:linear-gradient(180deg,rgba(26,19,14,.3),rgba(26,19,14,.85))}
 .visual>*{position:relative;z-index:2}
@@ -354,6 +354,7 @@ footer{border-top:1px solid var(--sand);padding:36px 0;display:flex;align-items:
 .formside{display:flex;align-items:center;justify-content:center;padding:44px}
 .formbox{width:100%;max-width:380px}
 .aseg{display:flex;background:#fff;border:1px solid var(--sand);border-radius:16px;padding:5px;margin-bottom:28px}
+[data-theme="dark"] .aseg{background:#231F1A}
 .aseg button{flex:1;border:none;background:none;font-size:14px;font-weight:600;color:var(--text2);padding:11px 0;border-radius:12px;cursor:pointer}
 .aseg button.on{background:var(--orange);color:#fff}
 .formbox h1{font-family:'Bricolage Grotesque',sans-serif;font-size:28px;font-weight:700}
