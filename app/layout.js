@@ -57,7 +57,9 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <AlertProvider>
-          {children}
+          <div className="page-wrap">
+            {children}
+          </div>
           <MobileNav />
         </AlertProvider>
       </body>

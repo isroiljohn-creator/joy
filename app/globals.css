@@ -58,6 +58,8 @@ nav{position:sticky;top:0;z-index:50;background:rgba(251,247,243,.85);backdrop-f
 .mobile-menu{position:absolute;right:0;top:0;width:100%;max-width:340px;height:100%;background:var(--cream);padding:24px;overflow-y:auto;box-shadow:-10px 0 30px rgba(0,0,0,0.1);animation:slideIn .25s ease}
 @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.page-wrap{animation:pageIn 0.22s ease both}
 .mobile-search{display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--sand);border-radius:16px;padding:6px 14px;margin-bottom:20px}
 .mobile-search i{color:var(--muted);font-size:19px}
 .mobile-search input{flex:1;border:none;outline:none;font-family:inherit;font-size:14px;padding:10px 0;background:none}
