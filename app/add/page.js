@@ -33,6 +33,7 @@ export default function Add() {
   const [floor, setFloor] = useState("");
   const [price, setPrice] = useState("");
   const [paymentType, setPaymentType] = useState("Sotuv");
+  const [hasMortgage, setHasMortgage] = useState(false);
   const [district, setDistrict] = useState("");
   const [quarter, setQuarter] = useState("");
   const [desc, setDesc] = useState("");
@@ -87,6 +88,7 @@ export default function Add() {
     formData.append("floor", floor);
     formData.append("price", price);
     formData.append("paymentType", paymentType);
+    formData.append("has_mortgage", hasMortgage.toString());
     formData.append("district", district);
     formData.append("quarter", quarter);
     formData.append("desc", desc);
@@ -239,6 +241,26 @@ export default function Add() {
                   />
                 </div>
               </div>
+              {paymentType === "Sotuv" && (
+                <div className="frow" style={{ marginTop: 12 }}>
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 14, fontWeight: 500, userSelect: "none" }}>
+                      <input
+                        type="checkbox"
+                        checked={hasMortgage}
+                        onChange={(e) => setHasMortgage(e.target.checked)}
+                        style={{
+                          width: 18,
+                          height: 18,
+                          accentColor: "var(--orange)",
+                          cursor: "pointer"
+                        }}
+                      />
+                      <span>Ipoteka olish imkoniyati mavjud</span>
+                    </label>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="fsection">

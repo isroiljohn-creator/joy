@@ -55,6 +55,16 @@ export default function ProfileClient({ user, myListings, savedListings, message
 
   const memberYear = getUserYear(user?.createdAt);
 
+  const handleLogout = () => {
+    document.cookie = "user_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+    document.cookie = "user_name=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+    document.cookie = "user_display_name=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+    document.cookie = "user_phone=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+    document.cookie = "user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+    document.cookie = "is_logged_in=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+    window.location.href = "/";
+  };
+
   const handleUpdateSettings = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -265,6 +275,57 @@ export default function ProfileClient({ user, myListings, savedListings, message
                       <div className="price" style={{ fontSize: 19 }}>
                         {l.price}
                       </div>
+                      
+                      {l.priceStatus && (
+                        <div style={{ margin: "4px 0", display: "flex", alignItems: "center" }}>
+                          {l.priceStatus === "cheap" && (
+                            <span style={{
+                              background: "rgba(34, 197, 94, 0.1)",
+                              color: "#16a34a",
+                              fontSize: 10,
+                              fontWeight: 600,
+                              padding: "1px 6px",
+                              borderRadius: 8,
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 2
+                            }}>
+                              <i className="ti ti-trending-down"></i> {Math.abs(l.priceDiffPercent)}% arzonroq
+                            </span>
+                          )}
+                          {l.priceStatus === "expensive" && (
+                            <span style={{
+                              background: "rgba(239, 68, 68, 0.1)",
+                              color: "#dc2626",
+                              fontSize: 10,
+                              fontWeight: 600,
+                              padding: "1px 6px",
+                              borderRadius: 8,
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 2
+                            }}>
+                              <i className="ti ti-trending-up"></i> {l.priceDiffPercent}% qimmatroq
+                            </span>
+                          )}
+                          {l.priceStatus === "average" && (
+                            <span style={{
+                              background: "rgba(107, 114, 128, 0.1)",
+                              color: "var(--muted)",
+                              fontSize: 10,
+                              fontWeight: 500,
+                              padding: "1px 6px",
+                              borderRadius: 8,
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 2
+                            }}>
+                              <i className="ti ti-minus"></i> Bozor narxida
+                            </span>
+                          )}
+                        </div>
+                      )}
+
                       <div className="ptype" style={{ fontSize: 14 }}>
                         {l.type}
                       </div>
@@ -483,136 +544,185 @@ export default function ProfileClient({ user, myListings, savedListings, message
 
         {/* 4. Sozlamalar (Profile settings) tab */}
         {tab === "Sozlamalar" && (
-          <div style={{ maxWidth: 440, margin: "0 auto", paddingBottom: 64 }}>
-            <form onSubmit={handleUpdateSettings} className="fsection">
-              <h2 className="display" style={{ fontSize: 20, marginBottom: 16 }}>
-                Sozlamalarni tahrirlash
-              </h2>
+          <div style={{ maxWidth: 960, margin: "0 auto", paddingBottom: 64 }}>
+            {/* Grid layout for settings blocks */}
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+              gap: 32,
+              marginBottom: 32
+            }}>
+              {/* Left Column: Sozlamalarni tahrirlash */}
+              <form onSubmit={handleUpdateSettings} className="fsection" style={{ margin: 0, height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                <div>
+                  <h2 className="display" style={{ fontSize: 20, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+                    <i className="ti ti-user-cog" style={{ color: "var(--orange)", fontSize: 22 }}></i>
+                    Sozlamalarni tahrirlash
+                  </h2>
 
-              {success && (
-                <div
-                  style={{
-                    color: "var(--green)",
-                    background: "var(--green-tint)",
-                    padding: "10px 14px",
-                    borderRadius: 12,
-                    fontSize: 13,
-                    fontWeight: 600,
-                    marginBottom: 16
-                  }}
-                >
-                  <i className="ti ti-circle-check"></i> Sozlamalar muvaffaqiyatli saqlandi! Sahifa yangilanmoqda...
-                </div>
-              )}
+                  {success && (
+                    <div
+                      style={{
+                        color: "var(--green)",
+                        background: "var(--green-tint)",
+                        padding: "10px 14px",
+                        borderRadius: 12,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        marginBottom: 16
+                      }}
+                    >
+                      <i className="ti ti-circle-check"></i> Sozlamalar muvaffaqiyatli saqlandi! Sahifa yangilanmoqda...
+                    </div>
+                  )}
 
-              {error && (
-                <div
-                  style={{
-                    color: "#b23e12",
-                    background: "#fdeae2",
-                    padding: "10px 14px",
-                    borderRadius: 12,
-                    fontSize: 13,
-                    fontWeight: 600,
-                    marginBottom: 16
-                  }}
-                >
-                  <i className="ti ti-alert-circle"></i> {error}
-                </div>
-              )}
+                  {error && (
+                    <div
+                      style={{
+                        color: "#b23e12",
+                        background: "#fdeae2",
+                        padding: "10px 14px",
+                        borderRadius: 12,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        marginBottom: 16
+                      }}
+                    >
+                      <i className="ti ti-alert-circle"></i> {error}
+                    </div>
+                  )}
 
-              <div className="field" style={{ marginBottom: 14 }}>
-                <label>Foydalanuvchi ismi</label>
-                <input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="field" style={{ marginBottom: 20 }}>
-                <label>Telefon raqami</label>
-                <input
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  required
-                />
-              </div>
-
-              <button type="submit" className="btn-pub" disabled={loading} style={{ margin: 0 }}>
-                <i className="ti ti-device-floppy"></i> {loading ? "Saqlanmoqda..." : "Saqlash"}
-              </button>
-            </form>
-
-            {/* Parolni o'zgartirish */}
-            <form onSubmit={handleChangePassword} className="fsection" style={{ marginTop: 32, borderTop: "1px solid var(--sand)", paddingTop: 24 }}>
-              <h2 className="display" style={{ fontSize: 20, marginBottom: 16 }}>
-                Parolni o&apos;zgartirish
-              </h2>
-
-              {pwSuccess && (
-                <div
-                  style={{
-                    color: "var(--green)",
-                    background: "var(--green-tint)",
-                    padding: "10px 14px",
-                    borderRadius: 12,
-                    fontSize: 13,
-                    fontWeight: 600,
-                    marginBottom: 16
-                  }}
-                >
-                  <i className="ti ti-circle-check"></i> Parol muvaffaqiyatli o&apos;zgartirildi!
-                </div>
-              )}
-
-              {pwError && (
-                <div
-                  style={{
-                    color: "#b23e12",
-                    background: "#fdeae2",
-                    padding: "10px 14px",
-                    borderRadius: 12,
-                    fontSize: 13,
-                    fontWeight: 600,
-                    marginBottom: 16
-                  }}
-                >
-                  <i className="ti ti-alert-circle"></i> {pwError}
-                </div>
-              )}
-
-              <div className="field" style={{ marginBottom: 14 }}>
-                <label>Eski parol</label>
-                <input
-                  type="password"
-                  value={oldPassword}
-                  onChange={(e) => setOldPassword(e.target.value)}
-                  placeholder="Joriy parolingiz"
-                  required
-                />
-              </div>
-
-              <div className="field" style={{ marginBottom: 20 }}>
-                <label>Yangi parol</label>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Kamida 6 ta belgi"
-                  required
-                />
-                {newPassword.length > 0 && newPassword.length < 6 && (
-                  <div style={{ color: "#d9534f", fontSize: 12, marginTop: 4 }}>
-                    Kamida 6 ta belgi kerak
+                  <div className="field" style={{ marginBottom: 14 }}>
+                    <label>Foydalanuvchi ismi</label>
+                    <input
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
+                    />
                   </div>
-                )}
-              </div>
 
-              <button type="submit" className="btn-pub" disabled={pwLoading} style={{ margin: 0 }}>
-                <i className="ti ti-lock"></i> {pwLoading ? "O'zgartirilmoqda..." : "Parolni o'zgartirish"}
+                  <div className="field" style={{ marginBottom: 20 }}>
+                    <label>Telefon raqami</label>
+                    <input
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <button type="submit" className="btn-pub" disabled={loading} style={{ margin: 0, width: "100%" }}>
+                  <i className="ti ti-device-floppy"></i> {loading ? "Saqlanmoqda..." : "Saqlash"}
+                </button>
+              </form>
+
+              {/* Right Column: Parolni o'zgartirish */}
+              <form onSubmit={handleChangePassword} className="fsection" style={{ margin: 0, height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                <div>
+                  <h2 className="display" style={{ fontSize: 20, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+                    <i className="ti ti-key" style={{ color: "var(--orange)", fontSize: 22 }}></i>
+                    Parolni o&apos;zgartirish
+                  </h2>
+
+                  {pwSuccess && (
+                    <div
+                      style={{
+                        color: "var(--green)",
+                        background: "var(--green-tint)",
+                        padding: "10px 14px",
+                        borderRadius: 12,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        marginBottom: 16
+                      }}
+                    >
+                      <i className="ti ti-circle-check"></i> Parol muvaffaqiyatli o&apos;zgartirildi!
+                    </div>
+                  )}
+
+                  {pwError && (
+                    <div
+                      style={{
+                        color: "#b23e12",
+                        background: "#fdeae2",
+                        padding: "10px 14px",
+                        borderRadius: 12,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        marginBottom: 16
+                      }}
+                    >
+                      <i className="ti ti-alert-circle"></i> {pwError}
+                    </div>
+                  )}
+
+                  <div className="field" style={{ marginBottom: 14 }}>
+                    <label>Eski parol</label>
+                    <input
+                      type="password"
+                      value={oldPassword}
+                      onChange={(e) => setOldPassword(e.target.value)}
+                      placeholder="Joriy parolingiz"
+                      required
+                    />
+                  </div>
+
+                  <div className="field" style={{ marginBottom: 20 }}>
+                    <label>Yangi parol</label>
+                    <input
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Kamida 6 ta belgi"
+                      required
+                    />
+                    {newPassword.length > 0 && newPassword.length < 6 && (
+                      <div style={{ color: "#d9534f", fontSize: 12, marginTop: 4 }}>
+                        Kamida 6 ta belgi kerak
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <button type="submit" className="btn-pub" disabled={pwLoading} style={{ margin: 0, width: "100%" }}>
+                  <i className="ti ti-lock"></i> {pwLoading ? "O'zgartirilmoqda..." : "Parolni o'zgartirish"}
+                </button>
+              </form>
+            </div>
+
+            {/* Logout Card */}
+            <div className="fsection" style={{
+              maxWidth: 440,
+              margin: "0 auto",
+              textAlign: "center",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 12,
+              padding: "24px 20px",
+              borderRadius: 20
+            }}>
+              <div style={{ fontSize: 14, color: "var(--muted)", fontWeight: 500 }}>
+                Tizimdan chiqishni xohlaysizmi?
+              </div>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="btn-pub"
+                style={{
+                  background: "#ef4444",
+                  borderColor: "#ef4444",
+                  color: "#fff",
+                  margin: 0,
+                  width: "100%",
+                  maxWidth: 200,
+                  boxShadow: "0 4px 12px rgba(239, 68, 68, 0.15)",
+                  transition: "all 0.2s ease"
+                }}
+              >
+                <i className="ti ti-logout-2"></i> Chiqish
               </button>
-            </form>
+            </div>
           </div>
         )}
       </div>

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import ProfileClient from "./ProfileClient";
 import { getCurrentUser } from "@/app/actions";
-import { getProfileListings } from "@/lib/data";
+import { getProfileListings, attachPriceAnalysis } from "@/lib/data";
 import pool from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -27,7 +27,8 @@ function mapListingFromDb(row) {
     status: row.status,
     pinX: row.pin_x,
     pinY: row.pin_y,
-    createdAt: row.created_at
+    createdAt: row.created_at,
+    hasMortgage: row.has_mortgage ?? false
   };
 }
 
@@ -55,7 +56,7 @@ export default async function ProfilePage({ searchParams }) {
        ORDER BY l.id DESC`,
       [user.id]
     );
-    savedListings = rows.map(mapListingFromDb);
+    savedListings = await attachPriceAnalysis(rows.map(mapListingFromDb));
   } catch (error) {
     console.error("Error fetching saved listings:", error);
   }

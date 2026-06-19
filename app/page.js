@@ -75,7 +75,7 @@ export default async function Home() {
         </div>
       </header>
 
-      <section className="wrap" style={{ paddingTop: 20 }}>
+      <section className="wrap" style={{ paddingTop: 20, paddingBottom: 48 }}>
         <div className="sec-head">
           <div>
             <h2 className="display">Nimani izlayapsiz?</h2>

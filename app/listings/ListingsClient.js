@@ -284,6 +284,57 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
                   <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", minWidth: 0 }}>
                     <div>
                       <div style={{ fontFamily: "'Bricolage Grotesque',sans-serif", fontWeight: 700, fontSize: 17, color: "var(--orange)" }}>{l.price}</div>
+                      
+                      {l.priceStatus && (
+                        <div style={{ marginTop: 2, display: "flex", alignItems: "center" }}>
+                          {l.priceStatus === "cheap" && (
+                            <span style={{
+                              background: "rgba(34, 197, 94, 0.1)",
+                              color: "#16a34a",
+                              fontSize: 10,
+                              fontWeight: 600,
+                              padding: "1px 6px",
+                              borderRadius: 8,
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 2
+                            }}>
+                              <i className="ti ti-trending-down"></i> {Math.abs(l.priceDiffPercent)}% arzonroq
+                            </span>
+                          )}
+                          {l.priceStatus === "expensive" && (
+                            <span style={{
+                              background: "rgba(239, 68, 68, 0.1)",
+                              color: "#dc2626",
+                              fontSize: 10,
+                              fontWeight: 600,
+                              padding: "1px 6px",
+                              borderRadius: 8,
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 2
+                            }}>
+                              <i className="ti ti-trending-up"></i> {l.priceDiffPercent}% qimmatroq
+                            </span>
+                          )}
+                          {l.priceStatus === "average" && (
+                            <span style={{
+                              background: "rgba(107, 114, 128, 0.1)",
+                              color: "var(--muted)",
+                              fontSize: 10,
+                              fontWeight: 500,
+                              padding: "1px 6px",
+                              borderRadius: 8,
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 2
+                            }}>
+                              <i className="ti ti-minus"></i> Bozor narxida
+                            </span>
+                          )}
+                        </div>
+                      )}
+
                       <div style={{ fontSize: 13, fontWeight: 600, marginTop: 2 }}>{l.type}</div>
                       <div style={{ fontSize: 11, color: "var(--muted)", display: "flex", alignItems: "center", gap: 3 }}>
                         <i className="ti ti-map-pin" style={{ fontSize: 13 }}></i> {l.addr}

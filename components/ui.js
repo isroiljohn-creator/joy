@@ -149,13 +149,6 @@ export function Nav() {
                     Admin Panel
                   </Link>
                 )}
-                <button 
-                  onClick={handleLogout} 
-                  className="btn-ghost" 
-                  style={{ border: "none", background: "none", color: "var(--muted)", cursor: "pointer" }}
-                >
-                  Chiqish
-                </button>
                 <Link className="btn-add" href="/add">
                   <i className="ti ti-plus"></i> E'lon qo'shish
                 </Link>
@@ -240,9 +233,6 @@ export function Nav() {
                   <Link href="/add" onClick={() => setMobileMenuOpen(false)}>
                     <i className="ti ti-plus"></i> E'lon qo'shish
                   </Link>
-                  <button onClick={() => { handleLogout(); setMobileMenuOpen(false); }}>
-                    <i className="ti ti-logout"></i> Chiqish
-                  </button>
                 </>
               ) : (
                 <>
@@ -322,6 +312,57 @@ export function ListingCard({ l, isFavorite = false }) {
         <div className="addr">
           <i className="ti ti-map-pin"></i> {l.addr}, Toshkent
         </div>
+
+        {l.priceStatus && (
+          <div style={{ margin: "6px 0", display: "flex", alignItems: "center" }}>
+            {l.priceStatus === "cheap" && (
+              <span style={{
+                background: "rgba(34, 197, 94, 0.1)",
+                color: "#16a34a",
+                fontSize: 11,
+                fontWeight: 600,
+                padding: "2px 8px",
+                borderRadius: 12,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4
+              }}>
+                <i className="ti ti-trending-down"></i> {Math.abs(l.priceDiffPercent)}% arzonroq
+              </span>
+            )}
+            {l.priceStatus === "expensive" && (
+              <span style={{
+                background: "rgba(239, 68, 68, 0.1)",
+                color: "#dc2626",
+                fontSize: 11,
+                fontWeight: 600,
+                padding: "2px 8px",
+                borderRadius: 12,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4
+              }}>
+                <i className="ti ti-trending-up"></i> {l.priceDiffPercent}% qimmatroq
+              </span>
+            )}
+            {l.priceStatus === "average" && (
+              <span style={{
+                background: "rgba(107, 114, 128, 0.1)",
+                color: "var(--muted)",
+                fontSize: 11,
+                fontWeight: 500,
+                padding: "2px 8px",
+                borderRadius: 12,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4
+              }}>
+                <i className="ti ti-minus"></i> Bozor narxida
+              </span>
+            )}
+          </div>
+        )}
+
         <div className="specs">
           <div className="spec">
             <i className="ti ti-bed"></i> {l.rooms} xona

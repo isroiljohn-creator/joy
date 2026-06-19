@@ -300,14 +300,15 @@ export async function createListingAction(formData) {
 
   // Haqiqiy rasm faylini Base64 ko'rinishida olamiz
   const photo = formData.get("photo") || "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=75";
+  const hasMortgage = formData.get("has_mortgage") === "true";
   const status = "active";
   const top = false;
 
   try {
     await pool.query(
-      `INSERT INTO listings (price, price_num, type, cat, addr, rooms, baths, area, floor, top, photo, owner_id, views, saves, status, pin_x, pin_y, description, phone)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
-      [priceFormatted, priceNum, title, cat, addr, rooms, baths, area, floor, top, photo, user.id, 0, 0, status, pinX, pinY, desc, user.phone]
+      `INSERT INTO listings (price, price_num, type, cat, addr, rooms, baths, area, floor, top, photo, owner_id, views, saves, status, pin_x, pin_y, description, phone, has_mortgage)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)`,
+      [priceFormatted, priceNum, title, cat, addr, rooms, baths, area, floor, top, photo, user.id, 0, 0, status, pinX, pinY, desc, user.phone, hasMortgage]
     );
 
     revalidatePath("/");
@@ -408,6 +409,12 @@ export async function updateListingAction(formData) {
 
     const cat = formData.get("cat");
     if (cat) { updates.push(`cat = $${paramIndex++}`); values.push(cat === "Yangi uy" ? "Yangi uylar" : cat); }
+
+    const hasMortgage = formData.get("has_mortgage");
+    if (hasMortgage !== null && hasMortgage !== undefined) {
+      updates.push(`has_mortgage = $${paramIndex++}`);
+      values.push(hasMortgage === "true" || hasMortgage === "on");
+    }
 
     if (updates.length === 0) {
       return { error: "Yangilanadigan ma'lumotlar topilmadi" };

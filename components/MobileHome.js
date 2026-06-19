@@ -3,10 +3,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 const CATS = [
-  { k: "Yangi uylar", i: "ti-building-skyscraper", bg: "var(--orange-tint)", fg: "var(--orange-dark)", sub: "Novostroyka, JK" },
-  { k: "Ikkilamchi", i: "ti-home", bg: "#E6F1FB", fg: "#185FA5", sub: "Tayyor kvartiralar" },
-  { k: "Ijara", i: "ti-key", bg: "#FAEEDA", fg: "#854F0B", sub: "Kunlik va oylik" },
-  { k: "Ofis", i: "ti-briefcase", bg: "#EEEDFE", fg: "#534AB7", sub: "Biznes uchun" },
+  { k: "Yangi uylar", i: "ti-building-skyscraper", bg: "var(--orange-tint)", fg: "var(--orange)", sub: "Novostroyka, JK" },
+  { k: "Ikkilamchi", i: "ti-home", bg: "var(--orange-tint)", fg: "var(--orange)", sub: "Tayyor kvartiralar" },
+  { k: "Ijara", i: "ti-key", bg: "var(--orange-tint)", fg: "var(--orange)", sub: "Kunlik va oylik" },
+  { k: "Ofis", i: "ti-briefcase", bg: "var(--orange-tint)", fg: "var(--orange)", sub: "Biznes uchun" },
 ];
 
 export default function MobileHome({ listings = [], count = 0 }) {
@@ -104,6 +104,57 @@ export default function MobileHome({ listings = [], count = 0 }) {
                     </div>
                   </div>
                   <div style={{ fontFamily: "'Bricolage Grotesque',sans-serif", fontSize: 22, fontWeight: 700, color: "var(--orange)", margin: "12px 0 10px" }}>{featured.price}</div>
+                  
+                  {featured.priceStatus && (
+                    <div style={{ marginBottom: 10, display: "flex", alignItems: "center" }}>
+                      {featured.priceStatus === "cheap" && (
+                        <span style={{
+                          background: "rgba(34, 197, 94, 0.1)",
+                          color: "#16a34a",
+                          fontSize: 11,
+                          fontWeight: 600,
+                          padding: "2px 8px",
+                          borderRadius: 10,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 3
+                        }}>
+                          <i className="ti ti-trending-down"></i> {Math.abs(featured.priceDiffPercent)}% arzonroq
+                        </span>
+                      )}
+                      {featured.priceStatus === "expensive" && (
+                        <span style={{
+                          background: "rgba(239, 68, 68, 0.1)",
+                          color: "#dc2626",
+                          fontSize: 11,
+                          fontWeight: 600,
+                          padding: "2px 8px",
+                          borderRadius: 10,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 3
+                        }}>
+                          <i className="ti ti-trending-up"></i> {featured.priceDiffPercent}% qimmatroq
+                        </span>
+                      )}
+                      {featured.priceStatus === "average" && (
+                        <span style={{
+                          background: "rgba(107, 114, 128, 0.1)",
+                          color: "var(--muted)",
+                          fontSize: 11,
+                          fontWeight: 500,
+                          padding: "2px 8px",
+                          borderRadius: 10,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 3
+                        }}>
+                          <i className="ti ti-minus"></i> Bozor narxida
+                        </span>
+                      )}
+                    </div>
+                  )}
+
                   <div style={{ display: "flex", gap: 8 }}>
                     <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, border: ".5px solid var(--sand)", borderRadius: 20, padding: "7px 0", fontSize: 11, color: "var(--text2)" }}>
                       <i className="ti ti-bed" style={{ fontSize: 14 }}></i>{featured.rooms} xona
@@ -139,6 +190,57 @@ export default function MobileHome({ listings = [], count = 0 }) {
                   <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", minWidth: 0 }}>
                     <div>
                       <div style={{ fontFamily: "'Bricolage Grotesque',sans-serif", fontWeight: 700, fontSize: 17, color: "var(--orange)" }}>{l.price}</div>
+                      
+                      {l.priceStatus && (
+                        <div style={{ marginTop: 2, display: "flex", alignItems: "center" }}>
+                          {l.priceStatus === "cheap" && (
+                            <span style={{
+                              background: "rgba(34, 197, 94, 0.1)",
+                              color: "#16a34a",
+                              fontSize: 10,
+                              fontWeight: 600,
+                              padding: "1px 6px",
+                              borderRadius: 8,
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 2
+                            }}>
+                              <i className="ti ti-trending-down"></i> {Math.abs(l.priceDiffPercent)}% arzonroq
+                            </span>
+                          )}
+                          {l.priceStatus === "expensive" && (
+                            <span style={{
+                              background: "rgba(239, 68, 68, 0.1)",
+                              color: "#dc2626",
+                              fontSize: 10,
+                              fontWeight: 600,
+                              padding: "1px 6px",
+                              borderRadius: 8,
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 2
+                            }}>
+                              <i className="ti ti-trending-up"></i> {l.priceDiffPercent}% qimmatroq
+                            </span>
+                          )}
+                          {l.priceStatus === "average" && (
+                            <span style={{
+                              background: "rgba(107, 114, 128, 0.1)",
+                              color: "var(--muted)",
+                              fontSize: 10,
+                              fontWeight: 500,
+                              padding: "1px 6px",
+                              borderRadius: 8,
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 2
+                            }}>
+                              <i className="ti ti-minus"></i> Bozor narxida
+                            </span>
+                          )}
+                        </div>
+                      )}
+
                       <div style={{ fontSize: 13, fontWeight: 600, marginTop: 2 }}>{l.type}</div>
                       <div style={{ fontSize: 11, color: "var(--muted)", display: "flex", alignItems: "center", gap: 3 }}>
                         <i className="ti ti-map-pin" style={{ fontSize: 13 }}></i> {l.addr}
