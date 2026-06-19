@@ -350,16 +350,17 @@ footer{border-top:1px solid var(--sand);padding:36px 0;display:flex;align-items:
 
   /* Mobile Map Preview Block */
   .mobile-map-container {
-    aspect-ratio: 1 / 1 !important;
+    aspect-ratio: 2.5 / 1 !important;
     height: auto !important;
-    border-radius: 28px !important;
+    border-radius: 16px !important;
     overflow: hidden !important;
     position: relative !important;
     margin: 12px 0 16px !important;
     box-sizing: border-box !important;
     cursor: pointer !important;
-    border: 2.5px solid var(--orange) !important;
-    box-shadow: 0 0 0 4px var(--orange-tint) !important;
+    border: 2px solid var(--orange) !important;
+    background: var(--orange) !important;
+    box-shadow: 0 4px 12px rgba(242, 89, 31, 0.2) !important;
   }
   .mobile-map-overlay {
     position: absolute !important;

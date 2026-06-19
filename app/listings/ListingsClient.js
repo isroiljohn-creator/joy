@@ -220,6 +220,7 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
                 listings={shown}
                 activePin={null}
                 onPinClick={null}
+                mini={true}
               />
             )}
             

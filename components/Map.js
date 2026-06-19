@@ -30,7 +30,7 @@ function getCoords(addr) {
   return [41.2995 + Math.random() * 0.06 - 0.03, 69.2401 + Math.random() * 0.08 - 0.04];
 }
 
-export default function Map({ listings, activePin, onPinClick }) {
+export default function Map({ listings, activePin, onPinClick, mini = false }) {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
   const markersRef = useRef([]);
@@ -69,12 +69,20 @@ export default function Map({ listings, activePin, onPinClick }) {
 
         const map = L.map(mapRef.current, {
           center: [41.3111, 69.2797],
-          zoom: 12,
+          zoom: mini ? 10 : 12,
           zoomControl: false,
-          tap: false // Disable double-tap zoom delay on iOS Safari
+          tap: false, // Disable double-tap zoom delay on iOS Safari
+          dragging: !mini,
+          touchZoom: !mini,
+          doubleClickZoom: !mini,
+          scrollWheelZoom: !mini,
+          boxZoom: !mini,
+          keyboard: !mini
         });
 
-        L.control.zoom({ position: "bottomright" }).addTo(map);
+        if (!mini) {
+          L.control.zoom({ position: "bottomright" }).addTo(map);
+        }
 
         // CartoDB Voyager tiles (never blocked, extremely fast, modern look)
         L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png", {
