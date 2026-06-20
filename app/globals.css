@@ -2691,5 +2691,62 @@ html { scroll-behavior: smooth }
 [data-theme="dark"] .dashboard-tab:hover,
 [data-theme="dark"] .dashboard-tab.active { color: var(--orange); background: rgba(242, 89, 31, .15); }
 
+/* Premium mobile improvements for B2B tabs */
+@media (max-width: 768px) {
+  .dashboard-tabs {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    gap: 8px !important;
+    padding-bottom: 12px !important;
+    margin-top: 14px !important;
+    border-bottom: none !important;
+    scrollbar-width: none;
+  }
+  .dashboard-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .dashboard-tab {
+    white-space: nowrap !important;
+    border-radius: 20px !important;
+    border: none !important;
+    margin-bottom: 0 !important;
+    padding: 10px 18px !important;
+    background: var(--cream) !important;
+    color: var(--text2) !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    transition: all 0.2s ease;
+  }
+  .dashboard-tab.active {
+    background: var(--orange) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 12px rgba(242, 89, 31, 0.25);
+  }
+  
+  [data-theme="dark"] .dashboard-tab {
+    background: #2a2018 !important;
+    color: rgba(255,255,255,0.7) !important;
+  }
+  [data-theme="dark"] .dashboard-tab.active {
+    background: var(--orange) !important;
+    color: #fff !important;
+  }
+}
+
+/* Feed Guide Dark Mode integration */
+[data-theme="dark"] .feed-import-card {
+  background: #1e1812 !important;
+  border-color: #3a2e26 !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important;
+}
+[data-theme="dark"] .feed-fields-guide {
+  background: #2a2018 !important;
+}
+[data-theme="dark"] .feed-fields-guide div {
+  background: #1e1812 !important;
+  border-color: #3a2e26 !important;
+  color: rgba(255,255,255,0.8) !important;
+}
+
 
 

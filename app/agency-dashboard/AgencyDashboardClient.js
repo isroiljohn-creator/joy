@@ -42,6 +42,7 @@ export default function AgencyDashboardClient({ user, myAgency: initialAgency, m
   // Feed import
   const [feedJson, setFeedJson] = useState("");
   const [feedResult, setFeedResult] = useState(null);
+  const [showSchema, setShowSchema] = useState(false);
 
   const showMsg = (text, isError = false) => {
     setMsg(text);
@@ -483,15 +484,99 @@ export default function AgencyDashboardClient({ user, myAgency: initialAgency, m
             {/* Feed Import Tab */}
             {activeTab === "feed" && (
               <div className="dashboard-content">
-                <div className="feed-import-section">
-                  <div className="feed-import-header">
-                    <h3><i className="ti ti-upload"></i> JSON Feed Import</h3>
-                    <p>E'lonlaringizni JSON formatida paste qiling — tizim avtomatik yuklaydi.</p>
+                <div className="feed-import-card" style={{
+                  background: "var(--card-bg)",
+                  border: "1px solid var(--sand)",
+                  borderRadius: "24px",
+                  padding: "24px",
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.04)"
+                }}>
+                  <div className="feed-import-header" style={{ marginBottom: "20px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
+                      <div style={{
+                        width: "44px",
+                        height: "44px",
+                        borderRadius: "14px",
+                        background: "var(--orange-tint)",
+                        color: "var(--orange)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "20px"
+                      }}>
+                        <i className="ti ti-upload"></i>
+                      </div>
+                      <div>
+                        <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "700" }}>E'lonlarni ommaviy yuklash (Bulk Import)</h3>
+                        <p style={{ margin: 0, fontSize: "13px", color: "var(--muted)" }}>Ko'plab e'lonlarni qo'lda kiritmasdan, fayl orqali bir lahzada yuklang.</p>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="feed-format-hint">
-                    <h4>Format namunasi:</h4>
-                    <pre>{`[
+                  {/* Simple visual explanation of what fields are needed */}
+                  <div className="feed-fields-guide" style={{
+                    background: "var(--cream)",
+                    padding: "16px",
+                    borderRadius: "16px",
+                    marginBottom: "20px"
+                  }}>
+                    <h4 style={{ margin: "0 0 10px 0", fontSize: "14px", fontWeight: "600" }}>Quyidagi ma'lumotlar talab qilinadi:</h4>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                      {[
+                        { label: "Sarlavha (title)", desc: "Kvartira nomi" },
+                        { label: "Narxi (price)", desc: "USD qiymatda" },
+                        { label: "Xonalar (rooms)", desc: "Soni" },
+                        { label: "Maydoni (area)", desc: "kv.m" },
+                        { label: "Tuman (district)", desc: "Toshkent tumani" },
+                        { label: "Telefon (phone)", desc: "Aloqa raqami" }
+                      ].map((f, idx) => (
+                        <div key={idx} style={{
+                          background: "var(--card-bg)",
+                          border: "1px solid var(--sand)",
+                          padding: "6px 12px",
+                          borderRadius: "10px",
+                          fontSize: "12px"
+                        }}>
+                          <strong style={{ color: "var(--orange-dark)" }}>{f.label}</strong>
+                          <span style={{ color: "var(--muted)", marginLeft: "4px" }}>({f.desc})</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowSchema(!showSchema)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "var(--orange)",
+                        fontWeight: "600",
+                        fontSize: "13px",
+                        cursor: "pointer",
+                        padding: 0,
+                        marginTop: "14px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px"
+                      }}
+                    >
+                      {showSchema ? "Namuna formatini yashirish ▴" : "Dasturchilar uchun namuna JSON formatini ko'rish ▾"}
+                    </button>
+
+                    {showSchema && (
+                      <div className="feed-format-hint" style={{
+                        marginTop: "12px",
+                        background: "#1e1e1e",
+                        color: "#a9b1d6",
+                        padding: "16px",
+                        borderRadius: "12px",
+                        fontSize: "12px",
+                        fontFamily: "monospace",
+                        overflowX: "auto",
+                        maxHeight: "220px",
+                        border: "1px solid #333"
+                      }}>
+                        <pre style={{ margin: 0 }}>{`[
   {
     "title": "3 xonali kvartira",
     "price": 75000,
@@ -502,20 +587,34 @@ export default function AgencyDashboardClient({ user, myAgency: initialAgency, m
     "address": "Chilonzor 9-kvartal",
     "district": "Chilonzor",
     "cat": "Yangi uylar",
-    "description": "...",
+    "description": "Premium ta'mirlangan.",
     "phone": "+998901234567",
     "photo": "https://..."
   }
 ]`}</pre>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="form-group">
-                    <label>JSON ma'lumotlar</label>
+                  <div className="form-group" style={{ marginBottom: "20px" }}>
+                    <label style={{ display: "block", marginBottom: "8px", fontWeight: "600", fontSize: "14px" }}>JSON formatidagi ma'lumotlar</label>
                     <textarea
                       value={feedJson}
                       onChange={e => setFeedJson(e.target.value)}
-                      placeholder="JSON ma'lumotlaringizni shu yerga paste qiling..."
-                      rows={12}
+                      placeholder="JSON ma'lumotlarini bu yerga nusxalab joylang (paste)..."
+                      rows={8}
+                      style={{
+                        width: "100%",
+                        padding: "14px",
+                        borderRadius: "16px",
+                        border: "1.5px solid var(--sand)",
+                        background: "var(--cream)",
+                        fontSize: "14px",
+                        fontFamily: "inherit",
+                        resize: "vertical",
+                        outline: "none",
+                        transition: "all 0.2s"
+                      }}
                       className="feed-textarea"
                     />
                   </div>
@@ -524,19 +623,38 @@ export default function AgencyDashboardClient({ user, myAgency: initialAgency, m
                     className="btn btn-primary"
                     onClick={handleFeedImport}
                     disabled={loading || !feedJson.trim()}
+                    style={{
+                      width: "100%",
+                      justifyContent: "center",
+                      padding: "14px",
+                      borderRadius: "16px",
+                      fontSize: "15px",
+                      fontWeight: "700"
+                    }}
                   >
                     {loading
                       ? <><i className="ti ti-loader-2 spin"></i> Import qilinmoqda...</>
-                      : <><i className="ti ti-upload"></i> Import qilish</>
+                      : <><i className="ti ti-upload"></i> Ma'lumotlarni yuklash</>
                     }
                   </button>
 
                   {feedResult && (
-                    <div className="feed-result">
-                      <i className="ti ti-check"></i>
+                    <div className="feed-result" style={{
+                      marginTop: "16px",
+                      background: "var(--green-tint)",
+                      color: "#0d7a58",
+                      padding: "14px 16px",
+                      borderRadius: "16px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      fontSize: "14px",
+                      fontWeight: "600"
+                    }}>
+                      <i className="ti ti-circle-check-filled" style={{ fontSize: "20px" }}></i>
                       <div>
                         <strong>{feedResult.imported}</strong> ta e'lon muvaffaqiyatli yuklandi.
-                        {feedResult.updated > 0 && <span> ({feedResult.updated} ta yangilandi)</span>}
+                        {feedResult.errors > 0 && <span style={{ color: "#c0392b", marginLeft: "8px" }}>({feedResult.errors} ta xato)</span>}
                       </div>
                     </div>
                   )}
