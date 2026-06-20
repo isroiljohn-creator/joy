@@ -682,40 +682,120 @@ export default function ProfileClient({ user, myListings, savedListings, message
                     />
                   </div>
 
-                  <div className="field" style={{ marginBottom: 14 }}>
+                  <div className="field" style={{ marginBottom: 16 }}>
                     <label>{t("language")}</label>
-                    <select
-                      value={lang}
-                      onChange={(e) => setLanguage(e.target.value)}
-                      style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: "1px solid var(--sand)", background: "var(--card-bg)", color: "var(--ink)", outline: "none", fontSize: 14, fontFamily: "inherit" }}
-                    >
-                      <option value="uz">O&apos;zbekcha</option>
-                      <option value="ru">Русский</option>
-                      <option value="en">English</option>
-                    </select>
+                    <div style={{
+                      display: "flex",
+                      background: "var(--sand)",
+                      padding: 4,
+                      borderRadius: 14,
+                      gap: 4,
+                      marginTop: 6
+                    }}>
+                      <button
+                        type="button"
+                        onClick={() => setLanguage("uz")}
+                        style={{
+                          flex: 1,
+                          padding: "10px 0",
+                          borderRadius: 10,
+                          border: "none",
+                          fontSize: 13,
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          background: lang === "uz" ? "var(--orange)" : "transparent",
+                          color: lang === "uz" ? "#fff" : "var(--text2)",
+                          transition: "all 0.2s ease"
+                        }}
+                      >
+                        O&apos;zbekcha
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setLanguage("ru")}
+                        style={{
+                          flex: 1,
+                          padding: "10px 0",
+                          borderRadius: 10,
+                          border: "none",
+                          fontSize: 13,
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          background: lang === "ru" ? "var(--orange)" : "transparent",
+                          color: lang === "ru" ? "#fff" : "var(--text2)",
+                          transition: "all 0.2s ease"
+                        }}
+                      >
+                        Русский
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setLanguage("en")}
+                        style={{
+                          flex: 1,
+                          padding: "10px 0",
+                          borderRadius: 10,
+                          border: "none",
+                          fontSize: 13,
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          background: lang === "en" ? "var(--orange)" : "transparent",
+                          color: lang === "en" ? "#fff" : "var(--text2)",
+                          transition: "all 0.2s ease"
+                        }}
+                      >
+                        English
+                      </button>
+                    </div>
                   </div>
 
                   <div className="field" style={{ marginBottom: 20 }}>
                     <label>{t("theme")}</label>
-                    <select
-                      value={darkMode ? "dark" : "light"}
-                      onChange={(e) => {
-                        const nextDark = e.target.value === "dark";
-                        setDarkMode(nextDark);
-                        if (nextDark) {
-                          document.documentElement.setAttribute("data-theme", "dark");
-                          localStorage.setItem("joy-theme", "dark");
-                        } else {
-                          document.documentElement.removeAttribute("data-theme");
-                          localStorage.setItem("joy-theme", "light");
-                        }
-                        window.dispatchEvent(new Event("joy-theme-change"));
-                      }}
-                      style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: "1px solid var(--sand)", background: "var(--card-bg)", color: "var(--ink)", outline: "none", fontSize: 14, fontFamily: "inherit" }}
-                    >
-                      <option value="light">{t("light_mode")}</option>
-                      <option value="dark">{t("dark_mode")}</option>
-                    </select>
+                    <div style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "10px 14px",
+                      borderRadius: 14,
+                      background: "var(--card-bg)",
+                      border: "1px solid var(--sand)",
+                      marginTop: 6
+                    }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>
+                        {darkMode ? t("dark_mode") : t("light_mode")}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const nextDark = !darkMode;
+                          setDarkMode(nextDark);
+                          if (nextDark) {
+                            document.documentElement.setAttribute("data-theme", "dark");
+                            localStorage.setItem("joy-theme", "dark");
+                          } else {
+                            document.documentElement.removeAttribute("data-theme");
+                            localStorage.setItem("joy-theme", "light");
+                          }
+                          window.dispatchEvent(new Event("joy-theme-change"));
+                        }}
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: "50%",
+                          border: "1px solid var(--sand)",
+                          background: "var(--cream)",
+                          color: "var(--orange)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 16,
+                          cursor: "pointer",
+                          transition: "all 0.2s ease"
+                        }}
+                      >
+                        <i className={darkMode ? "ti ti-sun" : "ti ti-moon"}></i>
+                      </button>
+                    </div>
                   </div>
                 </div>
 
