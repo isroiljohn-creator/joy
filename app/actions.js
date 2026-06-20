@@ -554,24 +554,29 @@ export async function toggleFavoriteAction(listingId) {
     return { error: "unauthorized" };
   }
 
+  const idNum = parseInt(listingId);
+  if (isNaN(idNum)) {
+    return { error: "invalid_id" };
+  }
+
   try {
     const { rows } = await pool.query(
       "SELECT * FROM favorites WHERE user_id = $1 AND listing_id = $2",
-      [user.id, listingId]
+      [user.id, idNum]
     );
 
     if (rows.length > 0) {
-      await pool.query("DELETE FROM favorites WHERE user_id = $1 AND listing_id = $2", [user.id, listingId]);
-      await pool.query("UPDATE listings SET saves = GREATEST(0, saves - 1) WHERE id = $1", [listingId]);
+      await pool.query("DELETE FROM favorites WHERE user_id = $1 AND listing_id = $2", [user.id, idNum]);
+      await pool.query("UPDATE listings SET saves = GREATEST(0, saves - 1) WHERE id = $1", [idNum]);
     } else {
-      await pool.query("INSERT INTO favorites (user_id, listing_id) VALUES ($1, $2)", [user.id, listingId]);
-      await pool.query("UPDATE listings SET saves = saves + 1 WHERE id = $1", [listingId]);
+      await pool.query("INSERT INTO favorites (user_id, listing_id) VALUES ($1, $2)", [user.id, idNum]);
+      await pool.query("UPDATE listings SET saves = saves + 1 WHERE id = $1", [idNum]);
     }
 
     revalidatePath("/");
     revalidatePath("/listings");
     revalidatePath("/profile");
-    revalidatePath(`/property/${listingId}`);
+    revalidatePath(`/property/${idNum}`);
     return { success: true };
   } catch (error) {
     console.error("toggleFavoriteAction error:", error);

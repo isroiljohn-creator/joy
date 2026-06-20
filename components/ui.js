@@ -408,6 +408,11 @@ export function ListingCard({ l, isFavorite: initialFavorite = false }) {
       const res = await toggleFavoriteAction(l.id);
       if (res && res.error) {
         setIsFavorite(prev);
+        if (res.error === "unauthorized") {
+          // Sessiya o'chgan bo'lsa login sahifasiga redirect qilamiz
+          document.cookie = "is_logged_in=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;";
+          window.location.href = "/login";
+        }
       }
     } catch (err) {
       setIsFavorite(prev);
