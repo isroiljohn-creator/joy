@@ -30,6 +30,11 @@ export default function MobileNav() {
     }
   }, [path]);
 
+  // Hide global tab bar on pages with distinct bottom actions or full screens
+  if (path?.startsWith("/property/") || path === "/chat" || path?.startsWith("/agency-dashboard")) {
+    return null;
+  }
+
   const items = [
     { key: "home", icon: "ti-home", label: t("home"), href: "/" },
     { key: "saved", icon: "ti-bookmark", label: t("favorites"), href: "/saved" },
