@@ -86,12 +86,11 @@ export async function loginAction(formData) {
     cookieStore.set("user_phone", user.phone, COOKIE_OPTIONS);
     cookieStore.set("user_role", user.role || "user", PUBLIC_COOKIE_OPTIONS);
     cookieStore.set("is_logged_in", "true", PUBLIC_COOKIE_OPTIONS);
+    return { success: true };
   } catch (error) {
     console.error("loginAction error:", error);
     return { error: "Tizimga kirishda xatolik yuz berdi" };
   }
-
-  redirect("/profile");
 }
 
 // Ro'yxatdan o'tish (Register)
@@ -114,12 +113,11 @@ export async function registerAction(formData) {
     cookieStore.set("user_phone", user.phone, COOKIE_OPTIONS);
     cookieStore.set("user_role", user.role || "user", PUBLIC_COOKIE_OPTIONS);
     cookieStore.set("is_logged_in", "true", PUBLIC_COOKIE_OPTIONS);
+    return { success: true };
   } catch (error) {
     console.error("registerAction error:", error);
     return { error: "Ushbu telefon raqami allaqachon ro'yxatdan o'tgan" };
   }
-
-  redirect("/profile");
 }
 
 // SMS OTP yuborish

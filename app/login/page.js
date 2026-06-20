@@ -105,6 +105,8 @@ export default function Login() {
         if (res?.error) {
           setError(res.error);
           setLoading(false);
+        } else if (res?.success) {
+          window.location.href = "/profile";
         }
       } catch (err) {
         setError("Tizimda xatolik yuz berdi");
@@ -116,6 +118,8 @@ export default function Login() {
         if (res?.error) {
           setError(res.error);
           setLoading(false);
+        } else if (res?.success) {
+          window.location.href = "/profile";
         }
       } catch (err) {
         setError("Tizimda xatolik yuz berdi");
