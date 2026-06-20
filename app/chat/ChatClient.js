@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Nav } from "@/components/ui";
+import BackButton from "@/components/BackButton";
 import { useTranslation } from "@/lib/useTranslation";
 import { sendMessageAction, deleteMessageAction, markMessageReadAction } from "@/app/actions";
 
@@ -275,8 +276,14 @@ export default function ChatClient({ user, initialMessages }) {
       <Nav />
       <div className="wrap">
         <div className="tg-chat-container">
-          {/* Sidebar */}
           <div className={`tg-chat-sidebar ${activeChatKey ? "mobile-hidden" : ""}`}>
+            <div className="tg-mobile-header mobile-only">
+              <BackButton fallback="/" className="tg-back-link">
+                <i className="ti ti-arrow-left"></i>
+              </BackButton>
+              <span>{lang === "uz" ? "Xabarlar" : lang === "ru" ? "Сообщения" : "Messages"}</span>
+              <div style={{ width: 36 }}></div>
+            </div>
             <div className="tg-chat-search">
               <input
                 placeholder={currentText.search_chat}

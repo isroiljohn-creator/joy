@@ -2929,3 +2929,34 @@ html { scroll-behavior: smooth }
 .modal-close:hover {
   color: var(--orange);
 }
+
+/* Mobile chat list header styling */
+.tg-mobile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--card-bg, #ffffff);
+  border-bottom: 1px solid var(--sand, #eee);
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--ink, #1a130e);
+}
+.tg-mobile-header .tg-back-link {
+  font-size: 20px;
+  color: var(--orange, #F2591F);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--cream, #fbf7f3);
+  transition: background-color 0.2s ease;
+  border: 1px solid var(--sand, #eee);
+}
+.tg-mobile-header .tg-back-link:hover {
+  background: var(--orange-tint);
+}
+
