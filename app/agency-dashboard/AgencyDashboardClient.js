@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   createAgencyAction,
   updateAgencyAction,
@@ -20,12 +21,22 @@ function slugify(str) {
 }
 
 export default function AgencyDashboardClient({ user, myAgency: initialAgency, members: initialMembers, leads: initialLeads, agencyListings }) {
+  const router = useRouter();
   const [agency, setAgency] = useState(initialAgency);
   const [members, setMembers] = useState(initialMembers || []);
   const [leads, setLeads] = useState(initialLeads || []);
   const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
+
+  const handleBack = (e) => {
+    e.preventDefault();
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/profile");
+    }
+  };
 
   // Create agency form
   const [createForm, setCreateForm] = useState({
@@ -175,8 +186,8 @@ export default function AgencyDashboardClient({ user, myAgency: initialAgency, m
         <div className="wrap">
           <div className="dashboard-header-inner">
             <div className="dashboard-header-left">
-              <Link href="/" className="dashboard-back-btn">
-                <i className="ti ti-arrow-left"></i> Bosh sahifa
+              <Link href="/" onClick={handleBack} className="dashboard-back-btn">
+                <i className="ti ti-arrow-left"></i> Orqaga
               </Link>
               <div className="dashboard-title-block">
                 <h1 className="dashboard-title">

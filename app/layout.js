@@ -107,6 +107,16 @@ export default function RootLayout({ children }) {
                     document.documentElement.removeAttribute("data-theme");
                   }
                 } catch (e) {}
+
+                // Premium haptic feedback click listener
+                try {
+                  document.addEventListener("click", function(e) {
+                    const target = e.target.closest("button, .btn, .cbtn, [role='button'], .dashboard-tab, .star-btn, .mobile-nav-item, .theme-toggle, .floating-chat-btn, .avatar, .editp, .mdbtn");
+                    if (target && navigator && navigator.vibrate) {
+                      navigator.vibrate(10);
+                    }
+                  }, { passive: true });
+                } catch (e) {}
               })();
             `
           }}

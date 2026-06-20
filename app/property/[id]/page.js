@@ -11,6 +11,7 @@ import pool from "@/lib/db";
 import PropertyExtras from "./PropertyExtras";
 import MobileActions from "@/components/MobileActions";
 import ReviewsSection from "./ReviewsSection";
+import BackButton from "@/components/BackButton";
 
 function getPriceComparison(priceNum, area, cat) {
   const pricePerM2 = area > 0 ? Math.round(priceNum / area) : 0;
@@ -338,9 +339,9 @@ export default async function Property({ params }) {
       <div className="mobile-only" style={{ background: "var(--cream, #FBF7F3)", minHeight: "100vh", paddingBottom: 120 }}>
         <div className="mdphoto" style={{ backgroundImage: `url('${l.photo}')` }}>
           <div className="mdnav">
-            <Link href="/listings" className="mdbtn" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <BackButton fallback="/listings" className="mdbtn" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
               <i className="ti ti-arrow-left"></i>
-            </Link>
+            </BackButton>
             <div style={{ display: "flex", gap: 8 }}>
               <form action={handleToggleFavorite}>
                 <button 
