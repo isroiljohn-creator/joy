@@ -350,8 +350,13 @@ export function Nav() {
   );
 }
 
-export function ListingCard({ l, isFavorite = false }) {
+export function ListingCard({ l, isFavorite: initialFavorite = false }) {
+  const [isFavorite, setIsFavorite] = useState(initialFavorite);
   const [isCompared, setIsCompared] = useState(false);
+
+  useEffect(() => {
+    setIsFavorite(initialFavorite);
+  }, [initialFavorite]);
 
   useEffect(() => {
     const list = JSON.parse(localStorage.getItem("joy_compare") || "[]");
@@ -396,9 +401,16 @@ export function ListingCard({ l, isFavorite = false }) {
       return;
     }
 
+    const prev = isFavorite;
+    setIsFavorite(!prev);
+
     try {
-      await toggleFavoriteAction(l.id);
+      const res = await toggleFavoriteAction(l.id);
+      if (res && res.error) {
+        setIsFavorite(prev);
+      }
     } catch (err) {
+      setIsFavorite(prev);
       console.error(err);
     }
   };

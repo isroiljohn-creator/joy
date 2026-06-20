@@ -4,6 +4,8 @@ import SearchBox from "@/components/SearchBox";
 import Footer from "@/components/Footer";
 import MobileHome from "@/components/MobileHome";
 import { getListings, getListingCount, categories } from "@/lib/data";
+import { getCurrentUser } from "@/app/actions";
+import pool from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +13,17 @@ export default async function Home() {
   const allActive = await getListings();
   const featured = allActive.slice(0, 3);
   const count = await getListingCount();
+
+  const user = await getCurrentUser();
+  let favoriteIds = [];
+  if (user) {
+    try {
+      const { rows } = await pool.query("SELECT listing_id FROM favorites WHERE user_id = $1", [user.id]);
+      favoriteIds = rows.map(r => r.listing_id);
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   return (
     <>
@@ -122,7 +135,7 @@ export default async function Home() {
         ) : (
           <div className="grid">
             {featured.map((l) => (
-              <ListingCard l={l} key={l.id} />
+              <ListingCard l={l} key={l.id} isFavorite={favoriteIds.includes(l.id)} />
             ))}
           </div>
         )}
