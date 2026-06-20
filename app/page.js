@@ -35,7 +35,8 @@ export default async function Home() {
             <i className="ti ti-map-pin"></i> O&apos;zbekiston bo&apos;ylab {count.toLocaleString()}+ e&apos;lon
           </div>
           <h1 className="display">
-            Uy-joyingizni <span className="acc">maskon</span>dan toping
+            Uy-joyingizni<br />
+            <span className="acc">maskon</span>dan toping
           </h1>
           <p>
             Uy sotib oling, ijaraga oling yoki ofis tanlang — xaritada qidiring,

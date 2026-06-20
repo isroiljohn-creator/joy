@@ -224,7 +224,10 @@ export default function Login() {
           mask<span className="logo-pin"><i className="ti ti-map-pin-filled"></i></span>n
         </Link>
         <div className="vtext">
-          <h2 className="display">Uy-joyingizni maskondan toping</h2>
+          <h2 className="display">
+            Uy-joyingizni<br />
+            maskondan toping
+          </h2>
           <p>
             Minglab ishonchli e&apos;lon, xaritada qidiruv va to&apos;g&apos;ridan-to&apos;g&apos;ri aloqa
             — barchasi bir joyda.
