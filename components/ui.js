@@ -118,6 +118,7 @@ export function Nav() {
             <Link href="/listings?cat=Ijara">{t("rent")}</Link>
             <Link href="/listings?cat=Ofis">{t("office")}</Link>
             <Link href="/listings?cat=Yangi%20uylar">{t("novostroyka")}</Link>
+            <Link href="/agencies">{t("agencies")}</Link>
           </div>
         )}
 
@@ -160,6 +161,9 @@ export function Nav() {
                     {t("admin_panel")}
                   </Link>
                 )}
+                <Link href="/agency-dashboard" className="btn-ghost">
+                  <i className="ti ti-building-store" style={{ marginRight: 4, verticalAlign: -1 }}></i> {t("agency_dashboard")}
+                </Link>
                 <Link className="btn-add" href="/add">
                   <i className="ti ti-plus"></i> {t("add_listing")}
                 </Link>
@@ -179,6 +183,7 @@ export function Nav() {
               </>
             ) : (
               <>
+                <Link href="/agencies" className="btn-ghost">{t("agencies")}</Link>
                 <Link className="btn-ghost" href="/login">{t("login")}</Link>
                 <Link className="btn-add" href="/login">
                   <i className="ti ti-plus"></i> {t("add_listing")}
@@ -226,6 +231,9 @@ export function Nav() {
               <Link href="/listings?cat=Ofis" onClick={() => setMobileMenuOpen(false)}>
                 <i className="ti ti-briefcase"></i> {t("office")}
               </Link>
+              <Link href="/agencies" onClick={() => setMobileMenuOpen(false)}>
+                <i className="ti ti-building-store"></i> {t("agencies")}
+              </Link>
             </div>
 
             <div className="mobile-divider"></div>
@@ -238,6 +246,9 @@ export function Nav() {
                       <i className="ti ti-shield" style={{ color: "var(--purple)" }}></i> {t("admin_panel")}
                     </Link>
                   )}
+                  <Link href="/agency-dashboard" onClick={() => setMobileMenuOpen(false)}>
+                    <i className="ti ti-building-store"></i> {t("agency_dashboard")}
+                  </Link>
                   <Link href="/profile" onClick={() => setMobileMenuOpen(false)}>
                     <i className="ti ti-user"></i> {t("profile")}
                   </Link>

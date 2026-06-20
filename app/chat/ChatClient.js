@@ -22,8 +22,32 @@ export default function ChatClient({ user, initialMessages }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [sending, setSending] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [isTyping, setIsTyping] = useState(false);
 
   const messagesEndRef = useRef(null);
+
+  // Chat auto-refresh polling
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch("/api/messages");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.messages) {
+            // Compare lengths or contents to avoid redundant updates
+            const currentIds = messages.map(m => m.id).join(",");
+            const incomingIds = data.messages.map(m => m.id).join(",");
+            if (currentIds !== incomingIds) {
+              setMessages(data.messages);
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Chat refresh error:", err);
+      }
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [messages]);
 
   // Localization lookups
   const localTexts = {
@@ -206,6 +230,14 @@ export default function ChatClient({ user, initialMessages }) {
         };
         setMessages((prev) => [...prev, newMsg]);
         setReplyText("");
+
+        // Optimistik "Suhbatdosh yozmoqda..." simulyatsiyasi
+        setTimeout(() => {
+          setIsTyping(true);
+          setTimeout(() => {
+            setIsTyping(false);
+          }, 3500);
+        }, 1500);
       }
     } catch (err) {
       alert("Xatolik yuz berdi");
@@ -385,6 +417,22 @@ export default function ChatClient({ user, initialMessages }) {
                       );
                     });
                   })()}
+                  {isTyping && (
+                    <div className="tg-msg-bubble tg-msg-bubble-in" style={{ alignSelf: "flex-start", display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", marginTop: 8 }}>
+                      <span style={{ fontSize: 13, color: "var(--muted)" }}>{activeThread.contactName} yozmoqda</span>
+                      <span className="typing-indicator-dots" style={{ display: "flex", gap: 3 }}>
+                        <span className="dot" style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--orange)", animation: "dot-pulse 1s infinite alternate" }}></span>
+                        <span className="dot" style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--orange)", animation: "dot-pulse 1s infinite alternate 0.2s" }}></span>
+                        <span className="dot" style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--orange)", animation: "dot-pulse 1s infinite alternate 0.4s" }}></span>
+                      </span>
+                    </div>
+                  )}
+                  <style>{`
+                    @keyframes dot-pulse {
+                      from { opacity: 0.3; transform: scale(0.8); }
+                      to { opacity: 1; transform: scale(1.2); }
+                    }
+                  `}</style>
                   <div ref={messagesEndRef} />
                 </div>
 

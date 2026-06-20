@@ -188,6 +188,10 @@ export default function ProfileClient({ user, myListings, savedListings, message
                 <i className="ti ti-star" style={{ fontSize: 15, verticalAlign: -2 }}></i> {t("premium_btn")}
               </Link>
             )}
+            <Link href="/agency-dashboard" className="editp" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <i className="ti ti-building-store" style={{ fontSize: 15 }}></i>{" "}
+              {t("agency_dashboard")}
+            </Link>
             <button className="editp" onClick={() => setTab("Sozlamalar")}>
               <i
                 className="ti ti-settings"

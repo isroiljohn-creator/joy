@@ -46,7 +46,7 @@ export async function getCurrentUser() {
   if (!id) return null;
 
   try {
-    const { rows } = await pool.query("SELECT name, phone, email, role, is_verified, subscription_plan, balance, created_at FROM users WHERE id = $1", [parseInt(id)]);
+    const { rows } = await pool.query("SELECT name, phone, email, role, is_verified, subscription_plan, balance, agency_id, created_at FROM users WHERE id = $1", [parseInt(id)]);
     if (rows.length > 0) {
       return { 
         id: parseInt(id), 
@@ -57,12 +57,13 @@ export async function getCurrentUser() {
         isVerified: rows[0].is_verified || false,
         subscriptionPlan: rows[0].subscription_plan || 'free',
         balance: rows[0].balance || 0,
+        agencyId: rows[0].agency_id,
         createdAt: rows[0].created_at 
       };
     }
-    return { id: parseInt(id), name, phone: "", email: "", role: 'user', isVerified: false, subscriptionPlan: 'free', balance: 0, createdAt: null };
+    return { id: parseInt(id), name, phone: "", email: "", role: 'user', isVerified: false, subscriptionPlan: 'free', balance: 0, agencyId: null, createdAt: null };
   } catch (error) {
-    return { id: parseInt(id), name, phone: "", email: "", role: 'user', isVerified: false, subscriptionPlan: 'free', balance: 0, createdAt: null };
+    return { id: parseInt(id), name, phone: "", email: "", role: 'user', isVerified: false, subscriptionPlan: 'free', balance: 0, agencyId: null, createdAt: null };
   }
 }
 
@@ -335,17 +336,37 @@ export async function createListingAction(formData) {
   const hasMortgage = formData.get("has_mortgage") === "true";
   const status = "active";
   const top = false;
+  let agencyId = null;
+  const postAsAgency = formData.get("postAsAgency") === "true";
+  if (postAsAgency && user.agencyId) {
+    agencyId = user.agencyId;
+    
+    // Agentlik e'lonlar kvotasini tekshiramiz
+    const { rows: agencyRows } = await pool.query("SELECT listing_quota FROM agencies WHERE id = $1", [agencyId]);
+    if (agencyRows.length > 0) {
+      const quota = agencyRows[0].listing_quota;
+      const { rows: countRows } = await pool.query("SELECT COUNT(*) FROM listings WHERE agency_id = $1", [agencyId]);
+      const currentCount = parseInt(countRows[0].count, 10);
+      if (currentCount >= quota) {
+        return { error: `Agentlik e'lonlar kvotasi to'lgan (${quota} ta).` };
+      }
+    }
+  }
 
   try {
     await pool.query(
-      `INSERT INTO listings (price, price_num, type, cat, addr, rooms, baths, area, floor, top, photo, owner_id, views, saves, status, pin_x, pin_y, description, phone, has_mortgage)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)`,
-      [priceFormatted, priceNum, title, cat, addr, rooms, baths, area, floor, top, photo, user.id, 0, 0, status, pinX, pinY, desc, user.phone, hasMortgage]
+      `INSERT INTO listings (price, price_num, type, cat, addr, rooms, baths, area, floor, top, photo, owner_id, agency_id, views, saves, status, pin_x, pin_y, description, phone, has_mortgage)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)`,
+      [priceFormatted, priceNum, title, cat, addr, rooms, baths, area, floor, top, photo, user.id, agencyId, 0, 0, status, pinX, pinY, desc, user.phone, hasMortgage]
     );
 
     revalidatePath("/");
     revalidatePath("/listings");
     revalidatePath("/profile");
+    if (agencyId) {
+      revalidatePath(`/agencies/${agencyId}`);
+      revalidatePath("/agency-dashboard");
+    }
   } catch (error) {
     console.error("createListingAction error:", error);
     return { error: "Ma'lumotlar bazasiga yozishda xatolik yuz berdi" };
@@ -533,10 +554,27 @@ export async function sendMessageAction(formData) {
   }
 
   try {
+    // E'lon agentlikka tegishli ekanligini va uni kim yuklaganini tekshiramiz
+    const { rows: listingRows } = await pool.query(
+      "SELECT agency_id, owner_id FROM listings WHERE id = $1",
+      [listingId]
+    );
+
+    let agencyId = null;
+    let assignedTo = null;
+
+    if (listingRows.length > 0) {
+      agencyId = listingRows[0].agency_id;
+      if (agencyId) {
+        // Agar listing agentlikka tegishli bo'lsa, avtomatik ravishda e'lon egasiga (maklerga) taqsimlaymiz
+        assignedTo = listingRows[0].owner_id;
+      }
+    }
+
     await pool.query(
-      `INSERT INTO messages (sender_id, sender_name, sender_phone, receiver_id, listing_id, content)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      [senderId, senderName, senderPhone, receiverId, listingId, content]
+      `INSERT INTO messages (sender_id, sender_name, sender_phone, receiver_id, listing_id, content, agency_id, assigned_to)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [senderId, senderName, senderPhone, receiverId, listingId, content, agencyId, assignedTo]
     );
     return { success: true };
   } catch (error) {
@@ -787,5 +825,358 @@ export async function adminDeleteUserAction(userId) {
     await pool.query("ROLLBACK");
     console.error("adminDeleteUserAction error:", error);
     return { error: "Foydalanuvchini o'chirishda xatolik yuz berdi" };
+  }
+}
+
+// ======================================================
+// B2B AGENTLIK ACTIONS
+// ======================================================
+
+// Yangi agentlik yaratish
+export async function createAgencyAction(formData) {
+  const user = await getCurrentUser();
+  if (!user) return { error: "Tizimga kiring" };
+
+  const name = formData.get("name");
+  let slug = formData.get("slug") || name.toLowerCase().replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-");
+
+  if (!name) return { error: "Agentlik nomi majburiy" };
+
+  try {
+    // Slug unique qilish
+    const { rows: existing } = await pool.query("SELECT id FROM agencies WHERE slug = $1", [slug]);
+    if (existing.length > 0) {
+      slug = `${slug}-${Date.now()}`;
+    }
+
+    const { rows } = await pool.query(
+      `INSERT INTO agencies (name, slug, phone, address, description, website, owner_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [
+        name,
+        slug,
+        formData.get("phone") || "",
+        formData.get("address") || "",
+        formData.get("description") || "",
+        formData.get("website") || "",
+        user.id
+      ]
+    );
+
+    const agency = rows[0];
+
+    // Egani ham xodim sifatida qo'shamiz (role: owner)
+    await pool.query(
+      "INSERT INTO agency_members (agency_id, user_id, role) VALUES ($1, $2, 'owner') ON CONFLICT DO NOTHING",
+      [agency.id, user.id]
+    );
+
+    // Foydalanuvchining agency_id sini yangilaymiz
+    await pool.query("UPDATE users SET agency_id = $1 WHERE id = $2", [agency.id, user.id]);
+
+    revalidatePath("/agencies");
+    revalidatePath("/agency-dashboard");
+    return { success: true, agency };
+  } catch (error) {
+    console.error("createAgencyAction error:", error);
+    return { error: "Agentlik yaratishda xatolik yuz berdi" };
+  }
+}
+
+// Agentlik ma'lumotlarini yangilash
+export async function updateAgencyAction(formData) {
+  const user = await getCurrentUser();
+  if (!user) return { error: "Tizimga kiring" };
+
+  const agencyId = parseInt(formData.get("agency_id"));
+
+  try {
+    const { rows } = await pool.query(
+      "SELECT id FROM agencies WHERE id = $1 AND owner_id = $2",
+      [agencyId, user.id]
+    );
+    if (rows.length === 0) return { error: "Ruxsat yo'q" };
+
+    await pool.query(
+      `UPDATE agencies SET name=$1, phone=$2, address=$3, description=$4, website=$5 WHERE id=$6`,
+      [
+        formData.get("name"),
+        formData.get("phone") || "",
+        formData.get("address") || "",
+        formData.get("description") || "",
+        formData.get("website") || "",
+        agencyId
+      ]
+    );
+
+    revalidatePath("/agency-dashboard");
+    revalidatePath("/agencies");
+    return { success: true };
+  } catch (error) {
+    console.error("updateAgencyAction error:", error);
+    return { error: "Yangilashda xatolik yuz berdi" };
+  }
+}
+
+// Agentlikka xodim qo'shish (telefon raqami orqali)
+export async function addAgencyMemberAction(agencyId, phone) {
+  const user = await getCurrentUser();
+  if (!user) return { error: "Tizimga kiring" };
+
+  try {
+    // Egasini tekshiramiz
+    const { rows: agencyRows } = await pool.query(
+      "SELECT id FROM agencies WHERE id = $1 AND owner_id = $2",
+      [agencyId, user.id]
+    );
+    if (agencyRows.length === 0) return { error: "Ruxsat yo'q" };
+
+    // Foydalanuvchini topamiz
+    const { rows: userRows } = await pool.query(
+      "SELECT id, name, phone FROM users WHERE phone = $1",
+      [phone]
+    );
+    if (userRows.length === 0) {
+      return { error: "Bu telefon raqamli foydalanuvchi topilmadi" };
+    }
+
+    const member = userRows[0];
+
+    const { rows: insertRows } = await pool.query(
+      "INSERT INTO agency_members (agency_id, user_id, role) VALUES ($1, $2, 'agent') ON CONFLICT (agency_id, user_id) DO NOTHING RETURNING id",
+      [agencyId, member.id]
+    );
+
+    if (insertRows.length === 0) {
+      return { error: "Bu foydalanuvchi allaqachon jamoada" };
+    }
+
+    // Xodimning agency_id sini yangilaymiz
+    await pool.query("UPDATE users SET agency_id = $1 WHERE id = $2", [agencyId, member.id]);
+
+    revalidatePath("/agency-dashboard");
+    return {
+      success: true,
+      member: { ...member, role: "agent", member_id: insertRows[0].id }
+    };
+  } catch (error) {
+    console.error("addAgencyMemberAction error:", error);
+    return { error: "Xodim qo'shishda xatolik" };
+  }
+}
+
+// Agentlikdan xodimni chiqarish
+export async function removeAgencyMemberAction(memberRowId) {
+  const user = await getCurrentUser();
+  if (!user) return { error: "Tizimga kiring" };
+
+  try {
+    const { rows } = await pool.query(
+      `SELECT am.*, a.owner_id FROM agency_members am
+       JOIN agencies a ON am.agency_id = a.id
+       WHERE am.id = $1`,
+      [memberRowId]
+    );
+
+    if (rows.length === 0) return { error: "Xodim topilmadi" };
+    if (rows[0].owner_id !== user.id) return { error: "Ruxsat yo'q" };
+    if (rows[0].role === "owner") return { error: "Agentlik egasini chiqarib bo'lmaydi" };
+
+    const membUserId = rows[0].user_id;
+
+    await pool.query("DELETE FROM agency_members WHERE id = $1", [memberRowId]);
+    await pool.query("UPDATE users SET agency_id = NULL WHERE id = $1", [membUserId]);
+
+    revalidatePath("/agency-dashboard");
+    return { success: true };
+  } catch (error) {
+    console.error("removeAgencyMemberAction error:", error);
+    return { error: "Xodim chiqarishda xatolik" };
+  }
+}
+
+// Lidni xodimga taqsimlash
+export async function assignLeadAction(messageId, assignedUserId) {
+  const user = await getCurrentUser();
+  if (!user) return { error: "Tizimga kiring" };
+
+  try {
+    // Agentlik egasimi tekshiramiz
+    const { rows } = await pool.query(
+      `SELECT m.id FROM messages m
+       JOIN agencies a ON m.agency_id = a.id
+       WHERE m.id = $1 AND a.owner_id = $2`,
+      [messageId, user.id]
+    );
+
+    if (rows.length === 0) return { error: "Ruxsat yo'q" };
+
+    await pool.query(
+      "UPDATE messages SET assigned_to = $1 WHERE id = $2",
+      [assignedUserId, messageId]
+    );
+
+    return { success: true };
+  } catch (error) {
+    console.error("assignLeadAction error:", error);
+    return { error: "Taqsimlashda xatolik" };
+  }
+}
+
+// Feed import (JSON dan e'lonlar yuklash)
+export async function importFeedAction(agencyId, listings) {
+  const user = await getCurrentUser();
+  if (!user) return { error: "Tizimga kiring" };
+
+  const DISTRICT_PINS = {
+    "Chilonzor": { x: 58, y: 80 },
+    "Yunusobod": { x: 200, y: 200 },
+    "Mirzo Ulug'bek": { x: 260, y: 140 },
+    "Sergeli": { x: 120, y: 300 },
+    "Yakkasaroy": { x: 360, y: 260 },
+    "Shayxontohur": { x: 80, y: 180 },
+    "Olmazor": { x: 150, y: 420 },
+    "Uchtepa": { x: 280, y: 370 },
+    "Mirabad": { x: 340, y: 190 },
+    "Bektemir": { x: 380, y: 450 },
+    "Yashnobod": { x: 300, y: 290 }
+  };
+
+  try {
+    const { rows: agencyRows } = await pool.query(
+      "SELECT * FROM agencies WHERE id = $1 AND owner_id = $2",
+      [agencyId, user.id]
+    );
+    if (agencyRows.length === 0) return { error: "Ruxsat yo'q" };
+
+    const agency = agencyRows[0];
+
+    const { rows: countRows } = await pool.query(
+      "SELECT COUNT(*) FROM listings WHERE agency_id = $1",
+      [agencyId]
+    );
+    const currentCount = parseInt(countRows[0].count, 10);
+
+    if (currentCount + listings.length > agency.listing_quota) {
+      return {
+        error: `Kvota yetarli emas. Sizda ${agency.listing_quota - currentCount} ta e'lon joyi qolgan.`
+      };
+    }
+
+    let imported = 0;
+    let errors = 0;
+
+    for (const item of listings) {
+      try {
+        const priceNum = parseInt(item.price) || 0;
+        const priceFormatted = item.cat === "Ijara"
+          ? `$${priceNum.toLocaleString().replace(/,/g, " ")}/oy`
+          : `$${priceNum.toLocaleString().replace(/,/g, " ")}`;
+        const district = item.district || "Chilonzor";
+        const coords = DISTRICT_PINS[district] || { x: 150, y: 150 };
+
+        await pool.query(
+          `INSERT INTO listings
+            (price, price_num, type, cat, addr, rooms, baths, area, floor, top, photo, owner_id, agency_id, views, saves, status, pin_x, pin_y, description, phone, has_mortgage)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)`,
+          [
+            priceFormatted, priceNum,
+            item.title || "E'lon",
+            item.cat || "Yangi uylar",
+            item.address || district,
+            parseInt(item.rooms) || 1,
+            parseInt(item.baths) || 1,
+            parseInt(item.area) || 50,
+            item.floor || "1/5",
+            false,
+            item.photo || "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&q=75",
+            user.id, agencyId,
+            0, 0, "active",
+            coords.x, coords.y,
+            item.description || "",
+            item.phone || agency.phone || "",
+            false
+          ]
+        );
+        imported++;
+      } catch (err) {
+        console.error("Feed item error:", err.message);
+        errors++;
+      }
+    }
+
+    revalidatePath("/");
+    revalidatePath("/listings");
+    revalidatePath("/agency-dashboard");
+    return { success: true, imported, updated: 0, errors };
+  } catch (error) {
+    console.error("importFeedAction error:", error);
+    return { error: "Import xatosi: " + error.message };
+  }
+}
+
+// ======================================================
+// REVIEW (REYTING VA SHARHLAR) ACTIONS
+// ======================================================
+
+// Sharh qo'shish
+export async function addReviewAction(formData) {
+  const user = await getCurrentUser();
+  if (!user) return { error: "Tizimga kiring" };
+
+  const reviewedUserId = parseInt(formData.get("reviewed_user_id"));
+  const listingId = parseInt(formData.get("listing_id")) || null;
+  const rating = parseInt(formData.get("rating"));
+  const comment = formData.get("comment") || "";
+
+  if (!reviewedUserId || !rating || rating < 1 || rating > 5) {
+    return { error: "To'liq ma'lumot kiriting" };
+  }
+
+  if (user.id === reviewedUserId) {
+    return { error: "O'zingizga sharh yozib bo'lmaydi" };
+  }
+
+  try {
+    // Bir e'longa bir marta sharh yozish mumkin
+    if (listingId) {
+      const { rows: existing } = await pool.query(
+        "SELECT id FROM reviews WHERE reviewer_id = $1 AND listing_id = $2",
+        [user.id, listingId]
+      );
+      if (existing.length > 0) {
+        return { error: "Siz bu e'lon uchun allaqachon sharh yozgansiz" };
+      }
+    }
+
+    const { rows } = await pool.query(
+      `INSERT INTO reviews (reviewer_id, reviewed_user_id, listing_id, rating, comment)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [user.id, reviewedUserId, listingId, rating, comment]
+    );
+
+    revalidatePath(`/property/${listingId}`);
+    return { success: true, review: rows[0] };
+  } catch (error) {
+    console.error("addReviewAction error:", error);
+    return { error: "Sharh qo'shishda xatolik yuz berdi" };
+  }
+}
+
+// Sharhlarni olish
+export async function getReviewsAction(reviewedUserId) {
+  try {
+    const { rows } = await pool.query(
+      `SELECT r.*, u.name AS reviewer_name
+       FROM reviews r
+       JOIN users u ON r.reviewer_id = u.id
+       WHERE r.reviewed_user_id = $1
+       ORDER BY r.created_at DESC`,
+      [reviewedUserId]
+    );
+    return rows;
+  } catch (error) {
+    console.error("getReviewsAction error:", error);
+    return [];
   }
 }

@@ -1,7 +1,7 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Nav, CustomSelect } from "@/components/ui";
-import { createListingAction } from "@/app/actions";
+import { createListingAction, getCurrentUser } from "@/app/actions";
 
 const cats = [
   { key: "Yangi uy", icon: "ti-building-skyscraper" },
@@ -38,6 +38,23 @@ export default function Add() {
   const [quarter, setQuarter] = useState("");
   const [desc, setDesc] = useState("");
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [userAgencyId, setUserAgencyId] = useState(null);
+  const [postAsAgency, setPostAsAgency] = useState(false);
+
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const u = await getCurrentUser();
+        if (u && u.agencyId) {
+          setUserAgencyId(u.agencyId);
+          setPostAsAgency(true);
+        }
+      } catch (err) {
+        console.error("Error loading user:", err);
+      }
+    }
+    loadUser();
+  }, []);
 
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef(null);
@@ -92,13 +109,22 @@ export default function Add() {
     formData.append("district", district);
     formData.append("quarter", quarter);
     formData.append("desc", desc);
+    formData.append("postAsAgency", postAsAgency.toString());
     if (base64Photo) {
       formData.append("photo", base64Photo);
     }
 
     try {
-      await createListingAction(formData);
+      const res = await createListingAction(formData);
+      if (res?.error) {
+        alert(res.error);
+        setLoading(false);
+      }
     } catch (err) {
+      // ignore redirect errors
+      if (err.message && err.message.includes("NEXT_REDIRECT")) {
+        return;
+      }
       console.error(err);
       alert("Xatolik yuz berdi. Iltimos qaytadan urinib ko'ring.");
       setLoading(false);
@@ -245,6 +271,26 @@ export default function Add() {
                         }}
                       />
                       <span>Ipoteka olish imkoniyati mavjud</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+              {userAgencyId && (
+                <div className="frow" style={{ marginTop: 16 }}>
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 14, fontWeight: 500, userSelect: "none" }}>
+                      <input
+                        type="checkbox"
+                        checked={postAsAgency}
+                        onChange={(e) => setPostAsAgency(e.target.checked)}
+                        style={{
+                          width: 18,
+                          height: 18,
+                          accentColor: "var(--orange)",
+                          cursor: "pointer"
+                        }}
+                      />
+                      <span style={{ color: "var(--orange)" }}>Agentlik nomidan joylash (storefrontda ko'rinadi)</span>
                     </label>
                   </div>
                 </div>

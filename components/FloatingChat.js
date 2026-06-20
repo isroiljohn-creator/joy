@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { getUnreadMessageCount } from "@/app/actions";
 
 export default function FloatingChat() {
   const pathname = usePathname();
@@ -11,7 +10,7 @@ export default function FloatingChat() {
 
   useEffect(() => {
     // Hide floating button on chat, login, and admin pages
-    if (pathname === "/chat" || pathname === "/login" || pathname === "/admin") {
+    if (pathname === "/chat" || pathname === "/login" || pathname?.startsWith("/admin")) {
       setIsVisible(false);
       return;
     }
@@ -20,48 +19,35 @@ export default function FloatingChat() {
 
     async function checkMessages() {
       try {
-        // Read cookies to check session state
-        const cookiesList = document.cookie.split(";").reduce((acc, c) => {
-          const [key, val] = c.trim().split("=");
-          if (key && val) {
-            acc[key] = val;
-          }
-          return acc;
-        }, {});
-
-        const isLoggedIn = cookiesList.is_logged_in === "true";
-        const userId = cookiesList.user_id ? parseInt(cookiesList.user_id, 10) : null;
-
-        if (isLoggedIn && userId) {
-          const count = await getUnreadMessageCount(userId);
-          setUnreadCount(count || 0);
-        } else {
-          setUnreadCount(0);
+        const res = await fetch("/api/messages/unread-count", { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          setUnreadCount(data.count || 0);
         }
       } catch (err) {
-        console.error("FloatingChat check error:", err);
+        // Silent fail — don't break the UI
       }
     }
 
     checkMessages();
 
-    // Check again every 30 seconds for new messages
-    const interval = setInterval(checkMessages, 30000);
+    // Check again every 10 seconds for new messages
+    const interval = setInterval(checkMessages, 10000);
     return () => clearInterval(interval);
   }, [pathname]);
 
   if (!isVisible) return null;
 
   return (
-    <Link 
-      href="/chat" 
-      className={`floating-chat-btn ${unreadCount > 0 ? "pulse" : ""}`} 
-      title="Telegram-messenjer"
+    <Link
+      href="/chat"
+      className={`floating-chat-btn ${unreadCount > 0 ? "pulse" : ""}`}
+      title="Ichki messenjer"
       aria-label="Xabarlar"
-      style={{ display: "flex" }} // Enforce visibility layout
+      id="floating-chat-btn"
     >
       <i className="ti ti-brand-telegram"></i>
-      {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
+      {unreadCount > 0 && <span className="badge">{unreadCount > 99 ? "99+" : unreadCount}</span>}
     </Link>
   );
 }

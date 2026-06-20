@@ -10,6 +10,7 @@ import { getCurrentUser, toggleFavoriteAction } from "@/app/actions";
 import pool from "@/lib/db";
 import PropertyExtras from "./PropertyExtras";
 import MobileActions from "@/components/MobileActions";
+import ReviewsSection from "./ReviewsSection";
 
 function getPriceComparison(priceNum, area, cat) {
   const pricePerM2 = area > 0 ? Math.round(priceNum / area) : 0;
@@ -91,6 +92,49 @@ export default async function Property({ params }) {
 
   // Tavsif (bazadagi yoki avtomatik)
   const description = l.description || `${l.addr} hududida, metro va savdo markazlariga yaqin joylashgan yorug' va shinam ${l.type.toLowerCase()}. To'liq ta'mirlangan, mebellangan. Tinch hudud, maktab va bog'cha yonida.`;
+
+  // Sharhlar va agentlik ma'lumotlari
+  let reviews = [];
+  let agency = null;
+  try {
+    const { rows: reviewRows } = await pool.query(
+      `SELECT r.*, u.name AS reviewer_name
+       FROM reviews r
+       JOIN users u ON r.reviewer_id = u.id
+       WHERE r.reviewed_user_id = $1
+       ORDER BY r.created_at DESC LIMIT 10`,
+      [l.ownerId]
+    );
+    reviews = reviewRows.map(r => ({
+      ...r,
+      created_at: r.created_at ? r.created_at.toISOString() : new Date().toISOString()
+    }));
+
+    // Agentlik ma'lumotlarini olish
+    let targetAgencyId = l.agencyId;
+    if (!targetAgencyId) {
+      const { rows: userRows } = await pool.query("SELECT agency_id FROM users WHERE id = $1", [l.ownerId]);
+      if (userRows.length > 0) {
+        targetAgencyId = userRows[0].agency_id;
+      }
+    }
+
+    if (targetAgencyId) {
+      const { rows: agencyRows } = await pool.query(
+        `SELECT a.id, a.name, a.slug, a.is_verified, a.logo
+         FROM agencies a
+         WHERE a.id = $1 LIMIT 1`,
+        [targetAgencyId]
+      );
+      if (agencyRows.length > 0) agency = agencyRows[0];
+    }
+  } catch (err) {
+    console.error("Reviews/agency fetch error:", err);
+  }
+
+  const avgRating = reviews.length > 0
+    ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
+    : null;
 
   // Dinamik xususiyatlar
   const features = [
@@ -228,6 +272,16 @@ export default async function Property({ params }) {
                 </div>
               </div>
 
+              {/* Sharhlar */}
+              <ReviewsSection
+                reviews={reviews}
+                avgRating={avgRating}
+                listingId={l.id}
+                ownerId={l.ownerId}
+                ownerName={l.owner}
+                currentUserId={user?.id || null}
+              />
+
               {/* O'xshash e'lonlar */}
               {similarListings.length > 0 && (
                 <div className="block" style={{ marginTop: 32 }}>
@@ -253,6 +307,19 @@ export default async function Property({ params }) {
                     {l.owner} {l.ownerVerified && <i className="ti ti-rosette-discount-check-filled" style={{ color: "var(--orange)" }} title="Tasdiqlangan foydalanuvchi"></i>}
                   </div>
                   <div className="orole">Egasi · {ownerCount} ta e&apos;lon</div>
+                  {avgRating && (
+                    <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, marginTop: 2 }}>
+                      <i className="ti ti-star-filled" style={{ color: "#f59e0b", fontSize: 12 }}></i>
+                      <strong>{avgRating}</strong>
+                      <span style={{ opacity: 0.6 }}>({reviews.length} sharh)</span>
+                    </div>
+                  )}
+                  {agency && (
+                    <Link href={`/agencies/${agency.slug}`} className="agency-owner-badge">
+                      {agency.is_verified && <i className="ti ti-rosette-discount-check"></i>}
+                      {agency.name}
+                    </Link>
+                  )}
                 </div>
               </div>
               
