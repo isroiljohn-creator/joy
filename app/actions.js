@@ -580,7 +580,7 @@ export async function toggleFavoriteAction(listingId) {
     return { success: true };
   } catch (error) {
     console.error("toggleFavoriteAction error:", error);
-    return { error: "Xatolik yuz berdi" };
+    return { error: error.message || "Xatolik yuz berdi" };
   }
 }
 
