@@ -3,8 +3,10 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toggleFavoriteAction } from "@/app/actions";
+import { useTranslation } from "@/lib/useTranslation";
 
 export function Nav() {
+  const { t } = useTranslation();
   const [user, setUser] = useState(null);
   const [navQuery, setNavQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -37,6 +39,14 @@ export function Nav() {
       setDarkMode(true);
       document.documentElement.setAttribute("data-theme", "dark");
     }
+
+    const handleThemeChange = () => {
+      setDarkMode(localStorage.getItem("joy-theme") === "dark");
+    };
+    window.addEventListener("joy-theme-change", handleThemeChange);
+    return () => {
+      window.removeEventListener("joy-theme-change", handleThemeChange);
+    };
   }, []);
 
   // Mobil menyu ochilganda scroll-ni bloklash
@@ -85,7 +95,7 @@ export function Nav() {
           <div className="nav-search">
             <i className="ti ti-search"></i>
             <input
-              placeholder="Hudud, tuman yoki manzil bo'yicha qidiring..."
+              placeholder={t("search_placeholder")}
               value={navQuery}
               onChange={(e) => setNavQuery(e.target.value)}
               onKeyDown={handleNavSearch}
@@ -104,10 +114,10 @@ export function Nav() {
         {/* Bosh sahifadagi nav havolalari */}
         {isLandingPage && (
           <div className="nav-links">
-            <Link href="/listings?cat=Ikkilamchi">Sotib olish</Link>
-            <Link href="/listings?cat=Ijara">Ijara</Link>
-            <Link href="/listings?cat=Ofis">Ofis</Link>
-            <Link href="/listings?cat=Yangi%20uylar">Novostroyka</Link>
+            <Link href="/listings?cat=Ikkilamchi">{t("buy")}</Link>
+            <Link href="/listings?cat=Ijara">{t("rent")}</Link>
+            <Link href="/listings?cat=Ofis">{t("office")}</Link>
+            <Link href="/listings?cat=Yangi%20uylar">{t("novostroyka")}</Link>
           </div>
         )}
 
@@ -134,9 +144,10 @@ export function Nav() {
                 document.documentElement.removeAttribute("data-theme");
                 localStorage.setItem("joy-theme", "light");
               }
+              window.dispatchEvent(new Event("joy-theme-change"));
             }}
-            aria-label={darkMode ? "Kunduzgi rejim" : "Tungi rejim"}
-            title={darkMode ? "Kunduzgi rejim" : "Tungi rejim"}
+            aria-label={darkMode ? t("light_mode") : t("dark_mode")}
+            title={darkMode ? t("light_mode") : t("dark_mode")}
           >
             <i className={darkMode ? "ti ti-sun" : "ti ti-moon"}></i>
           </button>
@@ -146,11 +157,11 @@ export function Nav() {
               <>
                 {user.role === "admin" && (
                   <Link href="/admin" className="btn-ghost" style={{ border: "1px solid var(--purple)", color: "var(--purple)", background: "var(--purple-tint)" }}>
-                    Admin Panel
+                    {t("admin_panel")}
                   </Link>
                 )}
                 <Link className="btn-add" href="/add">
-                  <i className="ti ti-plus"></i> E'lon qo'shish
+                  <i className="ti ti-plus"></i> {t("add_listing")}
                 </Link>
                 <Link 
                   className="avatar" 
@@ -168,9 +179,9 @@ export function Nav() {
               </>
             ) : (
               <>
-                <Link className="btn-ghost" href="/login">Kirish</Link>
+                <Link className="btn-ghost" href="/login">{t("login")}</Link>
                 <Link className="btn-add" href="/login">
-                  <i className="ti ti-plus"></i> E'lon qo'shish
+                  <i className="ti ti-plus"></i> {t("add_listing")}
                 </Link>
                 <Link className="avatar" href="/login">
                   <i className="ti ti-user"></i>
@@ -189,7 +200,7 @@ export function Nav() {
             <div className="mobile-search">
               <i className="ti ti-search"></i>
               <input
-                placeholder="Qidirish..."
+                placeholder={t("search_placeholder")}
                 value={navQuery}
                 onChange={(e) => setNavQuery(e.target.value)}
                 onKeyDown={(e) => {
@@ -204,16 +215,16 @@ export function Nav() {
 
             <div className="mobile-links">
               <Link href="/listings?cat=Yangi%20uylar" onClick={() => setMobileMenuOpen(false)}>
-                <i className="ti ti-building-skyscraper"></i> Yangi uylar
+                <i className="ti ti-building-skyscraper"></i> {t("novostroyka")}
               </Link>
               <Link href="/listings?cat=Ikkilamchi" onClick={() => setMobileMenuOpen(false)}>
-                <i className="ti ti-home"></i> Sotib olish
+                <i className="ti ti-home"></i> {t("buy")}
               </Link>
               <Link href="/listings?cat=Ijara" onClick={() => setMobileMenuOpen(false)}>
-                <i className="ti ti-key"></i> Ijara
+                <i className="ti ti-key"></i> {t("rent")}
               </Link>
               <Link href="/listings?cat=Ofis" onClick={() => setMobileMenuOpen(false)}>
-                <i className="ti ti-briefcase"></i> Ofis
+                <i className="ti ti-briefcase"></i> {t("office")}
               </Link>
             </div>
 
@@ -224,23 +235,23 @@ export function Nav() {
                 <>
                   {user.role === "admin" && (
                     <Link href="/admin" onClick={() => setMobileMenuOpen(false)} style={{ color: "var(--purple)" }}>
-                      <i className="ti ti-shield" style={{ color: "var(--purple)" }}></i> Admin Panel
+                      <i className="ti ti-shield" style={{ color: "var(--purple)" }}></i> {t("admin_panel")}
                     </Link>
                   )}
                   <Link href="/profile" onClick={() => setMobileMenuOpen(false)}>
-                    <i className="ti ti-user"></i> Profil
+                    <i className="ti ti-user"></i> {t("profile")}
                   </Link>
                   <Link href="/add" onClick={() => setMobileMenuOpen(false)}>
-                    <i className="ti ti-plus"></i> E'lon qo'shish
+                    <i className="ti ti-plus"></i> {t("add_listing")}
                   </Link>
                 </>
               ) : (
                 <>
                   <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                    <i className="ti ti-login-2"></i> Kirish
+                    <i className="ti ti-login-2"></i> {t("login")}
                   </Link>
                   <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                    <i className="ti ti-user-plus"></i> Ro'yxatdan o'tish
+                    <i className="ti ti-user-plus"></i> {t("login")}
                   </Link>
                 </>
               )}
@@ -249,9 +260,9 @@ export function Nav() {
             <div className="mobile-divider"></div>
 
             <div className="mobile-links secondary">
-              <Link href="/about" onClick={() => setMobileMenuOpen(false)}>Biz haqimizda</Link>
-              <Link href="/help" onClick={() => setMobileMenuOpen(false)}>Yordam</Link>
-              <Link href="/contact" onClick={() => setMobileMenuOpen(false)}>Aloqa</Link>
+              <Link href="/about" onClick={() => setMobileMenuOpen(false)}>{t("home")}</Link>
+              <Link href="/help" onClick={() => setMobileMenuOpen(false)}>{t("settings")}</Link>
+              <Link href="/contact" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
             </div>
           </div>
         </div>

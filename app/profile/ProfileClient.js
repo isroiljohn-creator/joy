@@ -1,8 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Nav, ListingCard } from "@/components/ui";
 import { updateSettingsAction, deleteListingAction, deleteMessageAction, changePasswordAction } from "@/app/actions";
+import { useTranslation } from "@/lib/useTranslation";
 
 function formatDate(dateVal) {
   try {
@@ -26,7 +27,15 @@ function getUserYear(createdAt) {
 }
 
 export default function ProfileClient({ user, myListings, savedListings, messages, initialTab = "Mening e'lonlarim" }) {
+  const { t, lang, setLanguage } = useTranslation();
   const [tab, setTab] = useState(initialTab);
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setDarkMode(localStorage.getItem("joy-theme") === "dark");
+    }
+  }, []);
   
   // Sozlamalar oynasi state-lari
   const [name, setName] = useState(user?.name || "");
@@ -174,8 +183,7 @@ export default function ProfileClient({ user, myListings, savedListings, message
                 </span>
               ) : null}
               <span>
-                <i className="ti ti-calendar" style={{ fontSize: 15 }}></i> {memberYear}
-                {" "}yildan beri
+                <i className="ti ti-calendar" style={{ fontSize: 15 }}></i> {lang === "en" ? `${t("member_since")} ${memberYear}` : `${memberYear} ${t("member_since")}`}
               </span>
             </div>
           </div>
@@ -198,7 +206,7 @@ export default function ProfileClient({ user, myListings, savedListings, message
             )}
             {!user?.isVerified && (
               <Link href="/premium" className="editp" style={{ background: "var(--orange-tint)", color: "var(--orange)", borderColor: "transparent" }}>
-                <i className="ti ti-star" style={{ fontSize: 15, verticalAlign: -2 }}></i> Premium sotib olish
+                <i className="ti ti-star" style={{ fontSize: 15, verticalAlign: -2 }}></i> {t("premium_btn")}
               </Link>
             )}
             <button className="editp" onClick={() => setTab("Sozlamalar")}>
@@ -206,7 +214,7 @@ export default function ProfileClient({ user, myListings, savedListings, message
                 className="ti ti-settings"
                 style={{ fontSize: 15, verticalAlign: -2 }}
               ></i>{" "}
-              Sozlamalar
+              {t("settings")}
             </button>
           </div>
         </div>
@@ -215,42 +223,50 @@ export default function ProfileClient({ user, myListings, savedListings, message
           <div className="pstat">
             <i className="ti ti-files"></i>
             <div className="n">{localMyListings.length}</div>
-            <div className="l">Mening e&apos;lonlarim</div>
+            <div className="l">{t("listings_my")}</div>
           </div>
           <div className="pstat">
             <i className="ti ti-heart"></i>
             <div className="n">{savedListings.length}</div>
-            <div className="l">Saqlanganlar</div>
+            <div className="l">{t("favorites")}</div>
           </div>
           <div className="pstat">
             <i className="ti ti-messages"></i>
             <div className="n">{localMessages.length}</div>
-            <div className="l">Kelgan xabarlar</div>
+            <div className="l">{t("inbox_msg")}</div>
           </div>
           <div className="pstat">
             <i className="ti ti-star"></i>
             <div className="n">—</div>
-            <div className="l">Foydalanuvchi reytingi</div>
+            <div className="l">{t("user_rating")}</div>
           </div>
         </div>
 
         <div className="ptabs">
           {["Mening e'lonlarim", "Saqlangan", "Xabarlar", "Sozlamalar"].map(
-            (t) => (
-              <div
-                key={t}
-                className={"ptab" + (tab === t ? " on" : "")}
-                onClick={() => {
-                  setTab(t);
-                  setError("");
-                  setSuccess(false);
-                  setPwError("");
-                  setPwSuccess(false);
-                }}
-              >
-                {t}
-              </div>
-            )
+            (tItem) => {
+              const tabLabels = {
+                "Mening e'lonlarim": t("listings"),
+                "Saqlangan": t("saved"),
+                "Xabarlar": t("messages"),
+                "Sozlamalar": t("settings")
+              };
+              return (
+                <div
+                  key={tItem}
+                  className={"ptab" + (tab === tItem ? " on" : "")}
+                  onClick={() => {
+                    setTab(tItem);
+                    setError("");
+                    setSuccess(false);
+                    setPwError("");
+                    setPwSuccess(false);
+                  }}
+                >
+                  {tabLabels[tItem] || tItem}
+                </div>
+              );
+            }
           )}
         </div>
 
@@ -598,9 +614,7 @@ export default function ProfileClient({ user, myListings, savedListings, message
               ))}
             </div>
           )
-        )}
-
-        {/* 4. Sozlamalar (Profile settings) tab */}
+        )}        {/* 4. Sozlamalar (Profile settings) tab */}
         {tab === "Sozlamalar" && (
           <div style={{ maxWidth: 960, margin: "0 auto", paddingBottom: 64 }}>
             {/* Grid layout for settings blocks */}
@@ -615,7 +629,7 @@ export default function ProfileClient({ user, myListings, savedListings, message
                 <div>
                   <h2 className="display" style={{ fontSize: 20, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
                     <i className="ti ti-user-cog" style={{ color: "var(--orange)", fontSize: 22 }}></i>
-                    Sozlamalarni tahrirlash
+                    {t("edit_profile")}
                   </h2>
 
                   {success && (
@@ -630,7 +644,7 @@ export default function ProfileClient({ user, myListings, savedListings, message
                         marginBottom: 16
                       }}
                     >
-                      <i className="ti ti-circle-check"></i> Sozlamalar muvaffaqiyatli saqlandi! Sahifa yangilanmoqda...
+                      <i className="ti ti-circle-check"></i> {t("success_save")}
                     </div>
                   )}
 
@@ -651,7 +665,7 @@ export default function ProfileClient({ user, myListings, savedListings, message
                   )}
 
                   <div className="field" style={{ marginBottom: 14 }}>
-                    <label>Foydalanuvchi ismi</label>
+                    <label>{t("user_name")}</label>
                     <input
                       value={name}
                       onChange={(e) => setName(e.target.value)}
@@ -659,18 +673,54 @@ export default function ProfileClient({ user, myListings, savedListings, message
                     />
                   </div>
 
-                  <div className="field" style={{ marginBottom: 20 }}>
-                    <label>Telefon raqami</label>
+                  <div className="field" style={{ marginBottom: 14 }}>
+                    <label>{t("phone_number")}</label>
                     <input
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       required
                     />
                   </div>
+
+                  <div className="field" style={{ marginBottom: 14 }}>
+                    <label>{t("language")}</label>
+                    <select
+                      value={lang}
+                      onChange={(e) => setLanguage(e.target.value)}
+                      style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: "1px solid var(--sand)", background: "var(--card-bg)", color: "var(--ink)", outline: "none", fontSize: 14, fontFamily: "inherit" }}
+                    >
+                      <option value="uz">O&apos;zbekcha</option>
+                      <option value="ru">Русский</option>
+                      <option value="en">English</option>
+                    </select>
+                  </div>
+
+                  <div className="field" style={{ marginBottom: 20 }}>
+                    <label>{t("theme")}</label>
+                    <select
+                      value={darkMode ? "dark" : "light"}
+                      onChange={(e) => {
+                        const nextDark = e.target.value === "dark";
+                        setDarkMode(nextDark);
+                        if (nextDark) {
+                          document.documentElement.setAttribute("data-theme", "dark");
+                          localStorage.setItem("joy-theme", "dark");
+                        } else {
+                          document.documentElement.removeAttribute("data-theme");
+                          localStorage.setItem("joy-theme", "light");
+                        }
+                        window.dispatchEvent(new Event("joy-theme-change"));
+                      }}
+                      style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: "1px solid var(--sand)", background: "var(--card-bg)", color: "var(--ink)", outline: "none", fontSize: 14, fontFamily: "inherit" }}
+                    >
+                      <option value="light">{t("light_mode")}</option>
+                      <option value="dark">{t("dark_mode")}</option>
+                    </select>
+                  </div>
                 </div>
 
                 <button type="submit" className="btn-pub" disabled={loading} style={{ margin: 0, width: "100%" }}>
-                  <i className="ti ti-device-floppy"></i> {loading ? "Saqlanmoqda..." : "Saqlash"}
+                  <i className="ti ti-device-floppy"></i> {loading ? t("saving") : t("save")}
                 </button>
               </form>
 
@@ -679,7 +729,7 @@ export default function ProfileClient({ user, myListings, savedListings, message
                 <div>
                   <h2 className="display" style={{ fontSize: 20, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
                     <i className="ti ti-key" style={{ color: "var(--orange)", fontSize: 22 }}></i>
-                    Parolni o&apos;zgartirish
+                    {t("change_password")}
                   </h2>
 
                   {pwSuccess && (
@@ -694,7 +744,7 @@ export default function ProfileClient({ user, myListings, savedListings, message
                         marginBottom: 16
                       }}
                     >
-                      <i className="ti ti-circle-check"></i> Parol muvaffaqiyatli o&apos;zgartirildi!
+                      <i className="ti ti-circle-check"></i> {t("success_pw")}
                     </div>
                   )}
 
@@ -715,23 +765,23 @@ export default function ProfileClient({ user, myListings, savedListings, message
                   )}
 
                   <div className="field" style={{ marginBottom: 14 }}>
-                    <label>Eski parol</label>
+                    <label>{t("old_password")}</label>
                     <input
                       type="password"
                       value={oldPassword}
                       onChange={(e) => setOldPassword(e.target.value)}
-                      placeholder="Joriy parolingiz"
+                      placeholder={t("old_password")}
                       required
                     />
                   </div>
 
                   <div className="field" style={{ marginBottom: 20 }}>
-                    <label>Yangi parol</label>
+                    <label>{t("new_password")}</label>
                     <input
                       type="password"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Kamida 6 ta belgi"
+                      placeholder={t("password_placeholder")}
                       required
                     />
                     {newPassword.length > 0 && newPassword.length < 6 && (
@@ -743,7 +793,7 @@ export default function ProfileClient({ user, myListings, savedListings, message
                 </div>
 
                 <button type="submit" className="btn-pub" disabled={pwLoading} style={{ margin: 0, width: "100%" }}>
-                  <i className="ti ti-lock"></i> {pwLoading ? "O'zgartirilmoqda..." : "Parolni o'zgartirish"}
+                  <i className="ti ti-lock"></i> {pwLoading ? t("saving") : t("change_password")}
                 </button>
               </form>
             </div>
@@ -761,7 +811,7 @@ export default function ProfileClient({ user, myListings, savedListings, message
               borderRadius: 20
             }}>
               <div style={{ fontSize: 14, color: "var(--muted)", fontWeight: 500 }}>
-                Tizimdan chiqishni xohlaysizmi?
+                {t("logout_confirm")}
               </div>
               <button
                 type="button"
@@ -778,7 +828,7 @@ export default function ProfileClient({ user, myListings, savedListings, message
                   transition: "all 0.2s ease"
                 }}
               >
-                <i className="ti ti-logout-2"></i> Chiqish
+                <i className="ti ti-logout-2"></i> {t("logout")}
               </button>
             </div>
           </div>

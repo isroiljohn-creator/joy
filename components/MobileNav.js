@@ -2,8 +2,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
+import { useTranslation } from "@/lib/useTranslation";
 
 export default function MobileNav() {
+  const { t } = useTranslation();
   const path = usePathname();
   const [view, setView] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -29,11 +31,11 @@ export default function MobileNav() {
   }, [path]);
 
   const items = [
-    { key: "home", icon: "ti-home", label: "Asosiy", href: "/" },
-    { key: "saved", icon: "ti-bookmark", label: "Saqlangan", href: "/saved" },
+    { key: "home", icon: "ti-home", label: t("home"), href: "/" },
+    { key: "saved", icon: "ti-bookmark", label: t("favorites"), href: "/saved" },
     { key: "add", fab: true, href: "/add" },
-    { key: "map", icon: "ti-map-2", label: "Xarita", href: "/listings" },
-    { key: "profile", icon: "ti-user", label: "Profil", href: isLoggedIn ? "/profile" : "/login" },
+    { key: "map", icon: "ti-map-2", label: t("map_nav"), href: "/listings" },
+    { key: "profile", icon: "ti-user", label: t("profile"), href: isLoggedIn ? "/profile" : "/login" },
   ];
 
   const isActive = (href) => {
@@ -50,7 +52,7 @@ export default function MobileNav() {
               <div className="bfab">
                 <i className="ti ti-plus"></i>
               </div>
-              <div className="blbl">Qo'shish</div>
+              <div className="blbl">{t("add")}</div>
             </Link>
           );
         }
