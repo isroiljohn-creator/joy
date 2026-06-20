@@ -2840,5 +2840,114 @@ html { scroll-behavior: smooth }
   color: rgba(255,255,255,0.8) !important;
 }
 
+/* ==============================================
+   GLOBAL MODALS (Light & Dark Theme support)
+   ============================================== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 19, 14, 0.6);
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  padding: 16px;
+  animation: fadeIn .2s ease;
+}
 
+.modal-box {
+  background: var(--card-bg) !important;
+  border-radius: 22px !important;
+  padding: 28px !important;
+  width: 100% !important;
+  max-width: 420px !important;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
+  border: 1.5px solid var(--sand) !important;
+  position: relative !important;
+  color: var(--ink) !important;
+  animation: pageIn 0.22s ease both;
+}
 
+[data-theme="dark"] .modal-box {
+  background: #1e1812 !important;
+  border-color: #3a2e26 !important;
+  color: #fff !important;
+}
+
+.modal-box h2 {
+  color: var(--ink) !important;
+}
+[data-theme="dark"] .modal-box h2 {
+  color: #fff !important;
+}
+
+.modal-box p, 
+.modal-box label {
+  color: var(--text2) !important;
+}
+[data-theme="dark"] .modal-box p,
+[data-theme="dark"] .modal-box label {
+  color: #B5AEA5 !important;
+}
+
+.modal-box input,
+.modal-box textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--sand);
+  outline: none;
+  font-size: 14px;
+  background: var(--cream) !important;
+  color: var(--ink) !important;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.modal-box input:focus,
+.modal-box textarea:focus {
+  border-color: var(--orange);
+}
+
+[data-theme="dark"] .modal-box input,
+[data-theme="dark"] .modal-box textarea {
+  background: #2a2018 !important;
+  border-color: #3a2e26 !important;
+  color: #fff !important;
+}
+
+[data-theme="dark"] .modal-box input:focus,
+[data-theme="dark"] .modal-box textarea:focus {
+  border-color: var(--orange) !important;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.modal-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+.modal-close:hover {
+  color: var(--orange);
+}

@@ -114,36 +114,17 @@ export default function MessageModal({ listingId, receiverOwner, receiverId, btn
       {isOpen && (
         <div
           className="modal-overlay"
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(26, 19, 14, 0.6)",
-            zIndex: 900,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            backdropFilter: "blur(4px)",
-          }}
           onClick={handleClose}
         >
           <form
             onSubmit={handleSubmit}
             className="modal-box"
-            style={{
-              background: "#fff",
-              borderRadius: 22,
-              padding: 28,
-              width: "100%",
-              maxWidth: 420,
-              boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
-              border: "1px solid var(--sand)",
-            }}
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="display" style={{ fontSize: 22, marginBottom: 8 }}>
               Egasi bilan bog{"'"}lanish
             </h2>
-            <p style={{ fontSize: 13, color: "var(--text2)", marginBottom: 20 }}>
+            <p style={{ fontSize: 13, marginBottom: 20 }}>
               <strong>{receiverOwner}</strong>ga ushbu e{"'"}lon bo{"'"}yicha xabar yozing:
             </p>
 
@@ -207,7 +188,7 @@ export default function MessageModal({ listingId, receiverOwner, receiverId, btn
                 {!isLoggedIn && (
                   <>
                     <div style={{ marginBottom: 12 }}>
-                      <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text2)", display: "block", marginBottom: 4 }}>
+                      <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 4 }}>
                         Ismingiz
                       </label>
                       <input
@@ -215,14 +196,7 @@ export default function MessageModal({ listingId, receiverOwner, receiverId, btn
                         value={senderName}
                         onChange={(e) => setSenderName(e.target.value)}
                         required
-                        style={{
-                          width: "100%",
-                          padding: 12,
-                          borderRadius: 12,
-                          border: `1px solid ${nameError ? "#b23e12" : "var(--sand)"}`,
-                          outline: "none",
-                          fontSize: 14,
-                        }}
+                        style={nameError ? { border: "1px solid #b23e12" } : undefined}
                       />
                       {nameError && (
                         <span style={{ fontSize: 11, color: "#b23e12", marginTop: 2, display: "block" }}>
@@ -231,7 +205,7 @@ export default function MessageModal({ listingId, receiverOwner, receiverId, btn
                       )}
                     </div>
                     <div style={{ marginBottom: 12 }}>
-                      <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text2)", display: "block", marginBottom: 4 }}>
+                      <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 4 }}>
                         Telefon raqamingiz
                       </label>
                       <input
@@ -239,14 +213,7 @@ export default function MessageModal({ listingId, receiverOwner, receiverId, btn
                         value={senderPhone}
                         onChange={(e) => setSenderPhone(e.target.value)}
                         required
-                        style={{
-                          width: "100%",
-                          padding: 12,
-                          borderRadius: 12,
-                          border: `1px solid ${phoneError ? "#b23e12" : "var(--sand)"}`,
-                          outline: "none",
-                          fontSize: 14,
-                        }}
+                        style={phoneError ? { border: "1px solid #b23e12" } : undefined}
                       />
                       {phoneError && (
                         <span style={{ fontSize: 11, color: "#b23e12", marginTop: 2, display: "block" }}>
@@ -259,7 +226,7 @@ export default function MessageModal({ listingId, receiverOwner, receiverId, btn
 
                 <div style={{ marginBottom: 20 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text2)" }}>
+                    <label style={{ fontSize: 12, fontWeight: 600 }}>
                       Xabar matni
                     </label>
                     <span style={{
@@ -277,13 +244,7 @@ export default function MessageModal({ listingId, receiverOwner, receiverId, btn
                     required
                     maxLength={MAX_CHARS}
                     style={{
-                      width: "100%",
                       height: 100,
-                      padding: 12,
-                      borderRadius: 12,
-                      border: "1px solid var(--sand)",
-                      outline: "none",
-                      fontSize: 14,
                       resize: "none",
                     }}
                   />
