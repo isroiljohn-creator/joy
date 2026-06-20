@@ -54,10 +54,9 @@ export default function PropertyFavoriteBtn({ listingId, initialFavorite = false
       title="Saqlanganlarga qo'shish"
     >
       <i
-        className="ti ti-heart"
+        className={isFavorite ? "ti ti-heart-filled" : "ti ti-heart"}
         style={{
-          color: isFavorite ? "var(--orange)" : "inherit",
-          fontWeight: isFavorite ? "bold" : "normal"
+          color: isFavorite ? "var(--orange)" : "inherit"
         }}
       ></i>
     </button>

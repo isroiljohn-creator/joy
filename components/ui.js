@@ -463,10 +463,9 @@ export function ListingCard({ l, isFavorite: initialFavorite = false }) {
         )}
         <div className="heart" onClick={handleFavorite}>
           <i 
-            className="ti ti-heart" 
+            className={isFavorite ? "ti ti-heart-filled" : "ti ti-heart"} 
             style={{ 
-              color: isFavorite ? "var(--orange)" : "var(--muted)",
-              fontWeight: isFavorite ? "bold" : "normal"
+              color: isFavorite ? "var(--orange)" : "var(--muted)"
             }}
           ></i>
         </div>
