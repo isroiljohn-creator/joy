@@ -61,6 +61,14 @@ export default function PropertyExtras({ priceNum, listingId, listing = null, ha
   const [term, setTerm] = useState(25);
   const [rate, setRate] = useState(12);
 
+  // Banklar va ariza yuborish holatlari
+  const [activeTab, setActiveTab] = useState("calc"); // "calc" yoki "banks"
+  const [selectedBank, setSelectedBank] = useState(null);
+  const [clientName, setClientName] = useState("");
+  const [clientPhone, setClientPhone] = useState("+998 ");
+  const [submitting, setSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
   // AI Valuation Interaktiv parametr
   const [renovation, setRenovation] = useState("yevro"); // none, average, yevro, premium
 
@@ -254,34 +262,143 @@ export default function PropertyExtras({ priceNum, listingId, listing = null, ha
 
       {/* 2. Ipoteka kalkulyatori */}
       <div className="mort" style={{ position: "relative" }}>
-        <div
-          style={{
-            fontSize: 13,
-            color: "var(--muted)",
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-          }}
-        >
-          <i className="ti ti-calculator" style={{ fontSize: 16 }}></i>{" "}
-          Ipoteka hisobi
+        <div style={{ display: "flex", borderBottom: "1px solid var(--sand)", marginBottom: 16 }}>
+          <button
+            onClick={() => setActiveTab("calc")}
+            disabled={!hasMortgage}
+            style={{
+              flex: 1,
+              padding: "10px 0",
+              background: "none",
+              border: "none",
+              borderBottom: activeTab === "calc" && hasMortgage ? "2px solid var(--orange)" : "none",
+              color: activeTab === "calc" && hasMortgage ? "var(--orange)" : "var(--muted)",
+              fontWeight: 700,
+              cursor: hasMortgage ? "pointer" : "not-allowed",
+              fontSize: 13,
+              opacity: hasMortgage ? 1 : 0.5
+            }}
+          >
+            <i className="ti ti-calculator" style={{ marginRight: 6 }}></i> Kalkulyator
+          </button>
+          <button
+            onClick={() => setActiveTab("banks")}
+            disabled={!hasMortgage}
+            style={{
+              flex: 1,
+              padding: "10px 0",
+              background: "none",
+              border: "none",
+              borderBottom: activeTab === "banks" && hasMortgage ? "2px solid var(--orange)" : "none",
+              color: activeTab === "banks" && hasMortgage ? "var(--orange)" : "var(--muted)",
+              fontWeight: 700,
+              cursor: hasMortgage ? "pointer" : "not-allowed",
+              fontSize: 13,
+              opacity: hasMortgage ? 1 : 0.5
+            }}
+          >
+            <i className="ti ti-briefcase" style={{ marginRight: 6 }}></i> Bank takliflari
+          </button>
         </div>
-        
+
         {hasMortgage ? (
-          <div className="mv">
-            ≈ ${monthly.toLocaleString()}{" "}
-            <span
-              style={{
-                fontSize: 14,
-                fontWeight: 400,
-                color: "var(--muted)",
-              }}
-            >
-              /oy
-            </span>
-          </div>
+          activeTab === "calc" ? (
+            <div className="mv" style={{ marginBottom: 12 }}>
+              ≈ ${monthly.toLocaleString()}{" "}
+              <span
+                style={{
+                  fontSize: 14,
+                  fontWeight: 400,
+                  color: "var(--muted)",
+                }}
+              >
+                /oy
+              </span>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 }}>
+              {[
+                { name: "SQB", rate: 17, logo: "🏛️" },
+                { name: "Ipoteka Bank", rate: 16.5, logo: "🏦" },
+                { name: "Hamkorbank", rate: 18, logo: "🏢" },
+                { name: "Xalq Banki", rate: 17.5, logo: "💰" }
+              ].map((bank) => {
+                const bankLoanAmount = priceNum * (1 - downPayment / 100);
+                const bankMonthlyRate = bank.rate / 100 / 12;
+                const bankTotalMonths = term * 12;
+                const bankMonthly = bankMonthlyRate > 0 && bankTotalMonths > 0
+                  ? Math.round((bankLoanAmount * bankMonthlyRate) / (1 - Math.pow(1 + bankMonthlyRate, -bankTotalMonths)))
+                  : Math.round(bankLoanAmount / bankTotalMonths);
+
+                return (
+                  <div
+                    key={bank.name}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      background: "var(--cream, #fbf7f3)",
+                      border: "1px solid var(--sand)",
+                      borderRadius: 12,
+                      padding: 10,
+                      gap: 8
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <span style={{ fontSize: 16 }}>{bank.logo}</span>
+                        <span style={{ fontWeight: 700, color: "var(--ink)", fontSize: 13 }}>{bank.name}</span>
+                        <span style={{
+                          background: "var(--orange-tint)",
+                          color: "var(--orange-dark)",
+                          fontSize: 10,
+                          fontWeight: 700,
+                          padding: "1px 5px",
+                          borderRadius: 20
+                        }}>
+                          {bank.rate}%
+                        </span>
+                      </div>
+                      <div style={{ fontSize: 10, color: "var(--muted)", marginTop: 2 }}>
+                        Boshlang&apos;ich: {downPayment}% · {term} yil
+                      </div>
+                    </div>
+                    <div style={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+                      <div style={{
+                        fontWeight: 800,
+                        color: "var(--ink)",
+                        fontSize: 14,
+                        fontFamily: "'Bricolage Grotesque', sans-serif"
+                      }}>
+                        ${bankMonthly.toLocaleString()}
+                        <span style={{ fontSize: 10, fontWeight: 400, color: "var(--muted)" }}> /oy</span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setSelectedBank(bank.name);
+                          setIsSubmitted(false);
+                          setClientName("");
+                          setClientPhone("+998 ");
+                        }}
+                        className="btn-add"
+                        style={{
+                          padding: "4px 8px",
+                          fontSize: 10,
+                          marginTop: 4,
+                          border: "none",
+                          cursor: "pointer"
+                        }}
+                      >
+                        Ariza
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )
         ) : (
-          <div className="mv" style={{ color: "#ef4444", fontSize: 20 }}>
+          <div className="mv" style={{ color: "#ef4444", fontSize: 20, marginBottom: 12 }}>
             Mavjud emas
           </div>
         )}
@@ -341,30 +458,150 @@ export default function PropertyExtras({ priceNum, listingId, listing = null, ha
             />
           </div>
 
-          <div style={{ marginBottom: 6 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--text2)", marginBottom: 4 }}>
-              <span>Foiz stavkasi</span>
-              <span style={{ fontWeight: 600 }}>{rate}%</span>
+          {hasMortgage && activeTab === "calc" && (
+            <div style={{ marginBottom: 6 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--text2)", marginBottom: 4 }}>
+                <span>Foiz stavkasi</span>
+                <span style={{ fontWeight: 600 }}>{rate}%</span>
+              </div>
+              <input
+                type="range"
+                min="1"
+                max="30"
+                step="0.5"
+                value={rate}
+                onChange={(e) => setRate(Number(e.target.value))}
+                disabled={!hasMortgage}
+                style={{ width: "100%", accentColor: "var(--orange)" }}
+              />
             </div>
-            <input
-              type="range"
-              min="1"
-              max="30"
-              step="0.5"
-              value={rate}
-              onChange={(e) => setRate(Number(e.target.value))}
-              disabled={!hasMortgage}
-              style={{ width: "100%", accentColor: "var(--orange)" }}
-            />
-          </div>
+          )}
         </div>
 
-        {hasMortgage && (
+        {hasMortgage && activeTab === "calc" && (
           <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
             {downPayment}% boshlang&apos;ich · {term} yil · {rate}%
           </div>
         )}
       </div>
+
+      {/* Simulated Application Modal */}
+      {selectedBank && (
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setSelectedBank(null)}>
+          <div className="modal-box" style={{ maxWidth: 400 }}>
+            <div className="modal-header">
+              <h2>
+                <i className="ti ti-briefcase"></i> Ipoteka arizasi ({selectedBank})
+              </h2>
+              <button className="modal-close" onClick={() => setSelectedBank(null)} aria-label="Yopish">
+                <i className="ti ti-x"></i>
+              </button>
+            </div>
+
+            {isSubmitted ? (
+              <div style={{ textAlign: "center", padding: "24px 0" }}>
+                <i className="ti ti-circle-check" style={{ fontSize: 64, color: "var(--green, #1d9e75)", display: "block", marginBottom: 16 }}></i>
+                <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, color: "var(--ink)" }}>Muvaffaqiyatli yuborildi!</h3>
+                <p style={{ color: "var(--text2)", fontSize: 13, lineHeight: 1.5, margin: "0 0 20px" }}>
+                  Sizning arizangiz <strong>{selectedBank}</strong>ga qabul qilindi. Tez orada mutaxassislarimiz siz bilan bog&apos;lanishadi.
+                </p>
+                <button
+                  className="btn-add"
+                  onClick={() => setSelectedBank(null)}
+                  style={{ padding: "10px 24px", border: "none", cursor: "pointer" }}
+                >
+                  Yopish
+                </button>
+              </div>
+            ) : (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  setSubmitting(true);
+                  setTimeout(() => {
+                    setSubmitting(false);
+                    setIsSubmitted(true);
+                  }, 800);
+                }}
+                style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 12 }}
+              >
+                <p style={{ fontSize: 13, color: "var(--text2)", margin: 0 }}>
+                  Quyidagi ma&apos;lumotlarni to&apos;ldiring. Biz sizning nomingizdan bankka ariza yo&apos;llaymiz.
+                </p>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>F.I.SH.</label>
+                  <input
+                    type="text"
+                    required
+                    value={clientName}
+                    onChange={(e) => setClientName(e.target.value)}
+                    placeholder="Ismingiz va familiyangiz"
+                    style={{
+                      padding: 10,
+                      borderRadius: 8,
+                      border: "1px solid var(--sand)",
+                      background: "var(--cream, #fbf7f3)",
+                      color: "var(--ink)",
+                      fontSize: 14
+                    }}
+                  />
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>Telefon raqam</label>
+                  <input
+                    type="tel"
+                    required
+                    value={clientPhone}
+                    onChange={(e) => setClientPhone(e.target.value)}
+                    placeholder="+998 (90) 123-45-67"
+                    style={{
+                      padding: 10,
+                      borderRadius: 8,
+                      border: "1px solid var(--sand)",
+                      background: "var(--cream, #fbf7f3)",
+                      color: "var(--ink)",
+                      fontSize: 14
+                    }}
+                  />
+                </div>
+
+                <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedBank(null)}
+                    className="btn-add"
+                    style={{
+                      flex: 1,
+                      padding: "10px 16px",
+                      background: "none",
+                      border: "1px solid var(--sand)",
+                      color: "var(--ink)",
+                      cursor: "pointer"
+                    }}
+                  >
+                    Bekor qilish
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn-add"
+                    disabled={submitting}
+                    style={{
+                      flex: 1,
+                      padding: "10px 16px",
+                      border: "none",
+                      cursor: "pointer"
+                    }}
+                  >
+                    {submitting ? "Yuborilmoqda..." : "Yuborish"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

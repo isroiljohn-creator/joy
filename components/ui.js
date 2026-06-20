@@ -11,6 +11,7 @@ export function Nav() {
   const [navQuery, setNavQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [compareCount, setCompareCount] = useState(0);
   const pathname = usePathname();
   const router = useRouter();
   const isLandingPage = pathname === "/";
@@ -46,6 +47,18 @@ export function Nav() {
     window.addEventListener("joy-theme-change", handleThemeChange);
     return () => {
       window.removeEventListener("joy-theme-change", handleThemeChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    const updateCompareCount = () => {
+      const list = JSON.parse(localStorage.getItem("joy_compare") || "[]");
+      setCompareCount(list.length);
+    };
+    updateCompareCount();
+    window.addEventListener("compare_updated", updateCompareCount);
+    return () => {
+      window.removeEventListener("compare_updated", updateCompareCount);
     };
   }, []);
 
@@ -161,6 +174,24 @@ export function Nav() {
                     {t("admin_panel")}
                   </Link>
                 )}
+                <Link href="/compare" className="btn-ghost" title="E'lonlarni solishtirish" style={{ display: "inline-flex", alignItems: "center", gap: 6, position: "relative" }}>
+                  <i className="ti ti-git-compare" style={{ fontSize: 16 }}></i>
+                  <span>Solishtirish</span>
+                  {compareCount > 0 && (
+                    <span style={{
+                      background: "var(--orange)",
+                      color: "#fff",
+                      borderRadius: "50%",
+                      width: 16,
+                      height: 16,
+                      fontSize: 10,
+                      fontWeight: 700,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center"
+                    }}>{compareCount}</span>
+                  )}
+                </Link>
                 <Link href="/agency-dashboard" className="btn-ghost">
                   <i className="ti ti-building-store" style={{ marginRight: 4, verticalAlign: -1 }}></i> {t("agency_dashboard")}
                 </Link>
@@ -184,6 +215,24 @@ export function Nav() {
             ) : (
               <>
                 <Link href="/agencies" className="btn-ghost">{t("agencies")}</Link>
+                <Link href="/compare" className="btn-ghost" title="E'lonlarni solishtirish" style={{ display: "inline-flex", alignItems: "center", gap: 6, position: "relative" }}>
+                  <i className="ti ti-git-compare" style={{ fontSize: 16 }}></i>
+                  <span>Solishtirish</span>
+                  {compareCount > 0 && (
+                    <span style={{
+                      background: "var(--orange)",
+                      color: "#fff",
+                      borderRadius: "50%",
+                      width: 16,
+                      height: 16,
+                      fontSize: 10,
+                      fontWeight: 700,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center"
+                    }}>{compareCount}</span>
+                  )}
+                </Link>
                 <Link className="btn-ghost" href="/login">{t("login")}</Link>
                 <Link className="btn-add" href="/login">
                   <i className="ti ti-plus"></i> {t("add_listing")}
@@ -234,6 +283,25 @@ export function Nav() {
               <Link href="/agencies" onClick={() => setMobileMenuOpen(false)}>
                 <i className="ti ti-building-store"></i> {t("agencies")}
               </Link>
+              <Link href="/compare" onClick={() => setMobileMenuOpen(false)} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <i className="ti ti-git-compare"></i>
+                <span>Solishtirish</span>
+                {compareCount > 0 && (
+                  <span style={{
+                    background: "var(--orange)",
+                    color: "#fff",
+                    borderRadius: "50%",
+                    width: 18,
+                    height: 18,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginLeft: "auto"
+                  }}>{compareCount}</span>
+                )}
+              </Link>
             </div>
 
             <div className="mobile-divider"></div>
@@ -283,6 +351,33 @@ export function Nav() {
 }
 
 export function ListingCard({ l, isFavorite = false }) {
+  const [isCompared, setIsCompared] = useState(false);
+
+  useEffect(() => {
+    const list = JSON.parse(localStorage.getItem("joy_compare") || "[]");
+    setIsCompared(list.includes(l.id));
+  }, [l.id]);
+
+  const handleCompareToggle = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    let list = JSON.parse(localStorage.getItem("joy_compare") || "[]");
+    if (list.includes(l.id)) {
+      list = list.filter(id => id !== l.id);
+      setIsCompared(false);
+    } else {
+      if (list.length >= 3) {
+        alert("Solishtirish uchun maksimal 3 ta e'lon tanlash mumkin.");
+        return;
+      }
+      list.push(l.id);
+      setIsCompared(true);
+    }
+    localStorage.setItem("joy_compare", JSON.stringify(list));
+    window.dispatchEvent(new Event("compare_updated"));
+  };
+
   const handleFavorite = async (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -355,6 +450,15 @@ export function ListingCard({ l, isFavorite = false }) {
             style={{ 
               color: isFavorite ? "var(--orange)" : "var(--muted)",
               fontWeight: isFavorite ? "bold" : "normal"
+            }}
+          ></i>
+        </div>
+        <div className="compare-toggle" onClick={handleCompareToggle} title="Solishtirishga qo'shish">
+          <i 
+            className="ti ti-git-compare" 
+            style={{ 
+              color: isCompared ? "var(--orange)" : "var(--muted)",
+              fontWeight: isCompared ? "bold" : "normal"
             }}
           ></i>
         </div>

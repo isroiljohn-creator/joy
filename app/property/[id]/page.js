@@ -13,6 +13,7 @@ import MobileActions from "@/components/MobileActions";
 import ReviewsSection from "./ReviewsSection";
 import BackButton from "@/components/BackButton";
 import NearbyInfrastructure from "@/components/NearbyInfrastructure";
+import PrintBtn from "@/components/PrintBtn";
 
 
 
@@ -126,13 +127,30 @@ export default async function Property({ params }) {
     await toggleFavoriteAction(l.id);
   };
 
+  // Narxlar dinamikasi (tuman bo'yicha) SVG grafigi ma'lumotlari
+  const pricePerM2 = l.priceNum && l.area ? Math.round(l.priceNum / l.area) : 900;
+  const monthsList = ["Dek", "Yan", "Feb", "Mar", "Apr", "May"];
+  const trendPercentages = [0.93, 0.95, 0.94, 0.97, 0.98, 1.0];
+  const trendValues = trendPercentages.map(pct => Math.round(pricePerM2 * pct));
+  const minVal = Math.min(...trendValues) * 0.98;
+  const maxVal = Math.max(...trendValues) * 1.02;
+
+  const points = trendValues.map((v, i) => {
+    const x = 50 + i * 80;
+    const y = 150 - ((v - minVal) / (maxVal - minVal)) * 100;
+    return { x, y, val: v, month: monthsList[i] };
+  });
+
+  const pathD = `M ${points.map(p => `${p.x} ${p.y}`).join(" L ")}`;
+  const fillD = `${pathD} L ${points[points.length - 1].x} 170 L ${points[0].x} 170 Z`;
+
   return (
     <>
       {/* Desktop view */}
       <div className="desktop-only">
         <Nav />
         <div className="wrap">
-          <div className="crumb">
+          <div className="crumb no-print">
             <Link href="/">Bosh sahifa</Link>
             <i className="ti ti-chevron-right" style={{ fontSize: 14 }}></i>
             <Link href={`/listings?cat=${encodeURIComponent(l.cat)}`}>{l.cat}</Link>
@@ -175,6 +193,7 @@ export default async function Property({ params }) {
                     </button>
                   </form>
                   <ShareBtn />
+                  <PrintBtn />
                 </div>
               </div>
 
@@ -227,21 +246,124 @@ export default async function Property({ params }) {
                 </div>
               </div>
 
+              {/* Narxlar dinamikasi SVG Trend Grafigi */}
+              <div className="block">
+                <h2 className="display" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <i className="ti ti-trending-up" style={{ color: "var(--orange)" }}></i> Narxlar dinamikasi (tuman bo&apos;yicha)
+                </h2>
+                <p style={{ fontSize: 13, color: "var(--muted)", margin: "-8px 0 16px" }}>
+                  Oxirgi 6 oy davomida tumandagi o&apos;rtacha 1 m² narxi ($/m²)
+                </p>
+                <div style={{
+                  background: "var(--card-bg)",
+                  border: "1px solid var(--sand)",
+                  borderRadius: 16,
+                  padding: "20px 16px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 12
+                }}>
+                  <div style={{ position: "relative", width: "100%", height: 200 }}>
+                    <svg viewBox="0 0 500 200" width="100%" height="100%" style={{ overflow: "visible" }}>
+                      <defs>
+                        <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="var(--orange)" stopOpacity="0.25" />
+                          <stop offset="100%" stopColor="var(--orange)" stopOpacity="0" />
+                        </linearGradient>
+                      </defs>
+
+                      {/* Grid lines */}
+                      {[0, 1, 2, 3, 4].map((i) => {
+                        const y = 50 + i * 25;
+                        return (
+                          <line
+                            key={i}
+                            x1="40"
+                            y1={y}
+                            x2="460"
+                            y2={y}
+                            stroke="var(--sand)"
+                            strokeWidth="1"
+                            strokeDasharray="4 4"
+                          />
+                        );
+                      })}
+
+                      {/* Area fill */}
+                      <path d={fillD} fill="url(#chartGrad)" />
+
+                      {/* Line */}
+                      <path
+                        d={pathD}
+                        fill="none"
+                        stroke="var(--orange)"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+
+                      {/* Glow effect on points */}
+                      {points.map((p, i) => (
+                        <g key={i}>
+                          <circle
+                            cx={p.x}
+                            cy={p.y}
+                            r="8"
+                            fill="var(--orange)"
+                            opacity="0.15"
+                          />
+                          <circle
+                            cx={p.x}
+                            cy={p.y}
+                            r="4"
+                            fill="var(--orange)"
+                            stroke="var(--card-bg)"
+                            strokeWidth="1.5"
+                          />
+                          <text
+                            x={p.x}
+                            y={p.y - 10}
+                            textAnchor="middle"
+                            fill="var(--ink)"
+                            fontSize="10"
+                            fontWeight="700"
+                          >
+                            ${p.val}
+                          </text>
+                          <text
+                            x={p.x}
+                            y="185"
+                            textAnchor="middle"
+                            fill="var(--muted)"
+                            fontSize="11"
+                            fontWeight="600"
+                          >
+                            {p.month}
+                          </text>
+                        </g>
+                      ))}
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
               <NearbyInfrastructure address={l.addr} />
 
               {/* Sharhlar */}
-              <ReviewsSection
-                reviews={reviews}
-                avgRating={avgRating}
-                listingId={l.id}
-                ownerId={l.ownerId}
-                ownerName={l.owner}
-                currentUserId={user?.id || null}
-              />
+              <div className="reviews-container no-print">
+                <ReviewsSection
+                  reviews={reviews}
+                  avgRating={avgRating}
+                  listingId={l.id}
+                  ownerId={l.ownerId}
+                  ownerName={l.owner}
+                  currentUserId={user?.id || null}
+                />
+              </div>
 
               {/* O'xshash e'lonlar */}
               {similarListings.length > 0 && (
-                <div className="block" style={{ marginTop: 32 }}>
+                <div className="block no-print" style={{ marginTop: 32 }}>
                   <h2 className="display">O&apos;xshash e&apos;lonlar</h2>
                   <div className="grid" style={{ marginTop: 16 }}>
                     {similarListings.map((sl) => (
@@ -315,6 +437,7 @@ export default async function Property({ params }) {
                 </button>
               </form>
               <ShareBtn btnClass="mdbtn" />
+              <PrintBtn btnClass="mdbtn" />
             </div>
           </div>
           <div className="dots">
@@ -430,6 +553,98 @@ export default async function Property({ params }) {
                   <span>{f}</span>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Narxlar dinamikasi SVG Trend Grafigi (Mobile) */}
+          <div className="mdblock mdcard">
+            <h3>
+              <i className="ti ti-trending-up"></i>
+              Narxlar dinamikasi
+            </h3>
+            <p style={{ fontSize: 12, color: "var(--muted)", margin: "-4px 0 16px" }}>
+              Oxirgi 6 oy davomida tumandagi o&apos;rtacha 1 m² narxi ($/m²)
+            </p>
+            <div style={{ position: "relative", width: "100%", height: 180 }}>
+              <svg viewBox="0 0 500 200" width="100%" height="100%" style={{ overflow: "visible" }}>
+                <defs>
+                  <linearGradient id="chartGradMobile" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="var(--orange)" stopOpacity="0.25" />
+                    <stop offset="100%" stopColor="var(--orange)" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+
+                {/* Grid lines */}
+                {[0, 1, 2, 3, 4].map((i) => {
+                  const y = 50 + i * 25;
+                  return (
+                    <line
+                      key={i}
+                      x1="40"
+                      y1={y}
+                      x2="460"
+                      y2={y}
+                      stroke="var(--sand)"
+                      strokeWidth="1"
+                      strokeDasharray="4 4"
+                    />
+                  );
+                })}
+
+                {/* Area fill */}
+                <path d={fillD} fill="url(#chartGradMobile)" />
+
+                {/* Line */}
+                <path
+                  d={pathD}
+                  fill="none"
+                  stroke="var(--orange)"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+
+                {/* Glow effect on points */}
+                {points.map((p, i) => (
+                  <g key={i}>
+                    <circle
+                      cx={p.x}
+                      cy={p.y}
+                      r="8"
+                      fill="var(--orange)"
+                      opacity="0.15"
+                    />
+                    <circle
+                      cx={p.x}
+                      cy={p.y}
+                      r="4"
+                      fill="var(--orange)"
+                      stroke="var(--card-bg)"
+                      strokeWidth="1.5"
+                    />
+                    <text
+                      x={p.x}
+                      y={p.y - 10}
+                      textAnchor="middle"
+                      fill="var(--ink)"
+                      fontSize="10"
+                      fontWeight="700"
+                    >
+                      ${p.val}
+                    </text>
+                    <text
+                      x={p.x}
+                      y="185"
+                      textAnchor="middle"
+                      fill="var(--muted)"
+                      fontSize="11"
+                      fontWeight="600"
+                    >
+                      {p.month}
+                    </text>
+                  </g>
+                ))}
+              </svg>
             </div>
           </div>
 

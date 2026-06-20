@@ -691,16 +691,34 @@ footer{border-top:1px solid var(--sand);padding:36px 0;display:flex;align-items:
 
 /* PRINT */
 @media print {
-  nav, footer, .btn-add, .btn-ghost, .heart, .iconbtns, .nav-search, .hamburger, .mobile-menu-overlay { display: none !important }
-  .wrap { max-width: 100%; padding: 0 }
-  .hero { grid-template-columns: 1fr }
-  .hero-art { display: none }
-  .dbody { grid-template-columns: 1fr }
-  .side { position: static; box-shadow: none; border: 1px solid #ccc }
-  body { font-size: 12pt; color: #000; background: #fff }
-  a { color: #000 }
-  .card { break-inside: avoid; box-shadow: none; border: 1px solid #ccc }
+  nav, footer, .no-print, .btn-add, .btn-ghost, .heart, .iconbtns, .nav-search, .hamburger, .mobile-menu-overlay, .mobile-only, .reviews-container, .side-actions, input[type="range"], .modal-overlay {
+    display: none !important;
+  }
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 11pt !important;
+  }
+  .wrap {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+  .dbody {
+    display: block !important;
+  }
+  .side {
+    margin-top: 20px !important;
+    border: 1px solid #eee !important;
+    box-shadow: none !important;
+    background: #fff !important;
+    page-break-inside: avoid;
+  }
+  .block {
+    page-break-inside: avoid;
+    margin-bottom: 24px !important;
+  }
 }
+
 
 /* ACCESSIBILITY */
 *:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; border-radius: 4px }
@@ -2977,5 +2995,36 @@ html { scroll-behavior: smooth }
 .cadastre-badge i {
   font-size: 15px;
 }
+
+.compare-toggle {
+  position: absolute;
+  top: 52px;
+  right: 12px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 5;
+  cursor: pointer;
+}
+.compare-toggle i {
+  font-size: 17px;
+  color: var(--muted);
+  transition: color 0.15s ease;
+}
+.compare-toggle:hover {
+  transform: scale(1.05);
+}
+.compare-toggle:hover i {
+  color: var(--orange);
+}
+[data-theme="dark"] .compare-toggle {
+  background: rgba(35, 31, 26, 0.92);
+}
+
 
 

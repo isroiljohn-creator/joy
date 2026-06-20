@@ -1226,3 +1226,39 @@ export async function getReviewsAction(reviewedUserId) {
     return [];
   }
 }
+
+// Solishtirish sahifasi uchun tanlangan e'lonlarni ID bo'yicha olish
+export async function getListingsByIdsAction(ids) {
+  if (!Array.isArray(ids) || ids.length === 0) return [];
+  
+  try {
+    const { rows } = await pool.query(
+      `SELECT l.*, u.name as owner_name, u.is_verified as owner_verified FROM listings l
+       LEFT JOIN users u ON l.owner_id = u.id
+       WHERE l.id = ANY($1)`,
+      [ids.map(id => parseInt(id))]
+    );
+    
+    return rows.map(row => ({
+      id: row.id,
+      price: row.price,
+      priceNum: row.price_num,
+      type: row.type,
+      cat: row.cat,
+      addr: row.addr,
+      rooms: row.rooms,
+      baths: row.baths,
+      area: row.area,
+      floor: row.floor,
+      photo: row.photo,
+      owner: row.owner_name || "",
+      ownerVerified: row.owner_verified ?? false,
+      hasCadastreVerified: row.has_cadastre_verified ?? false,
+      cadastreNumber: row.cadastre_number || ""
+    }));
+  } catch (error) {
+    console.error("getListingsByIdsAction error:", error);
+    return [];
+  }
+}
+
