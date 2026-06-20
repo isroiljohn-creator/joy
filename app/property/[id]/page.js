@@ -301,35 +301,61 @@ export default async function Property({ params }) {
           </div>
         </div>
         <div className="mdwrap">
-          <div className="mdtype">{l.type}</div>
-          <div className="mdaddr">
-            <i className="ti ti-map-pin" style={{ fontSize: 14 }}></i> {l.addr}, Toshkent
-          </div>
-          <div className="mdprice">{l.price}</div>
-          <div className="mdpriceArea">
-            ≈ ${l.area > 0 ? Math.round(l.priceNum / l.area).toLocaleString() : 0} / m² · {l.area} m²
+          {/* Asosiy ma'lumotlar kartasi */}
+          <div className="mdcard mdheader-card">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
+              <div className="mdtype">{l.type}</div>
+              <span className="mdcat-badge">{l.cat}</span>
+            </div>
+            <div className="mdaddr">
+              <i className="ti ti-map-pin" style={{ fontSize: 14 }}></i> {l.addr}, Toshkent
+            </div>
+            
+            <div className="mdprice-row">
+              <div className="mdprice">{l.price}</div>
+              <div className="mdpriceArea">
+                ≈ ${l.area > 0 ? Math.round(l.priceNum / l.area).toLocaleString() : 0} / m² · {l.area} m²
+              </div>
+            </div>
           </div>
           
+          {/* Xususiyatlar ko'rsatkichlari (2x2 grid) */}
           <div className="mdspecs">
             <div className="mdspec">
-              <i className="ti ti-bed"></i>
-              <div className="msv">{l.rooms}</div>
-              <div className="msl">Xona</div>
+              <div className="mdspec-icon">
+                <i className="ti ti-bed"></i>
+              </div>
+              <div>
+                <div className="msv">{l.rooms}</div>
+                <div className="msl">Xona</div>
+              </div>
             </div>
             <div className="mdspec">
-              <i className="ti ti-bath"></i>
-              <div className="msv">{l.baths}</div>
-              <div className="msl">Hammom</div>
+              <div className="mdspec-icon">
+                <i className="ti ti-bath"></i>
+              </div>
+              <div>
+                <div className="msv">{l.baths}</div>
+                <div className="msl">Hammom</div>
+              </div>
             </div>
             <div className="mdspec">
-              <i className="ti ti-ruler-2"></i>
-              <div className="msv">{l.area}m²</div>
-              <div className="msl">Maydon</div>
+              <div className="mdspec-icon">
+                <i className="ti ti-ruler-2"></i>
+              </div>
+              <div>
+                <div className="msv">{l.area}m²</div>
+                <div className="msl">Maydon</div>
+              </div>
             </div>
             <div className="mdspec">
-              <i className="ti ti-stairs"></i>
-              <div className="msv">{l.floor}</div>
-              <div className="msl">Qavat</div>
+              <div className="mdspec-icon">
+                <i className="ti ti-stairs"></i>
+              </div>
+              <div>
+                <div className="msv">{l.floor}</div>
+                <div className="msl">Qavat</div>
+              </div>
             </div>
           </div>
 
@@ -356,6 +382,7 @@ export default async function Property({ params }) {
             );
           })()}
 
+          {/* E'lon egasi haqida ma'lumot */}
           <div className="mdowner">
             <div className="mdoav">{initials}</div>
             <div style={{ flex: 1 }}>
@@ -364,30 +391,44 @@ export default async function Property({ params }) {
               </div>
               <div style={{ fontSize: 11, color: "var(--muted)" }}>Egasi · {ownerCount} ta e&apos;lon</div>
             </div>
-            <a href={`tel:${ownerPhone.replace(/\s/g, "")}`} style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--orange-tint)", color: "var(--orange)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <i className="ti ti-phone" style={{ fontSize: 17 }}></i>
+            <a href={`tel:${ownerPhone.replace(/\s/g, "")}`} className="mdowner-phone">
+              <i className="ti ti-phone"></i>
             </a>
           </div>
 
-          <div className="mdblock">
-            <h3>Tavsif</h3>
+          {/* Tavsif kartasi */}
+          <div className="mdblock mdcard">
+            <h3>
+              <i className="ti ti-align-left"></i>
+              Tavsif
+            </h3>
             <p>{description}</p>
           </div>
 
-          <div className="mdblock">
-            <h3>Xususiyatlar</h3>
+          {/* Qulayliklar kartasi */}
+          <div className="mdblock mdcard">
+            <h3>
+              <i className="ti ti-list-check"></i>
+              Xususiyatlar
+            </h3>
             <div className="mdfeats">
               {features.map((f) => (
                 <div className="mdft" key={f}>
-                  <i className="ti ti-check"></i> {f}
+                  <div className="mdft-bullet">
+                    <i className="ti ti-check"></i>
+                  </div>
+                  <span>{f}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Mortgage Calculator / Ipoteka */}
-          <div className="mdblock">
-            <h3>Ipoteka</h3>
+          {/* Ipoteka kartasi */}
+          <div className="mdblock mdcard">
+            <h3>
+              <i className="ti ti-calculator"></i>
+              Ipoteka
+            </h3>
             <PropertyExtras priceNum={l.priceNum} listingId={l.id} hasMortgage={l.hasMortgage} />
           </div>
         </div>
