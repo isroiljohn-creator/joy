@@ -14,6 +14,7 @@ import ReviewsSection from "./ReviewsSection";
 import BackButton from "@/components/BackButton";
 import NearbyInfrastructure from "@/components/NearbyInfrastructure";
 import PrintBtn from "@/components/PrintBtn";
+import PropertyFavoriteBtn from "@/components/PropertyFavoriteBtn";
 
 
 
@@ -118,14 +119,6 @@ export default async function Property({ params }) {
   features.push("Avtoturargoh");
   features.push("Yevro ta'mir");
 
-  const handleToggleFavorite = async () => {
-    "use server";
-    const user = await getCurrentUser();
-    if (!user) {
-      redirect("/login");
-    }
-    await toggleFavoriteAction(l.id);
-  };
 
   // Narxlar dinamikasi (tuman bo'yicha) SVG grafigi ma'lumotlari
   const pricePerM2 = l.priceNum && l.area ? Math.round(l.priceNum / l.area) : 900;
@@ -177,21 +170,7 @@ export default async function Property({ params }) {
                   </div>
                 </div>
                 <div className="iconbtns" style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                  <form action={handleToggleFavorite}>
-                    <button 
-                      type="submit" 
-                      className="ibtn" 
-                      style={{ cursor: "pointer", border: "none", display: "flex", alignItems: "center", justifyContent: "center" }}
-                    >
-                      <i 
-                        className="ti ti-heart" 
-                        style={{ 
-                          color: isFavorite ? "var(--orange)" : "inherit",
-                          fontWeight: isFavorite ? "bold" : "normal"
-                        }}
-                      ></i>
-                    </button>
-                  </form>
+                  <PropertyFavoriteBtn listingId={l.id} initialFavorite={isFavorite} />
                   <ShareBtn />
                   <PrintBtn />
                 </div>
@@ -421,21 +400,7 @@ export default async function Property({ params }) {
               <i className="ti ti-arrow-left"></i>
             </BackButton>
             <div style={{ display: "flex", gap: 8 }}>
-              <form action={handleToggleFavorite}>
-                <button 
-                  type="submit" 
-                  className="mdbtn" 
-                  style={{ cursor: "pointer", border: "none", display: "flex", alignItems: "center", justifyContent: "center" }}
-                >
-                  <i 
-                    className="ti ti-heart" 
-                    style={{ 
-                      color: isFavorite ? "var(--orange)" : "inherit",
-                      fontWeight: isFavorite ? "bold" : "normal"
-                    }}
-                  ></i>
-                </button>
-              </form>
+              <PropertyFavoriteBtn listingId={l.id} initialFavorite={isFavorite} btnClass="mdbtn" />
               <ShareBtn btnClass="mdbtn" />
               <PrintBtn btnClass="mdbtn" />
             </div>
