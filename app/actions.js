@@ -61,9 +61,9 @@ export async function getCurrentUser() {
         createdAt: rows[0].created_at 
       };
     }
-    return { id: parseInt(id), name, phone: "", email: "", role: 'user', isVerified: false, subscriptionPlan: 'free', balance: 0, agencyId: null, createdAt: null };
+    return null;
   } catch (error) {
-    return { id: parseInt(id), name, phone: "", email: "", role: 'user', isVerified: false, subscriptionPlan: 'free', balance: 0, agencyId: null, createdAt: null };
+    return null;
   }
 }
 
