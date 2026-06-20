@@ -318,13 +318,6 @@ export default async function Property({ params }) {
                     {l.owner} {l.ownerVerified && <i className="ti ti-rosette-discount-check-filled" style={{ color: "var(--orange)" }} title="Tasdiqlangan foydalanuvchi"></i>}
                   </div>
                   <div className="orole">Egasi · {ownerCount} ta e&apos;lon</div>
-                  {l.hasCadastreVerified && (
-                    <div style={{ marginTop: 8 }}>
-                      <span className="cadastre-badge" style={{ fontSize: 11, padding: "3px 8px" }}>
-                        <i className="ti ti-shield-check"></i> Hujjatlari tekshirilgan
-                      </span>
-                    </div>
-                  )}
                   {avgRating && (
                     <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, marginTop: 2 }}>
                       <i className="ti ti-star-filled" style={{ color: "#f59e0b", fontSize: 12 }}></i>
@@ -482,13 +475,6 @@ export default async function Property({ params }) {
                 {l.owner} {l.ownerVerified && <i className="ti ti-rosette-discount-check-filled" style={{ color: "var(--orange)", fontSize: 14 }} title="Tasdiqlangan foydalanuvchi"></i>}
               </div>
               <div style={{ fontSize: 11, color: "var(--muted)" }}>Egasi · {ownerCount} ta e&apos;lon</div>
-              {l.hasCadastreVerified && (
-                <div style={{ marginTop: 4 }}>
-                  <span className="cadastre-badge" style={{ fontSize: 10, padding: "2px 6px" }}>
-                    <i className="ti ti-shield-check"></i> Hujjatlari tekshirilgan
-                  </span>
-                </div>
-              )}
             </div>
             <a href={`tel:${ownerPhone.replace(/\s/g, "")}`} className="mdowner-phone">
               <i className="ti ti-phone"></i>
