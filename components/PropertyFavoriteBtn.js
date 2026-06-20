@@ -34,6 +34,7 @@ export default function PropertyFavoriteBtn({ listingId, initialFavorite = false
       const res = await toggleFavoriteAction(listingId);
       if (res && res.error) {
         setIsFavorite(prev);
+        alert(res.error === "unauthorized" ? "Tizimga kirmagansiz! Iltimos, tizimga kiring." : "Xatolik: " + res.error);
         if (res.error === "unauthorized") {
           document.cookie = "is_logged_in=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;";
           window.location.href = "/login";

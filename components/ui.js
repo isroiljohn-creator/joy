@@ -408,6 +408,7 @@ export function ListingCard({ l, isFavorite: initialFavorite = false }) {
       const res = await toggleFavoriteAction(l.id);
       if (res && res.error) {
         setIsFavorite(prev);
+        alert(res.error === "unauthorized" ? "Tizimga kirmagansiz! Iltimos, tizimga kiring." : "Xatolik: " + res.error);
         if (res.error === "unauthorized") {
           // Sessiya o'chgan bo'lsa login sahifasiga redirect qilamiz
           document.cookie = "is_logged_in=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT;";
