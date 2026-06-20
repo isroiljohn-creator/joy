@@ -3,6 +3,7 @@ import "leaflet/dist/leaflet.css";
 import MobileNav from "@/components/MobileNav";
 import AlertProvider from "@/components/AlertProvider";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import FloatingChat from "@/components/FloatingChat";
 import Script from "next/script";
 
 export const metadata = {
@@ -117,6 +118,7 @@ export default function RootLayout({ children }) {
             <div className="page-wrap">
               {children}
             </div>
+            <FloatingChat />
             <MobileNav />
           </AlertProvider>
         </ErrorBoundary>

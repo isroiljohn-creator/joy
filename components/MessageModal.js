@@ -165,7 +165,7 @@ export default function MessageModal({ listingId, receiverOwner, receiverId, btn
                   Xabaringiz muvaffaqiyatli yuborildi!
                 </div>
                 <Link
-                  href="/profile"
+                  href="/chat"
                   style={{
                     display: "block",
                     textAlign: "center",
@@ -176,7 +176,7 @@ export default function MessageModal({ listingId, receiverOwner, receiverId, btn
                     marginBottom: 12,
                   }}
                 >
-                  Yuborilgan xabarlarni ko{"'"}rish →
+                  Xabarlarni ko{"'"}rish →
                 </Link>
                 <button
                   type="button"

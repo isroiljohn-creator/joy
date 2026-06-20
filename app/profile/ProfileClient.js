@@ -26,7 +26,7 @@ function getUserYear(createdAt) {
   }
 }
 
-export default function ProfileClient({ user, myListings, savedListings, messages, initialTab = "Mening e'lonlarim" }) {
+export default function ProfileClient({ user, myListings, savedListings, messagesCount, initialTab = "Mening e'lonlarim" }) {
   const { t, lang, setLanguage } = useTranslation();
   const [tab, setTab] = useState(initialTab);
   const [darkMode, setDarkMode] = useState(false);
@@ -53,13 +53,6 @@ export default function ProfileClient({ user, myListings, savedListings, message
 
   // E'lonlarni o'chirish loading state-lari
   const [deletingListing, setDeletingListing] = useState(null);
-  const [deletingMessage, setDeletingMessage] = useState(null);
-
-  // Xabar javob berish state-lari
-  const [replyingTo, setReplyingTo] = useState(null);
-
-  // Lokal xabarlar ro'yxati (o'chirish uchun)
-  const [localMessages, setLocalMessages] = useState(messages);
   const [localMyListings, setLocalMyListings] = useState(myListings);
 
   const memberYear = getUserYear(user?.createdAt);
@@ -144,21 +137,7 @@ export default function ProfileClient({ user, myListings, savedListings, message
     setDeletingListing(null);
   };
 
-  const handleDeleteMessage = async (messageId) => {
-    if (!confirm("Xabarni o'chirmoqchimisiz?")) return;
-    setDeletingMessage(messageId);
-    try {
-      const res = await deleteMessageAction(messageId);
-      if (res?.error) {
-        alert(res.error);
-      } else {
-        setLocalMessages(prev => prev.filter(m => m.id !== messageId));
-      }
-    } catch (err) {
-      alert("Xatolik yuz berdi");
-    }
-    setDeletingMessage(null);
-  };
+
 
   return (
     <>
@@ -232,7 +211,7 @@ export default function ProfileClient({ user, myListings, savedListings, message
           </div>
           <div className="pstat">
             <i className="ti ti-messages"></i>
-            <div className="n">{localMessages.length}</div>
+            <div className="n">{messagesCount}</div>
             <div className="l">{t("inbox_msg")}</div>
           </div>
           <div className="pstat">
@@ -243,12 +222,11 @@ export default function ProfileClient({ user, myListings, savedListings, message
         </div>
 
         <div className="ptabs">
-          {["Mening e'lonlarim", "Saqlangan", "Xabarlar", "Sozlamalar"].map(
+          {["Mening e'lonlarim", "Saqlangan", "Sozlamalar"].map(
             (tItem) => {
               const tabLabels = {
                 "Mening e'lonlarim": t("listings"),
                 "Saqlangan": t("saved"),
-                "Xabarlar": t("messages"),
                 "Sozlamalar": t("settings")
               };
               return (
@@ -462,159 +440,7 @@ export default function ProfileClient({ user, myListings, savedListings, message
           )
         )}
 
-        {/* 3. Xabarlar (Inbox Messaging) tab */}
-        {tab === "Xabarlar" && (
-          localMessages.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "64px 0", color: "var(--muted)" }}>
-              <i className="ti ti-message-circle-off" style={{ fontSize: 40, display: "block", marginBottom: 12 }}></i>
-              Kelgan xabarlar mavjud emas.
-            </div>
-          ) : (
-            <div style={{ maxWidth: 600, margin: "0 auto", paddingBottom: 64 }}>
-              {localMessages.map((m) => (
-                <div
-                  key={m.id}
-                  style={{
-                    background: "var(--card-bg)",
-                    border: m.isRead ? "1px solid var(--sand)" : "1.5px solid var(--orange)",
-                    borderRadius: 18,
-                    padding: 20,
-                    marginBottom: 16,
-                    boxShadow: m.isRead ? "0 6px 12px rgba(26,19,14,0.02)" : "0 6px 16px rgba(255,140,0,0.08)"
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      marginBottom: 10,
-                      borderBottom: "1px solid var(--sand)",
-                      paddingBottom: 10
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center", gap: 6 }}>
-                        {m.senderName}
-                        {m.isRead ? (
-                          <span style={{ fontSize: 10, background: "#eee", color: "var(--muted)", padding: "2px 6px", borderRadius: 6, fontWeight: 500 }}>O&apos;qilgan</span>
-                        ) : (
-                          <span style={{ fontSize: 10, background: "var(--orange)", color: "#fff", padding: "2px 6px", borderRadius: 6, fontWeight: 600 }}>Yangi</span>
-                        )}
-                      </div>
-                      <div style={{ fontSize: 12, color: "var(--muted)" }}>
-                        <i className="ti ti-phone" style={{ fontSize: 13 }}></i> {m.senderPhone}
-                      </div>
-                    </div>
-                    <div style={{ textAlign: "right" }}>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: "var(--orange)" }}>
-                        {m.listingType}
-                      </div>
-                      <div style={{ fontSize: 11, color: "var(--muted)" }}>
-                        {formatDate(m.createdAt)}
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{ fontSize: 14, color: "var(--text2)", lineHeight: 1.5 }}>
-                    {m.content}
-                  </div>
-                  <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-                    <button
-                      onClick={() => setReplyingTo(replyingTo === m.id ? null : m.id)}
-                      style={{
-                        background: "none",
-                        border: "1px solid var(--sand)",
-                        borderRadius: 8,
-                        padding: "6px 12px",
-                        fontSize: 12,
-                        fontWeight: 600,
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 4,
-                        color: "var(--text2)"
-                      }}
-                    >
-                      <i className="ti ti-message-reply" style={{ fontSize: 14 }}></i> Javob berish
-                    </button>
-                    <button
-                      onClick={() => handleDeleteMessage(m.id)}
-                      disabled={deletingMessage === m.id}
-                      style={{
-                        background: "none",
-                        border: "1px solid #f5d0c5",
-                        borderRadius: 8,
-                        padding: "6px 12px",
-                        fontSize: 12,
-                        fontWeight: 600,
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 4,
-                        color: "#d9534f"
-                      }}
-                    >
-                      <i className={deletingMessage === m.id ? "ti ti-loader" : "ti ti-trash"} style={{ fontSize: 14 }}></i> O&apos;chirish
-                    </button>
-                  </div>
-                  {replyingTo === m.id && (
-                    <div style={{ marginTop: 12, padding: 12, background: "var(--orange-tint)", borderRadius: 12 }}>
-                      <textarea
-                        placeholder="Javob yozing..."
-                        style={{
-                          width: "100%",
-                          minHeight: 60,
-                          border: "1px solid var(--sand)",
-                          borderRadius: 8,
-                          padding: 10,
-                          fontSize: 13,
-                          outline: "none",
-                          resize: "vertical",
-                          boxSizing: "border-box"
-                        }}
-                      ></textarea>
-                      <div style={{ display: "flex", gap: 8, marginTop: 8, justifyContent: "flex-end" }}>
-                        <button
-                          type="button"
-                          onClick={() => setReplyingTo(null)}
-                          style={{
-                            background: "none",
-                            border: "1px solid var(--sand)",
-                            borderRadius: 8,
-                            padding: "6px 14px",
-                            fontSize: 12,
-                            cursor: "pointer"
-                          }}
-                        >
-                          Bekor qilish
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            alert("Xabar yuborish tez kunda ishga tushadi");
-                            setReplyingTo(null);
-                          }}
-                          style={{
-                            background: "var(--orange)",
-                            color: "#fff",
-                            border: "none",
-                            borderRadius: 8,
-                            padding: "6px 14px",
-                            fontSize: 12,
-                            fontWeight: 600,
-                            cursor: "pointer"
-                          }}
-                        >
-                          <i className="ti ti-send" style={{ fontSize: 13 }}></i> Yuborish
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )
-        )}        {/* 4. Sozlamalar (Profile settings) tab */}
+        {/* 4. Sozlamalar (Profile settings) tab */}
         {tab === "Sozlamalar" && (
           <div style={{ maxWidth: 960, margin: "0 auto", paddingBottom: 64 }}>
             {/* Grid layout for settings blocks */}

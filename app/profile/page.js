@@ -61,27 +61,16 @@ export default async function ProfilePage({ searchParams }) {
     console.error("Error fetching saved listings:", error);
   }
 
-  // 4. Foydalanuvchining e'lonlari bo'yicha kelgan xabarlarni yuklaymiz (receiver_id bo'yicha)
-  let messages = [];
+  // 4. Kelgan xabarlar sonini hisoblaymiz (profile stats uchun)
+  let messagesCount = 0;
   try {
     const { rows } = await pool.query(
-      `SELECT m.*, l.type as listing_type FROM messages m
-       LEFT JOIN listings l ON m.listing_id = l.id
-       WHERE m.receiver_id = $1
-       ORDER BY m.id DESC`,
+      "SELECT COUNT(*) FROM messages WHERE receiver_id = $1",
       [user.id]
     );
-    messages = rows.map(r => ({
-      id: r.id,
-      senderName: r.sender_name,
-      senderPhone: r.sender_phone,
-      content: r.content,
-      createdAt: r.created_at,
-      listingType: r.listing_type || "O'chirilgan e'lon",
-      isRead: r.is_read || false
-    }));
+    messagesCount = parseInt(rows[0].count, 10) || 0;
   } catch (error) {
-    console.error("Error fetching messages:", error);
+    console.error("Error counting messages:", error);
   }
 
   return (
@@ -89,7 +78,7 @@ export default async function ProfilePage({ searchParams }) {
       user={user} 
       myListings={myListings} 
       savedListings={savedListings} 
-      messages={messages} 
+      messagesCount={messagesCount} 
       initialTab={initialTab}
     />
   );
