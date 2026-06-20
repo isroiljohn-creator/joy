@@ -678,7 +678,12 @@ footer{border-top:1px solid var(--sand);padding:36px 0;display:flex;align-items:
 [data-theme="dark"] .bnav { background: #1A1612; border-top-color: #2D2822 }
 [data-theme="dark"] .bfab { border-color: #1A1612 }
 [data-theme="dark"] .mdphoto .mdbtn { background: rgba(35, 31, 26, 0.9) !important; color: #F5F0EB !important }
-
+[data-theme="dark"] .why {
+  background: var(--card-bg) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--sand);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
 
 /* Dark mode toggle tugmasi */
 .theme-toggle{background:none;border:1px solid var(--sand);width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--text2);transition:all .2s;flex-shrink:0}
@@ -1580,36 +1585,12 @@ html { scroll-behavior: smooth }
 
 /* Dark mode compatibility override */
 [data-theme="dark"] .floating-chat-btn .badge {
-  border-color: #12181f;
-}
-[data-theme="dark"] .tg-chat-container {
-  border-color: #242d38;
-}
-[data-theme="dark"] .tg-chat-sidebar {
-  background: #151c24;
-  border-color: #242d38;
-}
-[data-theme="dark"] .tg-msg-bubble-in {
-  background: #1f2a36;
-  border-color: #293847;
-  color: #ffffff;
-}
-[data-theme="dark"] .tg-chat-search,
-[data-theme="dark"] .tg-chat-header,
-[data-theme="dark"] .tg-chat-input-wrapper {
-  background: #12181f;
-  border-color: #242d38;
-}
-[data-theme="dark"] .tg-chat-search input,
-[data-theme="dark"] .tg-chat-input-bar textarea {
-  background: #151c24;
-  border-color: #242d38;
-  color: #ffffff;
+  border-color: var(--cream);
 }
 [data-theme="dark"] .tg-chat-search input:focus,
 [data-theme="dark"] .tg-chat-input-bar textarea:focus {
-  background: #12181f;
-  border-color: var(--orange, #F2591F);
+  background: var(--card-bg);
+  border-color: var(--orange);
 }
 [data-theme="dark"] .tg-thread-item:hover {
   background: rgba(242, 89, 31, 0.08);
@@ -1618,19 +1599,16 @@ html { scroll-behavior: smooth }
   background: rgba(242, 89, 31, 0.15);
 }
 [data-theme="dark"] .tg-chat-btn {
-  border-color: #242d38;
-  color: #ccc;
+  border-color: var(--sand);
+  color: var(--text2);
 }
 [data-theme="dark"] .tg-chat-btn:hover {
-  background: #1f2a36;
+  background: var(--orange-tint);
+  color: var(--orange);
 }
 [data-theme="dark"] .tg-chat-messages,
 [data-theme="dark"] .tg-empty-state {
-  background-color: #151c24;
   background-image: radial-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 0);
-}
-[data-theme="dark"] .tg-thread-name {
-  color: #ffffff;
 }
 
 /* Responsive view */

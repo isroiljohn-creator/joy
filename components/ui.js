@@ -296,7 +296,7 @@ export function ListingCard({ l, isFavorite = false }) {
       return acc;
     }, {});
 
-    if (!cookiesList.user_id) {
+    if (cookiesList.is_logged_in !== "true") {
       window.location.href = "/login";
       return;
     }
