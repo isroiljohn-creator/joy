@@ -281,7 +281,7 @@ export default function Map({ listings, activePin, onPinClick, mini = false, pol
           display: inline-block;
           background: #fff;
           color: #1A130E;
-          font-family: 'Sora', sans-serif;
+          font-family: 'Bricolage Grotesque', sans-serif;
           font-weight: 700;
           font-size: 13px;
           padding: 5px 12px;
@@ -352,7 +352,7 @@ export default function Map({ listings, activePin, onPinClick, mini = false, pol
             <div style="color:#9B9286;font-size:12px;margin-bottom:6px;display:flex;align-items:center;gap:3px">
               <i class="ti ti-map-pin" style="font-size:13px"></i> ${l.addr || ""}
             </div>
-            <div style="color:#E06334;font-weight:700;font-size:16px;font-family:'Sora',sans-serif">${l.price || ""}</div>
+            <div style="color:#E06334;font-weight:700;font-size:16px;font-family:'Bricolage Grotesque',sans-serif">${l.price || ""}</div>
           </div>
         `, { closeButton: false, offset: [0, -10] });
         
