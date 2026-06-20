@@ -1137,6 +1137,7 @@ html { scroll-behavior: smooth }
 }
 
 /* ==========================================
+/* ==========================================
    Floating Telegram Chat Button & Badge
    ========================================== */
 .floating-chat-btn {
@@ -1146,12 +1147,12 @@ html { scroll-behavior: smooth }
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2aabee 0%, #229ed9 100%);
+  background: linear-gradient(135deg, var(--orange, #F2591F) 0%, #d84814 100%);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 6px 16px rgba(36, 161, 222, 0.35);
+  box-shadow: 0 6px 16px rgba(242, 89, 31, 0.35);
   cursor: pointer;
   z-index: 999;
   text-decoration: none;
@@ -1160,7 +1161,7 @@ html { scroll-behavior: smooth }
 
 .floating-chat-btn:hover {
   transform: scale(1.1) translateY(-2px);
-  box-shadow: 0 8px 24px rgba(36, 161, 222, 0.5);
+  box-shadow: 0 8px 24px rgba(242, 89, 31, 0.5);
 }
 
 .floating-chat-btn i {
@@ -1186,13 +1187,13 @@ html { scroll-behavior: smooth }
 
 @keyframes chat-pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(36, 161, 222, 0.6);
+    box-shadow: 0 0 0 0 rgba(242, 89, 31, 0.6);
   }
   70% {
-    box-shadow: 0 0 0 12px rgba(36, 161, 222, 0);
+    box-shadow: 0 0 0 12px rgba(242, 89, 31, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(36, 161, 222, 0);
+    box-shadow: 0 0 0 0 rgba(242, 89, 31, 0);
   }
 }
 .floating-chat-btn.pulse {
@@ -1255,9 +1256,9 @@ html { scroll-behavior: smooth }
 }
 
 .tg-chat-search input:focus {
-  border-color: #24a1de;
+  border-color: var(--orange, #F2591F);
   background: var(--card-bg, #ffffff);
-  box-shadow: 0 0 0 3px rgba(36, 161, 222, 0.1);
+  box-shadow: 0 0 0 3px rgba(242, 89, 31, 0.1);
 }
 
 .tg-threads-list {
@@ -1276,12 +1277,12 @@ html { scroll-behavior: smooth }
 }
 
 .tg-thread-item:hover {
-  background: rgba(36, 161, 222, 0.04);
+  background: rgba(242, 89, 31, 0.04);
 }
 
 .tg-thread-item.active {
-  background: rgba(36, 161, 222, 0.08);
-  border-left: 4px solid #24a1de;
+  background: rgba(242, 89, 31, 0.08);
+  border-left: 4px solid var(--orange, #F2591F);
   padding-left: 12px;
 }
 
@@ -1289,7 +1290,7 @@ html { scroll-behavior: smooth }
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #24a1de 0%, #1c82b3 100%);
+  background: linear-gradient(135deg, var(--orange, #F2591F) 0%, #d84814 100%);
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -1298,7 +1299,7 @@ html { scroll-behavior: smooth }
   font-size: 14px;
   text-transform: uppercase;
   flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(36, 161, 222, 0.15);
+  box-shadow: 0 2px 6px rgba(242, 89, 31, 0.15);
 }
 
 .tg-thread-info {
@@ -1475,7 +1476,7 @@ html { scroll-behavior: smooth }
 
 .tg-msg-bubble-out {
   align-self: flex-end;
-  background: linear-gradient(135deg, #2aabee 0%, #229ed9 100%);
+  background: linear-gradient(135deg, var(--orange, #F2591F) 0%, #d84814 100%);
   color: #ffffff;
   border-bottom-right-radius: 4px;
 }
@@ -1525,16 +1526,16 @@ html { scroll-behavior: smooth }
 }
 
 .tg-chat-input-bar textarea:focus {
-  border-color: #24a1de;
+  border-color: var(--orange, #F2591F);
   background: var(--card-bg, #ffffff);
-  box-shadow: 0 0 0 3px rgba(36, 161, 222, 0.1);
+  box-shadow: 0 0 0 3px rgba(242, 89, 31, 0.1);
 }
 
 .tg-send-btn {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: #24a1de;
+  background: var(--orange, #F2591F);
   color: #ffffff;
   border: none;
   cursor: pointer;
@@ -1544,12 +1545,12 @@ html { scroll-behavior: smooth }
   font-size: 18px;
   transition: all 0.2s ease;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(36, 161, 222, 0.3);
+  box-shadow: 0 2px 8px rgba(242, 89, 31, 0.3);
 }
 
 .tg-send-btn:hover {
   transform: scale(1.05);
-  background: #1e80b0;
+  background: #d84814;
 }
 
 .tg-send-btn:disabled {
@@ -1573,7 +1574,7 @@ html { scroll-behavior: smooth }
 
 .tg-empty-state i {
   font-size: 64px;
-  color: rgba(36, 161, 222, 0.15);
+  color: rgba(242, 89, 31, 0.15);
   margin-bottom: 16px;
 }
 
@@ -1608,13 +1609,13 @@ html { scroll-behavior: smooth }
 [data-theme="dark"] .tg-chat-search input:focus,
 [data-theme="dark"] .tg-chat-input-bar textarea:focus {
   background: #12181f;
-  border-color: #24a1de;
+  border-color: var(--orange, #F2591F);
 }
 [data-theme="dark"] .tg-thread-item:hover {
-  background: rgba(36, 161, 222, 0.08);
+  background: rgba(242, 89, 31, 0.08);
 }
 [data-theme="dark"] .tg-thread-item.active {
-  background: rgba(36, 161, 222, 0.15);
+  background: rgba(242, 89, 31, 0.15);
 }
 [data-theme="dark"] .tg-chat-btn {
   border-color: #242d38;
