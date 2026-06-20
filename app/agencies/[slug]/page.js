@@ -11,8 +11,8 @@ export async function generateMetadata({ params }) {
     const { rows } = await pool.query("SELECT name, description FROM agencies WHERE slug = $1", [slug]);
     if (rows.length === 0) return { title: "Agentlik topilmadi" };
     return {
-      title: `${rows[0].name} — Joy.uz`,
-      description: rows[0].description || `${rows[0].name} agentligining e'lonlari Joy.uz platformasida.`,
+      title: `${rows[0].name} — maskon.uz`,
+      description: rows[0].description || `${rows[0].name} agentligining e'lonlari maskon.uz platformasida.`,
     };
   } catch {
     return { title: "Agentlik" };

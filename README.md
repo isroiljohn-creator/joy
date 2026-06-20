@@ -1,4 +1,4 @@
-# Joy — Ko'chmas mulk platformasi
+# maskon — Ko'chmas mulk platformasi
 
 Next.js 14 (App Router) asosida qurilgan to'liq ishlaydigan ko'chmas mulk platformasi.
 Hozir namuna (mock) ma'lumot bilan ishlaydi — darrov ishga tushadi. Keyin Supabase ulanadi.

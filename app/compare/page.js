@@ -11,7 +11,7 @@ export default function ComparePage() {
 
   // localStorage dan ID larni o'qish
   useEffect(() => {
-    const list = JSON.parse(localStorage.getItem("joy_compare") || "[]");
+    const list = JSON.parse(localStorage.getItem("maskon_compare") || localStorage.getItem("joy_compare") || "[]");
     setIds(list);
   }, []);
 
@@ -39,7 +39,7 @@ export default function ComparePage() {
   const handleRemove = (id) => {
     const updated = ids.filter(item => item !== id);
     setIds(updated);
-    localStorage.setItem("joy_compare", JSON.stringify(updated));
+    localStorage.setItem("maskon_compare", JSON.stringify(updated));
     window.dispatchEvent(new Event("compare_updated"));
   };
 

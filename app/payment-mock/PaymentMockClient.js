@@ -36,7 +36,7 @@ export default function PaymentMockClient({ user, txId, amount, type }) {
     router.push("/profile");
   };
 
-  const title = type === "subscription" ? "Joy.uz Premium Obuna" : "E'lonni Topga chiqarish";
+  const title = type === "subscription" ? "maskon.uz Premium Obuna" : "E'lonni Topga chiqarish";
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--cream)" }}>

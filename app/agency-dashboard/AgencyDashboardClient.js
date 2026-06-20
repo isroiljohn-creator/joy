@@ -224,7 +224,7 @@ export default function AgencyDashboardClient({ user, myAgency: initialAgency, m
                 <i className="ti ti-building-store"></i>
               </div>
               <h2>Agentlik Yaratish</h2>
-              <p>Joy.uz da o'z rieltorlik kompaniyangizni oching. Xodimlarni qo'shing, e'lonlarni boshqaring.</p>
+              <p>maskon.uz da o'z rieltorlik kompaniyangizni oching. Xodimlarni qo'shing, e'lonlarni boshqaring.</p>
               <form onSubmit={handleCreateAgency} className="create-agency-form">
                 <div className="form-group">
                   <label>Agentlik nomi *</label>

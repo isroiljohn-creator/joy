@@ -6,6 +6,6 @@ export default function robots() {
         allow: "/",
       },
     ],
-    sitemap: "https://joy.uz/sitemap.xml",
+    sitemap: "https://maskon.uz/sitemap.xml",
   };
 }

@@ -6,8 +6,8 @@ import { getCurrentUser } from "@/app/actions";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Agentliklar — Joy.uz",
-  description: "O'zbekistonning yetakchi rieltorlik agentliklari Joy.uz platformasida. Tasdiqlangan maklerlar va kompaniyalar.",
+  title: "Agentliklar — maskon.uz",
+  description: "O'zbekistonning yetakchi rieltorlik agentliklari maskon.uz platformasida. Tasdiqlangan maklerlar va kompaniyalar.",
 };
 
 export default async function AgenciesPage() {
@@ -40,7 +40,7 @@ export default async function AgenciesPage() {
       <div className="agencies-hero">
         <div className="wrap">
           <h1>Ishonchli Agentliklar</h1>
-          <p>Joy.uz platformasidagi tasdiqlangan rieltorlik kompaniyalari va maklerlar</p>
+          <p>maskon.uz platformasidagi tasdiqlangan rieltorlik kompaniyalari va maklerlar</p>
           {user && (
             <Link href="/agency-dashboard" className="btn btn-white">
               <i className="ti ti-building-store"></i>

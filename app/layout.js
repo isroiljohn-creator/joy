@@ -7,22 +7,22 @@ import FloatingChat from "@/components/FloatingChat";
 import Script from "next/script";
 
 export const metadata = {
-  title: "Joy — Ko'chmas mulk platformasi",
-  description: "Joyingizni Joydan toping. O'zbekiston bo'ylab uylar, kvartiralar, ofislar — sotib oling, ijaraga oling yoki soting.",
-  keywords: ["ko'chmas mulk", "uy sotish", "kvartira", "ijara", "Toshkent", "Joy", "O'zbekiston"],
-  authors: [{ name: "Joy.uz" }],
+  title: "maskon — Ko'chmas mulk platformasi",
+  description: "Uy-joyingizni maskondan toping. O'zbekiston bo'ylab uylar, kvartiralar, ofislar — sotib oling, ijaraga oling yoki soting.",
+  keywords: ["ko'chmas mulk", "uy sotish", "kvartira", "ijara", "Toshkent", "maskon", "O'zbekiston"],
+  authors: [{ name: "maskon.uz" }],
   openGraph: {
-    title: "Joy — Ko'chmas mulk platformasi",
-    description: "Joyingizni Joydan toping. O'zbekiston bo'ylab 12 000+ e'lon.",
-    url: "https://joy.uz",
-    siteName: "Joy",
+    title: "maskon — Ko'chmas mulk platformasi",
+    description: "Uy-joyingizni maskondan toping. O'zbekiston bo'ylab 12 000+ e'lon.",
+    url: "https://maskon.uz",
+    siteName: "maskon",
     locale: "uz_UZ",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Joy — Ko'chmas mulk platformasi",
-    description: "Joyingizni Joydan toping. O'zbekiston bo'ylab 12 000+ e'lon.",
+    title: "maskon — Ko'chmas mulk platformasi",
+    description: "Uy-joyingizni maskondan toping. O'zbekiston bo'ylab 12 000+ e'lon.",
   },
 };
 
@@ -83,12 +83,12 @@ export default function RootLayout({ children }) {
             `
           }}
         />
-        <meta name="theme-color" content="#F2591F" />
+        <meta name="theme-color" content="#E06334" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Sora:wght@700;800&family=Inter:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
         <link
@@ -100,7 +100,7 @@ export default function RootLayout({ children }) {
             __html: `
               (function() {
                 try {
-                  const saved = localStorage.getItem("joy-theme");
+                  const saved = localStorage.getItem("maskon-theme") || localStorage.getItem("joy-theme");
                   if (saved === "dark") {
                     document.documentElement.setAttribute("data-theme", "dark");
                   } else {

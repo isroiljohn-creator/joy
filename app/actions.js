@@ -255,18 +255,7 @@ export async function googleLoginAction(email, name) {
   }
 }
 
-// Google akkauntlar ro'yxatini DB dan olish
-export async function getGoogleAccountsAction() {
-  try {
-    const { rows } = await pool.query(
-      "SELECT name, email FROM users WHERE email IS NOT NULL AND email != '' ORDER BY id ASC LIMIT 5"
-    );
-    return rows;
-  } catch (error) {
-    console.error("getGoogleAccountsAction error:", error);
-    return [];
-  }
-}
+
 
 // Google OAuth yo'naltirish URLini olish
 export async function getGoogleAuthUrlAction(clientOrigin) {

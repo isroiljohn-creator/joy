@@ -6,12 +6,12 @@ import Footer from "@/components/Footer";
 
 const faqs = [
   {
-    q: "Joy platformasida qanday ro'yxatdan o'taman?",
+    q: "maskon platformasida qanday ro'yxatdan o'taman?",
     a: "\"Kirish\" tugmasini bosing, telefon raqamingizni kiriting va SMS orqali tasdiqlang. Ro'yxatdan o'tish mutlaqo bepul va bir necha daqiqa davom etadi. Ro'yxatdan o'tgandan so'ng barcha imkoniyatlardan foydalanishingiz mumkin.",
   },
   {
     q: "E'lon joylash pullikmi?",
-    a: "Yo'q, Joy platformasida e'lon joylash mutlaqo bepul. Siz uyingiz, kvartirangiz yoki ofisingiz haqida e'lon joylab, minglab potentsial xaridorlar va ijarachilar bilan bog'lanishingiz mumkin. Premium ta'rif tanlamasangiz, hech qanday to'lov talab qilinmaydi.",
+    a: "Yo'q, maskon platformasida e'lon joylash mutlaqo bepul. Siz uyingiz, kvartirangiz yoki ofisingiz haqida e'lon joylab, minglab potentsial xaridorlar va ijarachilar bilan bog'lanishingiz mumkin. Premium ta'rif tanlamasangiz, hech qanday to'lov talab qilinmaydi.",
   },
   {
     q: "Qanday qilib e'lon joylash mumkin?",
@@ -34,16 +34,16 @@ const faqs = [
     a: "Har bir yangi e'lon bizning moderatorlar jamoamiz tomonidan tekshiriladi. Biz rasmlar, narx va manzil ma'lumotlarini tasdiqlaimiz. Soxta yoki noto'g'ri e'lonlar rad etiladi. Bu jarayon odatda 1-2 soat ichida yakunlanadi.",
   },
   {
-    q: "Joy platformasida qanday mulk turlari bor?",
+    q: "maskon platformasida qanday mulk turlari bor?",
     a: "Platformamizda kvartiralar, xususiy uylar, ofislar, tijorat binolari, er uchastkalar va yangi qurilish loyihalari (novostroykalar) mavjud. Har bir toifa bo'yicha qulay filtrlar yordamida kerakli mulkni osongina topishingiz mumkin.",
   },
   {
     q: "Ijaraga olish uchun qanday hujjatlar kerak?",
-    a: "Bu to'g'ridan-to'g'ri uy egasi bilan kelishiladi. Odatda pasport nusxasi va ijara shartnomasi talab qilinadi. Joy platformasi vositachilik qilmaydi — biz faqat siz va uy egasini bog'laymiz.",
+    a: "Bu to'g'ridan-to'g'ri uy egasi bilan kelishiladi. Odatda pasport nusxasi va ijara shartnomasi talab qilinadi. maskon platformasi vositachilik qilmaydi — biz faqat siz va uy egasini bog'laymiz.",
   },
   {
     q: "Texnik muammo yuzaga kelsa kimga murojaat qilaman?",
-    a: "Bizning qo'llab-quvvatlash xizmatimiz dushanba-juma, soat 9:00 dan 18:00 gacha ishlaydi. Telegram: @joy_support, telefon: +998 71 200 00 00 yoki info@joy.uz manziliga xat yuboring.",
+    a: "Bizning qo'llab-quvvatlash xizmatimiz dushanba-juma, soat 9:00 dan 18:00 gacha ishlaydi. Telegram: @maskon_support, telefon: +998 71 200 00 00 yoki info@maskon.uz manziliga xat yuboring.",
   },
 ];
 
@@ -215,7 +215,7 @@ export default function HelpPage() {
               +998 71 200 00 00
             </a>
             <a
-              href="mailto:info@joy.uz"
+              href="mailto:info@maskon.uz"
               className="btn-ghost"
               style={{
                 display: "inline-flex",
@@ -227,7 +227,7 @@ export default function HelpPage() {
               }}
             >
               <i className="ti ti-mail" />
-              info@joy.uz
+              info@maskon.uz
             </a>
           </div>
         </div>

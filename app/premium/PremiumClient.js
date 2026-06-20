@@ -38,7 +38,7 @@ export default function PremiumClient({ user }) {
           <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 64, height: 64, borderRadius: 20, background: "var(--orange-tint)", color: "var(--orange)", fontSize: 32, marginBottom: 20 }}>
             <i className="ti ti-rosette-discount-check-filled"></i>
           </div>
-          <h1 className="display" style={{ fontSize: 32, marginBottom: 12 }}>Joy.uz Premium</h1>
+          <h1 className="display" style={{ fontSize: 32, marginBottom: 12 }}>maskon.uz Premium</h1>
           <p style={{ color: "var(--text2)", fontSize: 16, maxWidth: 400, margin: "0 auto" }}>
             Tasdiqlangan foydalanuvchi maqomini oling va e'lonlaringiz ishonchliligini oshiring.
           </p>

@@ -277,11 +277,11 @@ export default function Map({ listings, activePin, onPinClick, mini = false, pol
       style.id = "map-pin-style";
       style.textContent = `
         .custom-pin { background: none !important; border: none !important; width: auto !important; height: auto !important; }
-        .joy-pin {
+        .maskon-pin {
           display: inline-block;
           background: #fff;
           color: #1A130E;
-          font-family: 'Bricolage Grotesque', sans-serif;
+          font-family: 'Sora', sans-serif;
           font-weight: 700;
           font-size: 13px;
           padding: 5px 12px;
@@ -294,7 +294,7 @@ export default function Map({ listings, activePin, onPinClick, mini = false, pol
           border: 1.5px solid #e8e2da;
           transform: translateX(-50%);
         }
-        .joy-pin::after {
+        .maskon-pin::after {
           content: '';
           position: absolute;
           bottom: -6px;
@@ -306,15 +306,15 @@ export default function Map({ listings, activePin, onPinClick, mini = false, pol
           border-top: 6px solid #fff;
           filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));
         }
-        .joy-pin:hover, .joy-pin.active {
-          background: #F2591F;
+        .maskon-pin:hover, .maskon-pin.active {
+          background: #E06334;
           color: #fff;
-          border-color: #F2591F;
+          border-color: #E06334;
           transform: scale(1.08);
-          box-shadow: 0 4px 14px rgba(242,89,31,0.35);
+          box-shadow: 0 4px 14px rgba(224,99,52,0.35);
         }
-        .joy-pin:hover::after, .joy-pin.active::after {
-          border-top-color: #F2591F;
+        .maskon-pin:hover::after, .maskon-pin.active::after {
+          border-top-color: #E06334;
         }
         .leaflet-popup-content-wrapper {
           border-radius: 14px !important;
@@ -340,7 +340,7 @@ export default function Map({ listings, activePin, onPinClick, mini = false, pol
 
         const icon = LInstance.divIcon({
           className: "custom-pin",
-          html: `<div class="joy-pin">${priceLabel}</div>`,
+          html: `<div class="maskon-pin">${priceLabel}</div>`,
           iconAnchor: [0, 0],
           popupAnchor: [0, -5],
         });
@@ -352,7 +352,7 @@ export default function Map({ listings, activePin, onPinClick, mini = false, pol
             <div style="color:#9B9286;font-size:12px;margin-bottom:6px;display:flex;align-items:center;gap:3px">
               <i class="ti ti-map-pin" style="font-size:13px"></i> ${l.addr || ""}
             </div>
-            <div style="color:#F2591F;font-weight:700;font-size:16px;font-family:'Bricolage Grotesque',sans-serif">${l.price || ""}</div>
+            <div style="color:#E06334;font-weight:700;font-size:16px;font-family:'Sora',sans-serif">${l.price || ""}</div>
           </div>
         `, { closeButton: false, offset: [0, -10] });
         

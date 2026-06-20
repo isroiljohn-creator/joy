@@ -2,8 +2,8 @@ import { Nav } from "@/components/ui";
 import Footer from "@/components/Footer";
 
 export const metadata = {
-  title: "Biz haqimizda — Joy",
-  description: "Joy — O'zbekistondagi eng ishonchli ko'chmas mulk platformasi",
+  title: "Biz haqimizda — maskon",
+  description: "maskon — O'zbekistondagi eng ishonchli ko'chmas mulk platformasi",
 };
 
 const team = [
@@ -64,7 +64,7 @@ export default function AboutPage() {
               marginBottom: 16,
             }}
           >
-            Joyingizni topishda <span style={{ color: "var(--orange)" }}>ishonchli</span> hamkor
+            Uy-joyingizni topishda <span style={{ color: "var(--orange)" }}>ishonchli</span> hamkor
           </h1>
           <p
             style={{
@@ -75,7 +75,7 @@ export default function AboutPage() {
               margin: "0 auto",
             }}
           >
-            Joy — bu O'zbekistondagi eng zamonaviy ko'chmas mulk platformasi.
+            maskon — bu O'zbekistondagi eng zamonaviy ko'chmas mulk platformasi.
             Biz uy sotib olish, ijaraga olish va sotish jarayonini oson, shaffof
             va ishonchli qilish uchun ishlaymiz.
           </p>
@@ -205,7 +205,7 @@ export default function AboutPage() {
         <div className="sec-head" style={{ marginBottom: 28 }}>
           <div>
             <h2 className="display">Bizning jamoa</h2>
-            <p>Joy ni yaratayotgan mutaxassislar</p>
+            <p>maskonni yaratayotgan mutaxassislar</p>
           </div>
         </div>
         <div

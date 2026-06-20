@@ -19,30 +19,14 @@ export default function Error({ error, reset }) {
       {/* Logo */}
       <Link
         href="/"
+        className="logo"
         style={{
           position: "absolute",
           top: 28,
           left: 28,
-          fontFamily: "'Bricolage Grotesque', sans-serif",
-          fontWeight: 700,
-          fontSize: 25,
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          textDecoration: "none",
-          color: "var(--ink)",
         }}
       >
-        <span
-          style={{
-            width: 11,
-            height: 11,
-            borderRadius: "50%",
-            background: "var(--orange)",
-            display: "inline-block",
-          }}
-        />
-        Joy
+        mask<span className="logo-pin"><i className="ti ti-map-pin-filled"></i></span>n
       </Link>
 
       {/* Error icon */}

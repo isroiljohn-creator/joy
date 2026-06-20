@@ -1,5 +1,5 @@
 export default function sitemap() {
-  const baseUrl = "https://joy.uz";
+  const baseUrl = "https://maskon.uz";
 
   return [
     {

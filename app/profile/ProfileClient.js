@@ -33,7 +33,7 @@ export default function ProfileClient({ user, myListings, savedListings, message
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setDarkMode(localStorage.getItem("joy-theme") === "dark");
+      setDarkMode((localStorage.getItem("maskon-theme") || localStorage.getItem("joy-theme")) === "dark");
     }
   }, []);
   
@@ -601,12 +601,12 @@ export default function ProfileClient({ user, myListings, savedListings, message
                           setDarkMode(nextDark);
                           if (nextDark) {
                             document.documentElement.setAttribute("data-theme", "dark");
-                            localStorage.setItem("joy-theme", "dark");
+                            localStorage.setItem("maskon-theme", "dark");
                           } else {
                             document.documentElement.removeAttribute("data-theme");
-                            localStorage.setItem("joy-theme", "light");
+                            localStorage.setItem("maskon-theme", "light");
                           }
-                          window.dispatchEvent(new Event("joy-theme-change"));
+                          window.dispatchEvent(new Event("maskon-theme-change"));
                         }}
                         style={{
                           width: 36,

@@ -6,7 +6,7 @@ export default function Footer() {
     <footer className="wrap" style={{ marginTop: 40, borderTop: "1px solid var(--sand)", padding: "36px 0" }}>
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 20 }}>
         <Link className="logo" href="/">
-          <span className="dot"></span>Joy
+          mask<span className="logo-pin"><i className="ti ti-map-pin-filled"></i></span>n
         </Link>
         <div className="fnav" style={{ display: "flex", gap: 22 }}>
           <Link href="/about" style={{ color: "var(--text2)", textDecoration: "none" }}>Biz haqimizda</Link>
@@ -46,15 +46,15 @@ export default function Footer() {
 
       {/* Contact info */}
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 20, fontSize: 13, color: "var(--text2)", marginBottom: 12 }}>
-        <a href="mailto:info@joy.uz" style={{ color: "var(--text2)", textDecoration: "none", display: "flex", alignItems: "center", gap: 6 }}>
-          <i className="ti ti-mail" style={{ fontSize: 16 }}></i> info@joy.uz
+        <a href="mailto:info@maskon.uz" style={{ color: "var(--text2)", textDecoration: "none", display: "flex", alignItems: "center", gap: 6 }}>
+          <i className="ti ti-mail" style={{ fontSize: 16 }}></i> info@maskon.uz
         </a>
         <a href="tel:+998712000000" style={{ color: "var(--text2)", textDecoration: "none", display: "flex", alignItems: "center", gap: 6 }}>
           <i className="ti ti-phone" style={{ fontSize: 16 }}></i> +998 71 200 00 00
         </a>
       </div>
 
-      <div style={{ fontSize: 13, color: "var(--muted)" }}>© {new Date().getFullYear()} Joy.uz</div>
+      <div style={{ fontSize: 13, color: "var(--muted)" }}>© {new Date().getFullYear()} maskon.uz</div>
     </footer>
   );
 }

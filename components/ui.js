@@ -35,24 +35,24 @@ export function Nav() {
     }
 
     // Tungi rejimni localStorage dan o'qish
-    const saved = localStorage.getItem("joy-theme");
+    const saved = localStorage.getItem("maskon-theme") || localStorage.getItem("joy-theme");
     if (saved === "dark") {
       setDarkMode(true);
       document.documentElement.setAttribute("data-theme", "dark");
     }
 
     const handleThemeChange = () => {
-      setDarkMode(localStorage.getItem("joy-theme") === "dark");
+      setDarkMode((localStorage.getItem("maskon-theme") || localStorage.getItem("joy-theme")) === "dark");
     };
-    window.addEventListener("joy-theme-change", handleThemeChange);
+    window.addEventListener("maskon-theme-change", handleThemeChange);
     return () => {
-      window.removeEventListener("joy-theme-change", handleThemeChange);
+      window.removeEventListener("maskon-theme-change", handleThemeChange);
     };
   }, []);
 
   useEffect(() => {
     const updateCompareCount = () => {
-      const list = JSON.parse(localStorage.getItem("joy_compare") || "[]");
+      const list = JSON.parse(localStorage.getItem("maskon_compare") || localStorage.getItem("joy_compare") || "[]");
       setCompareCount(list.length);
     };
     updateCompareCount();
@@ -100,7 +100,7 @@ export function Nav() {
     <nav>
       <div className="nav-in">
         <Link className="logo" href="/">
-          <span className="dot"></span>Joy
+          mask<span className="logo-pin"><i className="ti ti-map-pin-filled"></i></span>n
         </Link>
 
         {/* Navbar qidiruv — bosh sahifadan boshqa barcha sahifalarda */}
@@ -153,12 +153,12 @@ export function Nav() {
               setDarkMode(next);
               if (next) {
                 document.documentElement.setAttribute("data-theme", "dark");
-                localStorage.setItem("joy-theme", "dark");
+                localStorage.setItem("maskon-theme", "dark");
               } else {
                 document.documentElement.removeAttribute("data-theme");
-                localStorage.setItem("joy-theme", "light");
+                localStorage.setItem("maskon-theme", "light");
               }
-              window.dispatchEvent(new Event("joy-theme-change"));
+              window.dispatchEvent(new Event("maskon-theme-change"));
             }}
             aria-label={darkMode ? t("light_mode") : t("dark_mode")}
             title={darkMode ? t("light_mode") : t("dark_mode")}
@@ -359,7 +359,7 @@ export function ListingCard({ l, isFavorite: initialFavorite = false }) {
   }, [initialFavorite]);
 
   useEffect(() => {
-    const list = JSON.parse(localStorage.getItem("joy_compare") || "[]");
+    const list = JSON.parse(localStorage.getItem("maskon_compare") || localStorage.getItem("joy_compare") || "[]");
     setIsCompared(list.includes(l.id));
   }, [l.id]);
 
@@ -367,7 +367,7 @@ export function ListingCard({ l, isFavorite: initialFavorite = false }) {
     e.preventDefault();
     e.stopPropagation();
 
-    let list = JSON.parse(localStorage.getItem("joy_compare") || "[]");
+    let list = JSON.parse(localStorage.getItem("maskon_compare") || localStorage.getItem("joy_compare") || "[]");
     if (list.includes(l.id)) {
       list = list.filter(id => id !== l.id);
       setIsCompared(false);
@@ -379,7 +379,7 @@ export function ListingCard({ l, isFavorite: initialFavorite = false }) {
       list.push(l.id);
       setIsCompared(true);
     }
-    localStorage.setItem("joy_compare", JSON.stringify(list));
+    localStorage.setItem("maskon_compare", JSON.stringify(list));
     window.dispatchEvent(new Event("compare_updated"));
   };
 
@@ -425,11 +425,38 @@ export function ListingCard({ l, isFavorite: initialFavorite = false }) {
     <Link className="card" href={`/property/${l.id}`}>
       <div
         className="photo"
-        style={{
+        style={l.photo ? {
           backgroundColor: "#C9BDA8",
           backgroundImage: `url('${l.photo}')`,
+        } : {
+          backgroundColor: "var(--orange-tint)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "var(--orange)"
         }}
       >
+        {!l.photo && <i className="ti ti-home" style={{ fontSize: 48 }}></i>}
+        {l.cat && (
+          <span 
+            className="type-badge" 
+            style={{ 
+              position: "absolute",
+              bottom: "12px",
+              left: "12px",
+              background: "var(--ink)", 
+              color: "#fff", 
+              fontSize: "11px",
+              fontWeight: 600,
+              padding: "4px 10px",
+              borderRadius: "12px",
+              textTransform: "capitalize",
+              zIndex: 2
+            }}
+          >
+            {(l.cat === "Ijara" || l.cat === "Ofis" || (l.price && l.price.includes("/oy"))) ? "Ijara" : "Sotuv"}
+          </span>
+        )}
         {l.top && (
           <span 
             className="badge" 

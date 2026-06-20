@@ -6,7 +6,7 @@ import AgencyDashboardClient from "./AgencyDashboardClient";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Agentlik Dashboard — Joy.uz",
+  title: "Agentlik Dashboard — maskon.uz",
   description: "Agentlik boshqaruv paneli",
 };
 

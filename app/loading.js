@@ -13,28 +13,14 @@ export default function Loading() {
     >
       {/* Logo */}
       <div
+        className="logo"
         style={{
-          fontFamily: "'Bricolage Grotesque', sans-serif",
-          fontWeight: 700,
-          fontSize: 28,
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          color: "var(--ink, #1A130E)",
+          fontSize: 32,
+          color: "var(--ink, #19130F)",
           opacity: 0.9,
         }}
       >
-        <span
-          style={{
-            width: 12,
-            height: 12,
-            borderRadius: "50%",
-            background: "var(--orange, #F2591F)",
-            display: "inline-block",
-            animation: "logoPulse 1.2s ease-in-out infinite",
-          }}
-        />
-        Joy
+        mask<span className="logo-pin" style={{ animation: "logoPulse 1.2s ease-in-out infinite" }}><i className="ti ti-map-pin-filled"></i></span>n
       </div>
 
       {/* Uch nuqtali loader */}

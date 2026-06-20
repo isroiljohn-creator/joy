@@ -109,7 +109,7 @@ export default function MobileHome({ listings = [], count = 0 }) {
   }, [regionListings]);
 
   useEffect(() => {
-    const saved = localStorage.getItem("joy-region");
+    const saved = localStorage.getItem("maskon-region") || localStorage.getItem("joy-region");
     if (saved) {
       setSelectedRegion(saved);
     }
@@ -121,7 +121,7 @@ export default function MobileHome({ listings = [], count = 0 }) {
 
   const handleSelectRegion = (r) => {
     setSelectedRegion(r);
-    localStorage.setItem("joy-region", r);
+    localStorage.setItem("maskon-region", r);
     setRegionOpen(false);
   };
 

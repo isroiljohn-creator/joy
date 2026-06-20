@@ -6,7 +6,7 @@ export default function AlertProvider({ children }) {
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("joy-theme");
+      const saved = localStorage.getItem("maskon-theme") || localStorage.getItem("joy-theme");
       if (saved === "dark") {
         document.documentElement.setAttribute("data-theme", "dark");
       } else {
@@ -66,7 +66,7 @@ export default function AlertProvider({ children }) {
   );
 }
 
-// Inline styles aligning with Joy's design system
+// Inline styles aligning with maskon's design system
 const modalOverlayStyle = {
   position: "fixed",
   inset: 0,

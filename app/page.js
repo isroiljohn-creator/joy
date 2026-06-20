@@ -35,7 +35,7 @@ export default async function Home() {
             <i className="ti ti-map-pin"></i> O&apos;zbekiston bo&apos;ylab {count.toLocaleString()}+ e&apos;lon
           </div>
           <h1 className="display">
-            Joyingizni <span className="acc">Joy</span>dan toping
+            Uy-joyingizni <span className="acc">maskon</span>dan toping
           </h1>
           <p>
             Uy sotib oling, ijaraga oling yoki ofis tanlang — xaritada qidiring,
@@ -143,7 +143,7 @@ export default async function Home() {
 
       <section className="wrap">
         <div className="why">
-          <h2 className="display">Nega aynan Joy?</h2>
+          <h2 className="display">Nega aynan maskon?</h2>
           <div className="sub">Uy izlash hech qachon bunchalik oson bo&apos;lmagan</div>
           <div className="feats">
             <div className="feat">

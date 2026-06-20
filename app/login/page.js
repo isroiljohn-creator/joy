@@ -221,10 +221,10 @@ export default function Login() {
         ></div>
         <div className="ov"></div>
         <Link className="vlogo" href="/">
-          <span className="dot"></span>Joy
+          mask<span className="logo-pin"><i className="ti ti-map-pin-filled"></i></span>n
         </Link>
         <div className="vtext">
-          <h2 className="display">Joyingizni Joydan toping</h2>
+          <h2 className="display">Uy-joyingizni maskondan toping</h2>
           <p>
             Minglab ishonchli e&apos;lon, xaritada qidiruv va to&apos;g&apos;ridan-to&apos;g&apos;ri aloqa
             — barchasi bir joyda.
@@ -240,6 +240,8 @@ export default function Login() {
             <button
               type="button"
               style={{
+                flex: 1,
+                textAlign: "center",
                 background: "none",
                 border: "none",
                 fontSize: 15,
@@ -261,6 +263,8 @@ export default function Login() {
             <button
               type="button"
               style={{
+                flex: 1,
+                textAlign: "center",
                 background: "none",
                 border: "none",
                 fontSize: 15,

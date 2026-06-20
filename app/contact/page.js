@@ -270,9 +270,9 @@ export default function ContactPage() {
                 Elektron pochta
               </h3>
               <p style={{ fontSize: 14, color: "var(--text2)", lineHeight: 1.8 }}>
-                info@joy.uz
+                info@maskon.uz
                 <br />
-                support@joy.uz
+                support@maskon.uz
               </p>
             </div>
 
