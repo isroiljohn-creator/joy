@@ -31,7 +31,7 @@ export default function MobileNav() {
   }, [path]);
 
   // Hide global tab bar on pages with distinct bottom actions or full screens
-  if (path?.startsWith("/property/") || path === "/chat" || path?.startsWith("/agency-dashboard")) {
+  if (path?.startsWith("/property/") || path === "/chat" || path?.startsWith("/agency-dashboard") || path === "/login") {
     return null;
   }
 

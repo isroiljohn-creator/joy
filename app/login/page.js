@@ -322,12 +322,12 @@ export default function Login() {
               </div>
 
               <h1 className="display">
-                {mode === "login" ? "Xush kelibsiz" : "Hisob yarating"}
+                {mode === "login" ? "Xush kelibsiz" : "Davom etish uchun ro'yxatdan o'ting"}
               </h1>
               <div className="lead">
                 {mode === "login"
                   ? "Hisobingizga kiring va davom eting"
-                  : "Bir daqiqada ro'yxatdan o'tish"}
+                  : "Bir daqiqada hisob yarating"}
               </div>
 
               {mode === "register" && (
@@ -523,7 +523,7 @@ export default function Login() {
 
               {smsStep === 3 && (
                 <form onSubmit={handleCompleteRegister}>
-                  <h1 className="display">Ro'yxatdan o'tish</h1>
+                  <h1 className="display">Davom etish uchun ro'yxatdan o'ting</h1>
                   <div className="lead">Tizimda yangi ekansiz. Davom etish uchun ism va familiyangizni kiriting:</div>
 
                   <div className="afield">
