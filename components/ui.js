@@ -332,6 +332,23 @@ export function ListingCard({ l, isFavorite = false }) {
             <i className="ti ti-star-filled" style={{ fontSize: 12 }}></i> TOP
           </span>
         )}
+        {l.hasCadastreVerified && (
+          <span 
+            className="badge" 
+            style={{ 
+              background: "var(--green)", 
+              color: "#fff", 
+              boxShadow: "0 4px 10px rgba(29,158,117,0.3)",
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              top: l.top ? "40px" : "12px"
+            }}
+            title="Hujjatlari tekshirilgan mulk"
+          >
+            <i className="ti ti-shield-check" style={{ fontSize: 13 }}></i> Tekshirilgan
+          </span>
+        )}
         <div className="heart" onClick={handleFavorite}>
           <i 
             className="ti ti-heart" 

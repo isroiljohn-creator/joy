@@ -41,6 +41,62 @@ const SORT_OPTIONS = [
   { key: "area-desc", label: "Kattaroq maydon" },
 ];
 
+const DISTRICT_COORDS = {
+  "Chilonzor": [41.2858, 69.2052],
+  "Yunusobod": [41.3436, 69.2878],
+  "Mirzo Ulug'bek": [41.3106, 69.3388],
+  "Yakkasaroy": [41.2915, 69.2763],
+  "Shayxontohur": [41.3232, 69.2398],
+  "Sergeli": [41.2275, 69.2873],
+  "Uchtepa": [41.3048, 69.1978],
+  "Bektemir": [41.2206, 69.3291],
+  "Mirabad": [41.3028, 69.2715],
+  "Olmazor": [41.3388, 69.2105],
+  "Yashnobod": [41.3220, 69.3108]
+};
+
+function hashCode(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return hash;
+}
+
+function getListingCoords(addr) {
+  let address = "";
+  if (addr != null) {
+    address = String(addr).toLowerCase();
+  }
+  for (const [district, coords] of Object.entries(DISTRICT_COORDS)) {
+    if (address.includes(district.toLowerCase())) {
+      const hash = hashCode(address);
+      const offsetX = ((Math.abs(hash % 100) / 100) - 0.5) * 0.012;
+      const offsetY = ((Math.abs((hash >> 2) % 100) / 100) - 0.5) * 0.015;
+      return [coords[0] + offsetX, coords[1] + offsetY];
+    }
+  }
+  const hash = hashCode(address || "Toshkent");
+  const offsetX = ((Math.abs(hash % 100) / 100) - 0.5) * 0.06;
+  const offsetY = ((Math.abs((hash >> 2) % 100) / 100) - 0.5) * 0.08;
+  return [41.2995 + offsetX, 69.2401 + offsetY];
+}
+
+function isPointInPolygon(point, polygon) {
+  const x = point.lat;
+  const y = point.lng;
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const xi = polygon[i].lat, yi = polygon[i].lng;
+    const xj = polygon[j].lat, yj = polygon[j].lng;
+    
+    const intersect = ((yi > y) !== (yj > y))
+        && (x < (xj - xi) * (y - yi) / (yj - yi + 0.00000001) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
 export default function ListingsClient({ initialListings, favoriteIds = [] }) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -83,7 +139,8 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
   const [appliedMaxPrice, setAppliedMaxPrice] = useState("");
   const [appliedRoomsFilter, setAppliedRoomsFilter] = useState("all");
 
-
+  // Xaritada chizilgan polygon filtri
+  const [polygonFilter, setPolygonFilter] = useState(null);
 
   // URL-dagi toifa o'zgarsa, tabni ham o'zgartiramiz
   useEffect(() => {
@@ -130,6 +187,7 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
     setAppliedMinPrice("");
     setAppliedMaxPrice("");
     setAppliedRoomsFilter("all");
+    setPolygonFilter(null);
     setFilterOpen(false);
   };
 
@@ -145,6 +203,12 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
       } else {
         if (l.rooms !== r) return false;
       }
+    }
+    // Xaritada chizilgan polygon bo'yicha filtrlash
+    if (polygonFilter && polygonFilter.length > 2) {
+      const coords = getListingCoords(l.addr);
+      const inside = isPointInPolygon({ lat: coords[0], lng: coords[1] }, polygonFilter);
+      if (!inside) return false;
     }
     return true;
   });
@@ -221,6 +285,7 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
                 activePin={null}
                 onPinClick={null}
                 mini={true}
+                polygonPoints={polygonFilter}
               />
             )}
             
@@ -255,6 +320,42 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
               </div>
             </div>
           </div>
+
+          {polygonFilter && (
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              background: "var(--orange-tint)",
+              color: "var(--orange-dark)",
+              padding: "10px 16px",
+              borderRadius: 14,
+              fontSize: 13,
+              fontWeight: 600,
+              marginBottom: 16,
+              border: "1px solid var(--orange)"
+            }}>
+              <i className="ti ti-brush" style={{ fontSize: 16 }}></i>
+              <span>Xaritada chizilgan hudud bo&apos;yicha filtrlandi</span>
+              <button
+                type="button"
+                onClick={() => setPolygonFilter(null)}
+                style={{
+                  background: "var(--orange)",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "6px 12px",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  marginLeft: "auto"
+                }}
+              >
+                Filtrni tozalash
+              </button>
+            </div>
+          )}
 
           {/* Listings header: Toshkent • X ta e'lon / Saralash */}
           <div className="split-meta" style={{ position: "relative" }}>
@@ -539,6 +640,8 @@ export default function ListingsClient({ initialListings, favoriteIds = [] }) {
                 setActivePin(i);
                 router.push(`/property/${shown[i]?.id}`);
               }}
+              polygonPoints={polygonFilter}
+              onPolygonComplete={setPolygonFilter}
             />
           )}
           {/* Mobile fullscreen map uchun orqaga tugmasi */}

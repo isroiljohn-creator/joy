@@ -12,6 +12,7 @@ import PropertyExtras from "./PropertyExtras";
 import MobileActions from "@/components/MobileActions";
 import ReviewsSection from "./ReviewsSection";
 import BackButton from "@/components/BackButton";
+import NearbyInfrastructure from "@/components/NearbyInfrastructure";
 
 function getPriceComparison(priceNum, area, cat) {
   const pricePerM2 = area > 0 ? Math.round(priceNum / area) : 0;
@@ -178,7 +179,14 @@ export default async function Property({ params }) {
             <div>
               <div className="title-row">
                 <div>
-                  <h1 className="display">{l.type}</h1>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                    <h1 className="display" style={{ margin: 0 }}>{l.type}</h1>
+                    {l.hasCadastreVerified && (
+                      <span className="cadastre-badge">
+                        <i className="ti ti-shield-check"></i> Hujjatlari tekshirilgan
+                      </span>
+                    )}
+                  </div>
                   <div className="addr" style={{ fontSize: 15, marginTop: 8 }}>
                     <i className="ti ti-map-pin"></i> {l.addr}, Toshkent
                   </div>
@@ -273,6 +281,8 @@ export default async function Property({ params }) {
                 </div>
               </div>
 
+              <NearbyInfrastructure address={l.addr} />
+
               {/* Sharhlar */}
               <ReviewsSection
                 reviews={reviews}
@@ -308,6 +318,13 @@ export default async function Property({ params }) {
                     {l.owner} {l.ownerVerified && <i className="ti ti-rosette-discount-check-filled" style={{ color: "var(--orange)" }} title="Tasdiqlangan foydalanuvchi"></i>}
                   </div>
                   <div className="orole">Egasi · {ownerCount} ta e&apos;lon</div>
+                  {l.hasCadastreVerified && (
+                    <div style={{ marginTop: 8 }}>
+                      <span className="cadastre-badge" style={{ fontSize: 11, padding: "3px 8px" }}>
+                        <i className="ti ti-shield-check"></i> Hujjatlari tekshirilgan
+                      </span>
+                    </div>
+                  )}
                   {avgRating && (
                     <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, marginTop: 2 }}>
                       <i className="ti ti-star-filled" style={{ color: "#f59e0b", fontSize: 12 }}></i>
@@ -375,6 +392,13 @@ export default async function Property({ params }) {
               <div className="mdtype">{l.type}</div>
               <span className="mdcat-badge">{l.cat}</span>
             </div>
+            {l.hasCadastreVerified && (
+              <div style={{ marginTop: 8, marginBottom: 4 }}>
+                <span className="cadastre-badge" style={{ fontSize: 11, padding: "3px 8px" }}>
+                  <i className="ti ti-shield-check"></i> Hujjatlari tekshirilgan
+                </span>
+              </div>
+            )}
             <div className="mdaddr">
               <i className="ti ti-map-pin" style={{ fontSize: 14 }}></i> {l.addr}, Toshkent
             </div>
@@ -458,6 +482,13 @@ export default async function Property({ params }) {
                 {l.owner} {l.ownerVerified && <i className="ti ti-rosette-discount-check-filled" style={{ color: "var(--orange)", fontSize: 14 }} title="Tasdiqlangan foydalanuvchi"></i>}
               </div>
               <div style={{ fontSize: 11, color: "var(--muted)" }}>Egasi · {ownerCount} ta e&apos;lon</div>
+              {l.hasCadastreVerified && (
+                <div style={{ marginTop: 4 }}>
+                  <span className="cadastre-badge" style={{ fontSize: 10, padding: "2px 6px" }}>
+                    <i className="ti ti-shield-check"></i> Hujjatlari tekshirilgan
+                  </span>
+                </div>
+              )}
             </div>
             <a href={`tel:${ownerPhone.replace(/\s/g, "")}`} className="mdowner-phone">
               <i className="ti ti-phone"></i>
@@ -491,13 +522,15 @@ export default async function Property({ params }) {
             </div>
           </div>
 
+          <NearbyInfrastructure address={l.addr} />
+
           {/* Ipoteka kartasi */}
           <div className="mdblock mdcard">
             <h3>
               <i className="ti ti-calculator"></i>
               Ipoteka
             </h3>
-            <PropertyExtras priceNum={l.priceNum} listingId={l.id} hasMortgage={l.hasMortgage} />
+            <PropertyExtras priceNum={l.priceNum} listingId={l.id} listing={l} hasMortgage={l.hasMortgage} />
           </div>
         </div>
 

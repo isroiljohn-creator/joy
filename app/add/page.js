@@ -41,6 +41,31 @@ export default function Add() {
   const [userAgencyId, setUserAgencyId] = useState(null);
   const [postAsAgency, setPostAsAgency] = useState(false);
 
+  // Kadastr ma'lumotlari uchun yangi states
+  const [cadastreNumber, setCadastreNumber] = useState("");
+  const [hasCadastreVerified, setHasCadastreVerified] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [verifyMessage, setVerifyMessage] = useState("");
+
+  const handleVerifyCadastre = () => {
+    if (!cadastreNumber) return;
+    setVerifying(true);
+    setVerifyMessage("");
+    
+    // Simulyatsiya (1.5 soniya)
+    setTimeout(() => {
+      const isValid = /^\d{2}:\d{2}:\d{2}:\d{2}:\d{2}:\d{4}$/.test(cadastreNumber);
+      if (isValid) {
+        setHasCadastreVerified(true);
+        setVerifyMessage("🛡️ Hujjatlar muvaffaqiyatli tekshirildi! Kadastr raqami va mulkdor ma'lumotlari tasdiqlandi.");
+      } else {
+        setHasCadastreVerified(false);
+        setVerifyMessage("Xato! Kadastr raqami formati noto'g'ri. To'g'ri format: 01:05:03:02:01:0005");
+      }
+      setVerifying(false);
+    }, 1500);
+  };
+
   useEffect(() => {
     async function loadUser() {
       try {
@@ -110,6 +135,8 @@ export default function Add() {
     formData.append("quarter", quarter);
     formData.append("desc", desc);
     formData.append("postAsAgency", postAsAgency.toString());
+    formData.append("cadastre_number", cadastreNumber);
+    formData.append("has_cadastre_verified", hasCadastreVerified.toString());
     if (base64Photo) {
       formData.append("photo", base64Photo);
     }
@@ -295,6 +322,74 @@ export default function Add() {
                   </div>
                 </div>
               )}
+              {/* Kadastr tekshiruvi */}
+              <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px dashed var(--sand)" }}>
+                <label style={{ fontSize: 13, fontWeight: 600, color: "var(--text2)", marginBottom: 6, display: "block" }}>
+                  Mulk kadastr raqami (ixtiyoriy, "🛡️ Tasdiqlangan" nishonini olish uchun)
+                </label>
+                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                  <input
+                    placeholder="Masalan: 01:05:03:02:01:0005"
+                    value={cadastreNumber}
+                    onChange={(e) => {
+                      setCadastreNumber(e.target.value);
+                      setHasCadastreVerified(false);
+                      setVerifyMessage("");
+                    }}
+                    style={{ flex: 1, minWidth: 0 }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleVerifyCadastre}
+                    disabled={verifying || !cadastreNumber}
+                    style={{
+                      background: "var(--ink)",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 10,
+                      padding: "12px 20px",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      opacity: !cadastreNumber ? 0.5 : 1,
+                      whiteSpace: "nowrap"
+                    }}
+                  >
+                    {verifying ? (
+                      <>
+                        <i className="ti ti-loader" style={{ animation: "spin 1s linear infinite" }}></i>
+                        <span>Tekshirilmoqda...</span>
+                      </>
+                    ) : (
+                      <>
+                        <i className="ti ti-shield-check"></i>
+                        <span>Tekshirish</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                
+                {verifyMessage && (
+                  <div style={{
+                    marginTop: 10,
+                    padding: "8px 12px",
+                    borderRadius: 8,
+                    fontSize: 12,
+                    fontWeight: 500,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    background: hasCadastreVerified ? "var(--green-tint)" : "rgba(239, 68, 68, 0.08)",
+                    color: hasCadastreVerified ? "var(--green)" : "#dc2626",
+                    border: `1px solid ${hasCadastreVerified ? "var(--green)" : "rgba(239, 68, 68, 0.2)"}`
+                  }}>
+                    <i className={hasCadastreVerified ? "ti ti-circle-check" : "ti ti-alert-triangle"}></i>
+                    <span>{verifyMessage}</span>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="fsection">

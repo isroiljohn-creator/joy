@@ -332,6 +332,8 @@ export async function createListingAction(formData) {
   // Haqiqiy rasm faylini Base64 ko'rinishida olamiz
   const photo = formData.get("photo") || "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=75";
   const hasMortgage = formData.get("has_mortgage") === "true";
+  const cadastreNumber = formData.get("cadastre_number") || null;
+  const hasCadastreVerified = formData.get("has_cadastre_verified") === "true";
   const status = "active";
   const top = false;
   let agencyId = null;
@@ -353,9 +355,9 @@ export async function createListingAction(formData) {
 
   try {
     await pool.query(
-      `INSERT INTO listings (price, price_num, type, cat, addr, rooms, baths, area, floor, top, photo, owner_id, agency_id, views, saves, status, pin_x, pin_y, description, phone, has_mortgage)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)`,
-      [priceFormatted, priceNum, title, cat, addr, rooms, baths, area, floor, top, photo, user.id, agencyId, 0, 0, status, pinX, pinY, desc, user.phone, hasMortgage]
+      `INSERT INTO listings (price, price_num, type, cat, addr, rooms, baths, area, floor, top, photo, owner_id, agency_id, views, saves, status, pin_x, pin_y, description, phone, has_mortgage, has_cadastre_verified, cadastre_number)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)`,
+      [priceFormatted, priceNum, title, cat, addr, rooms, baths, area, floor, top, photo, user.id, agencyId, 0, 0, status, pinX, pinY, desc, user.phone, hasMortgage, hasCadastreVerified, cadastreNumber]
     );
 
     revalidatePath("/");
@@ -467,6 +469,18 @@ export async function updateListingAction(formData) {
       values.push(hasMortgage === "true" || hasMortgage === "on");
     }
 
+    const cadastreNumber = formData.get("cadastre_number");
+    if (cadastreNumber !== null && cadastreNumber !== undefined) {
+      updates.push(`cadastre_number = $${paramIndex++}`);
+      values.push(cadastreNumber || null);
+    }
+
+    const hasCadastreVerified = formData.get("has_cadastre_verified");
+    if (hasCadastreVerified !== null && hasCadastreVerified !== undefined) {
+      updates.push(`has_cadastre_verified = $${paramIndex++}`);
+      values.push(hasCadastreVerified === "true" || hasCadastreVerified === "on");
+    }
+
     if (updates.length === 0) {
       return { error: "Yangilanadigan ma'lumotlar topilmadi" };
     }
@@ -485,6 +499,40 @@ export async function updateListingAction(formData) {
   } catch (error) {
     console.error("updateListingAction error:", error);
     return { error: "E'lonni yangilashda xatolik yuz berdi" };
+  }
+}
+
+// Kadastr raqamini simulyatsiya qilib tekshirish va tasdiqlash
+export async function verifyCadastreAction(listingId, cadastreNumber) {
+  const user = await getCurrentUser();
+  if (!user) return { error: "Ro'yxatdan o'tmagansiz" };
+
+  try {
+    const { rows: listingRows } = await pool.query("SELECT owner_id FROM listings WHERE id = $1", [listingId]);
+    if (listingRows.length === 0) return { error: "E'lon topilmadi" };
+    if (listingRows[0].owner_id !== user.id && user.role !== "admin") {
+      return { error: "Sizda ushbu e'lonni tahrirlash huquqi yo'q" };
+    }
+
+    // Kadastr raqami formati tekshiruvi (XX:XX:XX:XX:XX:XXXX)
+    const isValidFormat = /^\d{2}:\d{2}:\d{2}:\d{2}:\d{2}:\d{4}$/.test(cadastreNumber);
+    if (!isValidFormat) {
+      return { error: "Kadastr raqami formati noto'g'ri. Namuna: 01:05:03:02:01:0005" };
+    }
+
+    await pool.query(
+      "UPDATE listings SET cadastre_number = $1, has_cadastre_verified = TRUE WHERE id = $2",
+      [cadastreNumber, listingId]
+    );
+
+    revalidatePath("/");
+    revalidatePath("/listings");
+    revalidatePath("/profile");
+    revalidatePath(`/property/${listingId}`);
+    return { success: true };
+  } catch (error) {
+    console.error("verifyCadastreAction error:", error);
+    return { error: "Kadastrni tasdiqlashda xatolik yuz berdi" };
   }
 }
 
