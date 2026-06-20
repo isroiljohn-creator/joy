@@ -14,40 +14,7 @@ import ReviewsSection from "./ReviewsSection";
 import BackButton from "@/components/BackButton";
 import NearbyInfrastructure from "@/components/NearbyInfrastructure";
 
-function getPriceComparison(priceNum, area, cat) {
-  const pricePerM2 = area > 0 ? Math.round(priceNum / area) : 0;
-  // Toshkent o'rtacha bozor narxlari (USD/m²)
-  const avgMarket = { "Yangi uylar": 850, "Ikkilamchi": 720, "Ijara": 12, "Ofis": 650 };
-  const avg = avgMarket[cat] || 750;
-  const ratio = pricePerM2 / avg;
-  
-  let label, type, icon, percentText;
-  if (ratio < 0.85) {
-    label = "Bozordan arzon";
-    type = "cheap";
-    icon = "ti-trending-down";
-    percentText = `${Math.round((1 - ratio) * 100)}% arzon`;
-  } else if (ratio <= 1.15) {
-    label = "Bozor narxida";
-    type = "average";
-    icon = "ti-minus";
-    percentText = "=";
-  } else {
-    label = "Bozordan qimmat";
-    type = "expensive";
-    icon = "ti-trending-up";
-    percentText = `${Math.round((ratio - 1) * 100)}% qimmat`;
-  }
 
-  return {
-    label,
-    type,
-    icon,
-    percentText,
-    pricePerM2,
-    avg
-  };
-}
 
 export const dynamic = "force-dynamic";
 
@@ -242,28 +209,7 @@ export default async function Property({ params }) {
                 </div>
               </div>
 
-              {/* Narx indikatori — bozor narxiga nisbatan */}
-              {(() => {
-                const comp = getPriceComparison(l.priceNum, l.area, l.cat);
-                return (
-                  <div className={`price-indicator ${comp.type}`} style={{ marginBottom: 8 }}>
-                    <div className="pi-icon">
-                      <i className={`ti ${comp.icon}`} style={{ fontSize: 22 }}></i>
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 700, fontSize: 15 }}>{comp.label}</div>
-                      <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>
-                        ${comp.pricePerM2.toLocaleString()}/m² · O&apos;rtacha: ${comp.avg.toLocaleString()}/m²
-                      </div>
-                    </div>
-                    {comp.percentText !== "=" && (
-                      <div className="pi-badge">
-                        {comp.percentText}
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
+
 
               <div className="block">
                 <h2 className="display">Tavsif</h2>
@@ -444,28 +390,7 @@ export default async function Property({ params }) {
             </div>
           </div>
 
-          {/* Narx indikatori — bozor narxiga nisbatan */}
-          {(() => {
-            const comp = getPriceComparison(l.priceNum, l.area, l.cat);
-            return (
-              <div className={`price-indicator ${comp.type}`} style={{ margin: "0 0 16px" }}>
-                <div className="pi-icon">
-                  <i className={`ti ${comp.icon}`} style={{ fontSize: 20 }}></i>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: 14 }}>{comp.label}</div>
-                  <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>
-                    ${comp.pricePerM2.toLocaleString()}/m² · O&apos;rtacha: ${comp.avg.toLocaleString()}/m²
-                  </div>
-                </div>
-                {comp.percentText !== "=" && (
-                  <div className="pi-badge">
-                    {comp.percentText}
-                  </div>
-                )}
-              </div>
-            );
-          })()}
+
 
           {/* E'lon egasi haqida ma'lumot */}
           <div className="mdowner">
