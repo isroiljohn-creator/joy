@@ -464,15 +464,15 @@ export default function Map({ listings, activePin, onPinClick, mini = false, pol
             type="button"
             onClick={() => setIsDrawingMode(prev => !prev)}
             style={{
-              background: isDrawingMode ? "var(--orange)" : "#fff",
-              color: isDrawingMode ? "#fff" : "var(--ink)",
-              border: "1.5px solid var(--sand)",
+              background: isDrawingMode ? "var(--ink)" : "var(--orange)",
+              color: isDrawingMode ? "var(--card-bg)" : "#fff",
+              border: isDrawingMode ? "1.5px solid var(--sand)" : "none",
               borderRadius: 12,
               padding: "10px 16px",
               fontWeight: 700,
               fontSize: 13,
               cursor: "pointer",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+              boxShadow: "0 4px 12px rgba(242, 89, 31, 0.2)",
               display: "flex",
               alignItems: "center",
               gap: 8,
