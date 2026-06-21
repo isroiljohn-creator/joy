@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { CustomSelect } from "@/components/ui";
 import {
   saveSearch,
   removeSearch,
@@ -10,6 +11,21 @@ import {
   scoreListings,
   trackCategory,
 } from "@/lib/userPrefs";
+
+const TYPES = [
+  { key: "Yangi uylar", icon: "ti-building-skyscraper" },
+  { key: "Ikkilamchi", icon: "ti-home" },
+  { key: "Ijara", icon: "ti-key" },
+  { key: "Ofis", icon: "ti-briefcase" },
+];
+
+const ROOMS = ["1", "2", "3", "4", "5+"];
+
+const DISTRICTS = [
+  "Chilonzor", "Yunusobod", "Mirzo Ulug'bek", "Yakkasaroy",
+  "Shayxontohur", "Sergeli", "Uchtepa", "Bektemir",
+  "Mirabad", "Olmazor", "Yashnobod",
+];
 
 const CATS = [
   { k: "Yangi uylar", i: "ti-building-skyscraper", bg: "var(--orange-tint)", fg: "var(--orange)" },
@@ -81,6 +97,14 @@ export default function MobileHome({ listings = [], count = 0 }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const inputRef = useRef(null);
   const overlayInputRef = useRef(null);
+
+  /* Filtr holatlari */
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [selectedType, setSelectedType] = useState("");
+  const [rooms, setRooms] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [district, setDistrict] = useState("");
 
   /* Region holatlari */
   const [selectedRegion, setSelectedRegion] = useState("Toshkent");
@@ -242,7 +266,42 @@ export default function MobileHome({ listings = [], count = 0 }) {
             {recentSearches.length} ta
           </span>
         )}
-        <i className="ti ti-adjustments-horizontal" style={{ fontSize: 18, paddingLeft: 8, borderLeft: "1px solid var(--sand)", color: "var(--muted)" }}></i>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setFilterOpen(true);
+          }}
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            padding: "0 0 0 8px",
+            borderLeft: "1px solid var(--sand)",
+            color: (selectedType || rooms || minPrice || maxPrice || district) ? "var(--orange)" : "var(--muted)",
+            display: "flex",
+            alignItems: "center",
+            position: "relative",
+          }}
+        >
+          <i className="ti ti-adjustments-horizontal" style={{ fontSize: 18 }}></i>
+          {(selectedType || rooms || minPrice || maxPrice || district) && (
+            <span style={{
+              position: "absolute",
+              top: -6,
+              right: -6,
+              background: "var(--orange)",
+              color: "#fff",
+              fontSize: 8,
+              borderRadius: "50%",
+              width: 12,
+              height: 12,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontWeight: "bold",
+            }}>!</span>
+          )}
+        </button>
       </div>
 
       {urlQuery ? (
@@ -741,6 +800,226 @@ export default function MobileHome({ listings = [], count = 0 }) {
                   </button>
                 );
               })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ====== FILTER DRAWER MODAL ====== */}
+      {filterOpen && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 350,
+            background: "rgba(26,19,14,0.5)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "flex-end",
+            animation: "fadeIn 0.2s ease",
+          }}
+          onClick={() => setFilterOpen(false)}
+        >
+          <div
+            style={{
+              width: "100%",
+              background: "var(--cream, #FBF7F3)",
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              padding: "24px 20px 40px",
+              boxShadow: "0 -10px 30px rgba(0,0,0,0.15)",
+              animation: "slideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+              maxHeight: "85vh",
+              overflowY: "auto",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <h3 style={{ fontFamily: "'Bricolage Grotesque',sans-serif", fontSize: 18, fontWeight: 700, margin: 0 }}>
+                Filtrlar
+              </h3>
+              <button
+                onClick={() => setFilterOpen(false)}
+                style={{ background: "none", border: "none", padding: 6, cursor: "pointer", color: "var(--muted)" }}
+              >
+                <i className="ti ti-x" style={{ fontSize: 20 }}></i>
+              </button>
+            </div>
+
+            {/* Uy turi */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--ink)", marginBottom: 10 }}>Uy turi</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {TYPES.map((t) => {
+                  const active = selectedType === t.key;
+                  return (
+                    <button
+                      key={t.key}
+                      onClick={() => setSelectedType(active ? "" : t.key)}
+                      style={{
+                        background: active ? "var(--orange)" : "var(--card-bg)",
+                        color: active ? "#fff" : "var(--ink)",
+                        border: active ? "1px solid var(--orange)" : "1px solid var(--sand)",
+                        borderRadius: 20,
+                        padding: "8px 16px",
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        transition: "all 0.15s ease",
+                      }}
+                    >
+                      <i className={`ti ${t.icon}`}></i>
+                      {t.key}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Xonalar soni */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--ink)", marginBottom: 10 }}>Xonalar soni</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {ROOMS.map((r) => {
+                  const active = rooms === r;
+                  return (
+                    <button
+                      key={r}
+                      onClick={() => setRooms(active ? "" : r)}
+                      style={{
+                        background: active ? "var(--orange)" : "var(--card-bg)",
+                        color: active ? "#fff" : "var(--ink)",
+                        border: active ? "1px solid var(--orange)" : "1px solid var(--sand)",
+                        borderRadius: 20,
+                        padding: "8px 16px",
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        transition: "all 0.15s ease",
+                      }}
+                    >
+                      {r} xona
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Narx diapazoni */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--ink)", marginBottom: 10 }}>Narx diapazoni ($)</div>
+              <div style={{ display: "flex", gap: 12 }}>
+                <input
+                  type="number"
+                  placeholder="Min narx"
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(e.target.value)}
+                  style={{
+                    flex: 1,
+                    padding: "12px 14px",
+                    border: "1.5px solid var(--sand)",
+                    borderRadius: 14,
+                    fontSize: 14,
+                    background: "var(--card-bg)",
+                    color: "var(--ink)",
+                    outline: "none",
+                  }}
+                />
+                <input
+                  type="number"
+                  placeholder="Max narx"
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(e.target.value)}
+                  style={{
+                    flex: 1,
+                    padding: "12px 14px",
+                    border: "1.5px solid var(--sand)",
+                    borderRadius: 14,
+                    fontSize: 14,
+                    background: "var(--card-bg)",
+                    color: "var(--ink)",
+                    outline: "none",
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Tuman */}
+            <div style={{ marginBottom: 30 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--ink)", marginBottom: 10 }}>Tuman</div>
+              <CustomSelect
+                value={district}
+                onChange={setDistrict}
+                options={[
+                  { value: "", label: "Barcha tumanlar" },
+                  ...DISTRICTS.map(d => ({ value: d, label: d }))
+                ]}
+                placeholder="Barcha tumanlar"
+              />
+            </div>
+
+            {/* Amallar */}
+            <div style={{ display: "flex", gap: 12 }}>
+              <button
+                onClick={() => {
+                  setSelectedType("");
+                  setRooms("");
+                  setMinPrice("");
+                  setMaxPrice("");
+                  setDistrict("");
+                }}
+                style={{
+                  flex: 1,
+                  background: "var(--card-bg)",
+                  border: "1.5px solid var(--sand)",
+                  color: "var(--ink)",
+                  borderRadius: 14,
+                  padding: "14px",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 6,
+                }}
+              >
+                <i className="ti ti-trash"></i> Tozalash
+              </button>
+              <button
+                onClick={() => {
+                  const params = new URLSearchParams();
+                  if (selectedType) params.set("cat", selectedType);
+                  if (rooms) params.set("rooms", rooms);
+                  if (minPrice) params.set("min", minPrice);
+                  if (maxPrice) params.set("max", maxPrice);
+                  if (district) params.set("district", district);
+                  router.push(`/listings?${params.toString()}`);
+                  setFilterOpen(false);
+                }}
+                style={{
+                  flex: 1.5,
+                  background: "var(--orange)",
+                  border: "none",
+                  color: "#fff",
+                  borderRadius: 14,
+                  padding: "14px",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 6,
+                  boxShadow: "0 4px 12px rgba(224, 99, 52, 0.2)",
+                }}
+              >
+                <i className="ti ti-search"></i> Natijalarni ko'rish
+              </button>
             </div>
           </div>
         </div>

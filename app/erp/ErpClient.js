@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CustomSelect } from "@/components/ui";
+import { CustomSelect, CustomDateTimePicker } from "@/components/ui";
 import {
   erpAddProject,
   erpUpdateProjectProgress,
@@ -39,6 +39,7 @@ export default function ErpClient({
   const [units, setUnits] = useState([]);
   const [leads, setLeads] = useState(initialLeads || []);
   const [meetings, setMeetings] = useState(initialMeetings || []);
+  const [currentCalMonth, setCurrentCalMonth] = useState(new Date());
   const [sales, setSales] = useState(initialSales || []);
   const [staff, setStaff] = useState(allStaff || []);
   
@@ -944,83 +945,343 @@ export default function ErpClient({
         )}
 
         {/* ───────────────── SCHEDULER TAB ───────────────── */}
-        {activeTab === "scheduler" && (
-          <div className="dashboard-content" style={{ animation: "fadeIn 0.2s ease" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-              <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Uchrashuvlar va Taqvim</h3>
-              <button onClick={() => setShowScheduleMeetingModal(true)} className="btn btn-primary">
-                <i className="ti ti-calendar-plus"></i> Uchrashuv belgilash
-              </button>
-            </div>
+        {activeTab === "scheduler" && (() => {
+          const monthNames = [
+            "Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun", 
+            "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr"
+          ];
+          const weekDays = ["Du", "Se", "Ch", "Pa", "Ju", "Sh", "Ya"];
 
-            {/* Meetings Table */}
-            {meetings.length === 0 ? (
-              <div style={{ textAlign: "center", color: "var(--muted)", padding: "50px 0" }}>
-                Hali uchrashuvlar belgilanmagan.
+          const getDaysForCalendar = (date) => {
+            const year = date.getFullYear();
+            const month = date.getMonth();
+            const firstDayIndex = (new Date(year, month, 1).getDay() + 6) % 7;
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            const cells = [];
+            for (let i = 0; i < firstDayIndex; i++) {
+              cells.push(null);
+            }
+            for (let i = 1; i <= daysInMonth; i++) {
+              const cellDate = new Date(year, month, i);
+              const today = new Date();
+              const isToday = today.getDate() === i && today.getMonth() === month && today.getFullYear() === year;
+              
+              const meetingsForDay = meetings.filter(m => {
+                const mDate = new Date(m.scheduled_time);
+                return mDate.getDate() === i && mDate.getMonth() === month && mDate.getFullYear() === year;
+              });
+
+              cells.push({
+                date: cellDate,
+                isToday,
+                meetingsForDay: meetingsForDay.sort((a, b) => new Date(a.scheduled_time) - new Date(b.scheduled_time))
+              });
+            }
+            return cells;
+          };
+
+          const handleCalendarDayClick = (date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const localStr = `${year}-${month}-${day}T12:00`;
+            setMeetingForm(p => ({ ...p, scheduled_time: localStr, lead_id: "" }));
+            setShowScheduleMeetingModal(true);
+          };
+
+          const getGoogleCalendarUrl = (m) => {
+            const startTime = new Date(m.scheduled_time);
+            const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
+            
+            const formatUTC = (d) => {
+              return d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+            };
+
+            const title = `Uchrashuv: ${m.lead_name || 'Mijoz'}`;
+            const details = `Mavzu/Izoh: ${m.notes || '—'}\nMas'ul: ${m.seller_name || '—'}`;
+            const location = m.location || '';
+            
+            return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${formatUTC(startTime)}/${formatUTC(endTime)}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(location)}`;
+          };
+
+          return (
+            <div className="dashboard-content" style={{ animation: "fadeIn 0.2s ease" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Uchrashuvlar va Taqvim</h3>
+                <button onClick={() => setShowScheduleMeetingModal(true)} className="btn btn-primary">
+                  <i className="ti ti-calendar-plus"></i> Uchrashuv belgilash
+                </button>
               </div>
-            ) : (
-              <div className="dashboard-listings-table">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Sana va Vaqt</th>
-                      <th>Mijoz</th>
-                      <th>Joylashuv</th>
-                      <th>Mavzu/Izoh</th>
-                      <th>Mas'ul</th>
-                      <th>Status</th>
-                      <th>Harakatlar</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {meetings.map(m => (
-                      <tr key={m.id} style={{ opacity: m.status === 'cancelled' ? 0.6 : 1 }}>
-                        <td>
-                          <strong>{new Date(m.scheduled_time).toLocaleDateString("uz-UZ")}</strong>
-                          <div style={{ fontSize: 11, color: "var(--muted)" }}>
-                            {new Date(m.scheduled_time).toLocaleTimeString("uz-UZ", { hour: '2-digit', minute: '2-digit' })}
-                          </div>
-                        </td>
-                        <td>
-                          <strong>{m.lead_name}</strong>
-                          <div style={{ fontSize: 11, color: "var(--muted)" }}>{m.lead_phone}</div>
-                        </td>
-                        <td>{m.location}</td>
-                        <td style={{ fontSize: 12, maxWidth: 250 }}>{m.notes || "—"}</td>
-                        <td>{m.seller_name || "—"}</td>
-                        <td>
-                          <span className={`status-badge ${m.status === 'completed' ? 'active' : m.status === 'cancelled' ? 'inactive' : 'pending'}`}>
-                            {m.status === 'completed' ? 'Yakunlandi' : m.status === 'cancelled' ? 'Bekor qilindi' : 'Kutilmoqda'}
+
+              {/* Taqvim Grid View */}
+              <div style={{
+                background: "var(--card-bg)",
+                border: "1px solid var(--sand)",
+                borderRadius: 24,
+                padding: 20,
+                marginBottom: 24,
+                boxShadow: "0 4px 20px rgba(0,0,0,0.02)"
+              }}>
+                {/* Taqvim boshqaruvlari */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <button 
+                      onClick={() => setCurrentCalMonth(new Date(currentCalMonth.getFullYear(), currentCalMonth.getMonth() - 1, 1))} 
+                      className="btn btn-secondary"
+                      style={{ padding: "8px 12px", border: "1.5px solid var(--sand)", background: "transparent", color: "var(--ink)", cursor: "pointer", borderRadius: 10 }}
+                    >
+                      <i className="ti ti-chevron-left"></i>
+                    </button>
+                    <h4 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>
+                      {monthNames[currentCalMonth.getMonth()]} {currentCalMonth.getFullYear()}
+                    </h4>
+                    <button 
+                      onClick={() => setCurrentCalMonth(new Date(currentCalMonth.getFullYear(), currentCalMonth.getMonth() + 1, 1))} 
+                      className="btn btn-secondary"
+                      style={{ padding: "8px 12px", border: "1.5px solid var(--sand)", background: "transparent", color: "var(--ink)", cursor: "pointer", borderRadius: 10 }}
+                    >
+                      <i className="ti ti-chevron-right"></i>
+                    </button>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      const today = new Date();
+                      setCurrentCalMonth(new Date(today.getFullYear(), today.getMonth(), 1));
+                    }} 
+                    className="btn btn-secondary"
+                    style={{ fontSize: 12, padding: "6px 12px", border: "1.5px solid var(--sand)", background: "transparent", color: "var(--ink)", cursor: "pointer", borderRadius: 10 }}
+                  >
+                    Bugun
+                  </button>
+                </div>
+
+                {/* Taqvim oylik griddi */}
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(7, 1fr)",
+                  gap: 1,
+                  background: "var(--sand)",
+                  borderRadius: 16,
+                  border: "1.5px solid var(--sand)",
+                  overflow: "hidden"
+                }}>
+                  {weekDays.map(d => (
+                    <div key={d} style={{
+                      background: "var(--cream)",
+                      padding: "10px 4px",
+                      textAlign: "center",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: "var(--muted)"
+                    }}>
+                      {d}
+                    </div>
+                  ))}
+
+                  {getDaysForCalendar(currentCalMonth).map((dayData, idx) => {
+                    if (!dayData) {
+                      return (
+                        <div key={`cal-empty-${idx}`} style={{
+                          background: "var(--card-bg)",
+                          minHeight: 110,
+                          opacity: 0.3
+                        }}></div>
+                      );
+                    }
+
+                    const { date, isToday, meetingsForDay } = dayData;
+                    return (
+                      <div 
+                        key={date.toISOString()}
+                        onClick={() => handleCalendarDayClick(date)}
+                        style={{
+                          background: "var(--card-bg)",
+                          minHeight: 110,
+                          padding: 8,
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 4,
+                          cursor: "pointer",
+                          position: "relative",
+                          transition: "all 0.15s ease",
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = "var(--cream)"}
+                        onMouseLeave={(e) => e.currentTarget.style.background = "var(--card-bg)"}
+                      >
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 2 }}>
+                          <span style={{
+                            fontSize: 12,
+                            fontWeight: 700,
+                            width: 22,
+                            height: 22,
+                            borderRadius: "50%",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            background: isToday ? "var(--orange)" : "transparent",
+                            color: isToday ? "#fff" : "var(--ink)"
+                          }}>
+                            {date.getDate()}
                           </span>
-                        </td>
-                        <td>
-                          {m.status === 'scheduled' && (
-                            <div style={{ display: "flex", gap: 6 }}>
-                              <button 
-                                onClick={() => handleUpdateMeetingStatus(m.id, 'completed')} 
-                                className="btn btn-secondary" 
-                                style={{ padding: "4px 8px", fontSize: 11, background: "var(--green-tint)", color: "#16a34a", border: "none" }}
-                              >
-                                Yakunlandi
-                              </button>
-                              <button 
-                                onClick={() => handleUpdateMeetingStatus(m.id, 'cancelled')} 
-                                className="btn btn-secondary" 
-                                style={{ padding: "4px 8px", fontSize: 11, background: "#fde8e8", color: "#dc2626", border: "none" }}
-                              >
-                                Bekor qilish
-                              </button>
-                            </div>
+                          {meetingsForDay.length > 0 && (
+                            <span style={{ fontSize: 10, color: "var(--muted)", fontWeight: 600 }}>
+                              {meetingsForDay.length} ta
+                            </span>
                           )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        </div>
+
+                        <div style={{ display: "flex", flexDirection: "column", gap: 3, overflowY: "auto", flex: 1, maxHeight: 80 }} className="custom-scrollbar">
+                          {meetingsForDay.map(m => {
+                            const isCompleted = m.status === 'completed';
+                            const isCancelled = m.status === 'cancelled';
+                            
+                            let bg = "var(--orange-tint)";
+                            let color = "var(--orange-dark)";
+                            if (isCompleted) {
+                              bg = "var(--green-tint)";
+                              color = "#16a34a";
+                            } else if (isCancelled) {
+                              bg = "#fde8e8";
+                              color = "#dc2626";
+                            }
+
+                            const timeStr = new Date(m.scheduled_time).toLocaleTimeString("uz-UZ", { hour: '2-digit', minute: '2-digit' });
+
+                            return (
+                              <div 
+                                key={m.id}
+                                onClick={(e) => e.stopPropagation()}
+                                style={{
+                                  background: bg,
+                                  color: color,
+                                  fontSize: 10,
+                                  fontWeight: 600,
+                                  padding: "3px 6px",
+                                  borderRadius: 6,
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "space-between",
+                                  gap: 2,
+                                  textDecoration: isCancelled ? "line-through" : "none"
+                                }}
+                                title={`${m.lead_name}: ${m.notes || 'Izohsiz'}`}
+                              >
+                                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
+                                  <strong>{timeStr}</strong> {m.lead_name}
+                                </span>
+                                <a
+                                  href={getGoogleCalendarUrl(m)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{ color: "inherit", display: "inline-flex", padding: 2, marginLeft: 2 }}
+                                  title="Google Calendar-ga qo'shish"
+                                >
+                                  <i className="ti ti-brand-google" style={{ fontSize: 10 }}></i>
+                                </a>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            )}
-          </div>
-        )}
+
+              {/* Uchrashuvlar ro'yxati (Meetings Table) */}
+              {meetings.length === 0 ? (
+                <div style={{ textAlign: "center", color: "var(--muted)", padding: "50px 0" }}>
+                  Hali uchrashuvlar belgilanmagan.
+                </div>
+              ) : (
+                <div className="dashboard-listings-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Sana va Vaqt</th>
+                        <th>Mijoz</th>
+                        <th>Joylashuv</th>
+                        <th>Mavzu/Izoh</th>
+                        <th>Mas'ul</th>
+                        <th>Status</th>
+                        <th>Harakatlar</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {meetings.map(m => (
+                        <tr key={m.id} style={{ opacity: m.status === 'cancelled' ? 0.6 : 1 }}>
+                          <td>
+                            <strong>{new Date(m.scheduled_time).toLocaleDateString("uz-UZ")}</strong>
+                            <div style={{ fontSize: 11, color: "var(--muted)" }}>
+                              {new Date(m.scheduled_time).toLocaleTimeString("uz-UZ", { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                          </td>
+                          <td>
+                            <strong>{m.lead_name}</strong>
+                            <div style={{ fontSize: 11, color: "var(--muted)" }}>{m.lead_phone}</div>
+                          </td>
+                          <td>{m.location}</td>
+                          <td style={{ fontSize: 12, maxWidth: 250 }}>{m.notes || "—"}</td>
+                          <td>{m.seller_name || "—"}</td>
+                          <td>
+                            <span className={`status-badge ${m.status === 'completed' ? 'active' : m.status === 'cancelled' ? 'inactive' : 'pending'}`}>
+                              {m.status === 'completed' ? 'Yakunlandi' : m.status === 'cancelled' ? 'Bekor qilindi' : 'Kutilmoqda'}
+                            </span>
+                          </td>
+                          <td>
+                            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                              {m.status === 'scheduled' && (
+                                <>
+                                  <button 
+                                    onClick={() => handleUpdateMeetingStatus(m.id, 'completed')} 
+                                    className="btn btn-secondary" 
+                                    style={{ padding: "4px 8px", fontSize: 11, background: "var(--green-tint)", color: "#16a34a", border: "none", cursor: "pointer", borderRadius: 8 }}
+                                  >
+                                    Yakunlandi
+                                  </button>
+                                  <button 
+                                    onClick={() => handleUpdateMeetingStatus(m.id, 'cancelled')} 
+                                    className="btn btn-secondary" 
+                                    style={{ padding: "4px 8px", fontSize: 11, background: "#fde8e8", color: "#dc2626", border: "none", cursor: "pointer", borderRadius: 8 }}
+                                  >
+                                    Bekor qilish
+                                  </button>
+                                </>
+                              )}
+                              <a
+                                href={getGoogleCalendarUrl(m)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="btn btn-secondary"
+                                style={{
+                                  padding: "4px 8px",
+                                  fontSize: 11,
+                                  background: "var(--orange-tint)",
+                                  color: "var(--orange-dark)",
+                                  border: "none",
+                                  textDecoration: "none",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: 4,
+                                  borderRadius: 8,
+                                  cursor: "pointer"
+                                }}
+                                title="Google Calendar-ga qo'shish"
+                              >
+                                <i className="ti ti-brand-google"></i> Google Calendar
+                              </a>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* ───────────────── PROJECTS & SHAXMATKA TAB ───────────────── */}
         {activeTab === "projects" && (
@@ -1786,12 +2047,10 @@ export default function ErpClient({
 
               <div className="form-group" style={{ marginBottom: 10 }}>
                 <label style={{ fontSize: 12 }}>Uchrashuv vaqti *</label>
-                <input
-                  type="datetime-local"
+                <CustomDateTimePicker
                   value={meetingForm.scheduled_time}
-                  onChange={(e) => setMeetingForm(p => ({ ...p, scheduled_time: e.target.value }))}
-                  required
-                  style={{ width: "100%", padding: 10, border: "1.5px solid var(--sand)", borderRadius: 12, marginTop: 4 }}
+                  onChange={(val) => setMeetingForm(p => ({ ...p, scheduled_time: val }))}
+                  placeholder="Uchrashuv sanasi va vaqtini tanlang..."
                 />
               </div>
 

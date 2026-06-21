@@ -657,3 +657,277 @@ export function CustomSelect({ value, onChange, options, placeholder, className 
     </div>
   );
 }
+
+// ─── Custom Date Time Picker ──────────────────────────────────────────────────
+export function CustomDateTimePicker({ value, onChange, placeholder = "Sana va vaqtni tanlang" }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const containerRef = { current: null };
+
+  const formatDateToLocalString = (date) => {
+    if (!date) return "";
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    const hh = String(date.getHours()).padStart(2, '0');
+    const mm = String(date.getMinutes()).padStart(2, '0');
+    return `${y}-${m}-${d}T${hh}:${mm}`;
+  };
+
+  const valDate = value ? new Date(value) : null;
+
+  // Sync active month view with currently selected value
+  useEffect(() => {
+    if (valDate && !isNaN(valDate.getTime())) {
+      setCurrentDate(new Date(valDate.getFullYear(), valDate.getMonth(), 1));
+    } else {
+      setCurrentDate(new Date());
+    }
+  }, [value]);
+
+  // Close popup on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const handlePrevMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  };
+
+  const selectDay = (day) => {
+    const newDate = valDate && !isNaN(valDate.getTime()) ? new Date(valDate) : new Date();
+    newDate.setFullYear(currentDate.getFullYear());
+    newDate.setMonth(currentDate.getMonth());
+    newDate.setDate(day);
+    if (!valDate || isNaN(valDate.getTime())) {
+      newDate.setHours(12);
+      newDate.setMinutes(0);
+    }
+    onChange(formatDateToLocalString(newDate));
+  };
+
+  const handleHourChange = (h) => {
+    const newDate = valDate && !isNaN(valDate.getTime()) ? new Date(valDate) : new Date();
+    newDate.setHours(parseInt(h));
+    onChange(formatDateToLocalString(newDate));
+  };
+
+  const handleMinuteChange = (m) => {
+    const newDate = valDate && !isNaN(valDate.getTime()) ? new Date(valDate) : new Date();
+    newDate.setMinutes(parseInt(m));
+    onChange(formatDateToLocalString(newDate));
+  };
+
+  const monthNames = [
+    "Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun", 
+    "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr"
+  ];
+  const weekDays = ["Du", "Se", "Ch", "Pa", "Ju", "Sh", "Ya"];
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+
+  // First day of current month (0 is Sunday, 1 is Monday... so we shift so 0 is Mon, 6 is Sun)
+  const firstDayIndex = (new Date(year, month, 1).getDay() + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  // Array of days
+  const days = [];
+  for (let i = 0; i < firstDayIndex; i++) {
+    days.push(null);
+  }
+  for (let i = 1; i <= daysInMonth; i++) {
+    days.push(i);
+  }
+
+  // Format display label
+  const formatDisplay = () => {
+    if (!valDate || isNaN(valDate.getTime())) return placeholder;
+    const d = String(valDate.getDate()).padStart(2, '0');
+    const m = String(valDate.getMonth() + 1).padStart(2, '0');
+    const y = valDate.getFullYear();
+    const hr = String(valDate.getHours()).padStart(2, '0');
+    const min = String(valDate.getMinutes()).padStart(2, '0');
+    return `${d}.${m}.${y}, ${hr}:${min}`;
+  };
+
+  const currentHour = valDate && !isNaN(valDate.getTime()) ? valDate.getHours() : 12;
+  const currentMinute = valDate && !isNaN(valDate.getTime()) ? valDate.getMinutes() : 0;
+
+  return (
+    <div 
+      ref={(el) => { containerRef.current = el; }} 
+      style={{ position: "relative", width: "100%" }}
+    >
+      <div 
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          width: "100%",
+          padding: "11px 14px",
+          border: "1.5px solid var(--sand)",
+          borderRadius: 12,
+          background: "var(--card-bg)",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          color: valDate && !isNaN(valDate.getTime()) ? "var(--ink)" : "var(--muted)",
+          marginTop: 4,
+          fontSize: 14,
+          transition: "border-color 0.15s ease",
+        }}
+      >
+        <span>{formatDisplay()}</span>
+        <i className="ti ti-calendar" style={{ fontSize: 16, color: "var(--orange)" }}></i>
+      </div>
+
+      {isOpen && (
+        <div style={{
+          position: "absolute",
+          top: "100%",
+          left: 0,
+          zIndex: 1000,
+          background: "var(--card-bg)",
+          border: "1.5px solid var(--sand)",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
+          borderRadius: 16,
+          padding: 16,
+          width: 300,
+          marginTop: 6,
+          animation: "fadeIn 0.15s ease",
+        }}>
+          {/* Header */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <button 
+              type="button" 
+              onClick={handlePrevMonth}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--orange)", padding: 4 }}
+            >
+              <i className="ti ti-chevron-left" style={{ fontSize: 16 }}></i>
+            </button>
+            <span style={{ fontWeight: 700, color: "var(--ink)", fontSize: 13 }}>
+              {monthNames[month]} {year}
+            </span>
+            <button 
+              type="button" 
+              onClick={handleNextMonth}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--orange)", padding: 4 }}
+            >
+              <i className="ti ti-chevron-right" style={{ fontSize: 16 }}></i>
+            </button>
+          </div>
+
+          {/* Week Days */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", textAlign: "center", marginBottom: 8 }}>
+            {weekDays.map(d => (
+              <span key={d} style={{ fontSize: 10, fontWeight: 700, color: "var(--muted)" }}>{d}</span>
+            ))}
+          </div>
+
+          {/* Days Grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, textAlign: "center", marginBottom: 12 }}>
+            {days.map((day, idx) => {
+              if (day === null) {
+                return <span key={`empty-${idx}`}></span>;
+              }
+              const isSelected = valDate && !isNaN(valDate.getTime()) && 
+                valDate.getDate() === day && 
+                valDate.getMonth() === month && 
+                valDate.getFullYear() === year;
+              const todayDate = new Date();
+              const isToday = todayDate.getDate() === day && 
+                todayDate.getMonth() === month && 
+                todayDate.getFullYear() === year;
+
+              return (
+                <button
+                  key={day}
+                  type="button"
+                  onClick={() => selectDay(day)}
+                  style={{
+                    background: isSelected ? "var(--orange)" : "transparent",
+                    color: isSelected ? "#fff" : isToday ? "var(--orange)" : "var(--ink)",
+                    border: "none",
+                    borderRadius: 8,
+                    height: 28,
+                    fontSize: 12,
+                    fontWeight: isToday || isSelected ? 700 : 500,
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSelected) e.currentTarget.style.background = "var(--cream)";
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSelected) e.currentTarget.style.background = "transparent";
+                  }}
+                >
+                  {day}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Time Picker Row */}
+          <div style={{ borderTop: "1px solid var(--sand)", paddingTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)" }}>Vaqt:</span>
+            <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+              <select
+                value={currentHour}
+                onChange={(e) => handleHourChange(e.target.value)}
+                style={{
+                  padding: "4px 6px",
+                  border: "1.5px solid var(--sand)",
+                  borderRadius: 8,
+                  background: "var(--card-bg)",
+                  color: "var(--ink)",
+                  fontSize: 12,
+                  fontFamily: "inherit",
+                  cursor: "pointer",
+                  outline: "none",
+                }}
+              >
+                {Array.from({ length: 24 }).map((_, i) => (
+                  <option key={i} value={i}>{String(i).padStart(2, '0')}</option>
+                ))}
+              </select>
+              <span style={{ color: "var(--muted)", fontSize: 12 }}>:</span>
+              <select
+                value={currentMinute}
+                onChange={(e) => handleMinuteChange(e.target.value)}
+                style={{
+                  padding: "4px 6px",
+                  border: "1.5px solid var(--sand)",
+                  borderRadius: 8,
+                  background: "var(--card-bg)",
+                  color: "var(--ink)",
+                  fontSize: 12,
+                  fontFamily: "inherit",
+                  cursor: "pointer",
+                  outline: "none",
+                }}
+              >
+                {Array.from({ length: 60 }).map((_, i) => (
+                  <option key={i} value={i}>{String(i).padStart(2, '0')}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
