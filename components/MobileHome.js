@@ -324,10 +324,10 @@ export default function MobileHome({ listings = [], count = 0 }) {
             display: "flex",
             justifyContent: "space-around",
             padding: "18px 12px",
-            background: "linear-gradient(135deg, var(--orange) 0%, var(--orange-dark) 100%)",
+            background: "var(--orange)",
             margin: "8px 16px 16px",
             borderRadius: 20,
-            boxShadow: "0 8px 24px rgba(242, 89, 31, 0.18)"
+            boxShadow: "0 8px 24px rgba(224, 99, 52, 0.18)"
           }}>
             {CATS.map((c) => (
               <Link

@@ -183,9 +183,9 @@ export default function Map({ listings, activePin, onPinClick, mini = false, pol
       points = [e.latlng];
       if (tempPoly) tempPoly.remove();
       tempPoly = L.polygon(points, {
-        color: '#F2591F',
+        color: '#E06334',
         weight: 3,
-        fillColor: '#F2591F',
+        fillColor: '#E06334',
         fillOpacity: 0.15
       }).addTo(map);
     };
@@ -256,9 +256,9 @@ export default function Map({ listings, activePin, onPinClick, mini = false, pol
       polygonInstanceRef.current = L.polygon(
         polygonPoints.map(p => [p.lat, p.lng]),
         {
-          color: '#F2591F',
+          color: '#E06334',
           weight: 3,
-          fillColor: '#F2591F',
+          fillColor: '#E06334',
           fillOpacity: 0.15
         }
       ).addTo(map);

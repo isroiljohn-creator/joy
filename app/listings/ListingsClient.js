@@ -11,7 +11,7 @@ const Map = dynamic(() => import("@/components/Map"), {
       position: "absolute",
       inset: 0,
       background: "#FFF7F2",
-      color: "#F2591F",
+      color: "#E06334",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",

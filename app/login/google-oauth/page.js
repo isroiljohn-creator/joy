@@ -89,7 +89,7 @@ function GoogleOAuthMockContent() {
             </div>
 
             <div style={buttonGroupStyle}>
-              <span style={{ fontSize: 13, color: "var(--orange, #F2591F)", fontWeight: 500 }}>
+              <span style={{ fontSize: 13, color: "var(--orange, #E06334)", fontWeight: 500 }}>
                 Haqiqiy simulyatsiya
               </span>
               <button
@@ -192,7 +192,7 @@ const containerStyle = {
 
 const devAlertStyle = {
   background: "rgba(242, 89, 31, 0.08)",
-  border: "1.5px solid var(--orange, #F2591F)",
+  border: "1.5px solid var(--orange, #E06334)",
   borderRadius: 12,
   padding: "16px",
   width: "100%",
@@ -208,7 +208,7 @@ const alertIconStyle = {
 const alertTitleStyle = {
   fontSize: 14,
   fontWeight: 700,
-  color: "var(--orange, #F2591F)",
+  color: "var(--orange, #E06334)",
   marginBottom: 6
 };
 
@@ -283,7 +283,7 @@ const buttonGroupStyle = {
 const backBtnStyle = {
   background: "none",
   border: "none",
-  color: "var(--orange, #F2591F)",
+  color: "var(--orange, #E06334)",
   fontSize: 14,
   fontWeight: 600,
   cursor: "pointer",
@@ -291,7 +291,7 @@ const backBtnStyle = {
 };
 
 const submitBtnStyle = {
-  background: "var(--orange, #F2591F)",
+  background: "var(--orange, #E06334)",
   color: "#ffffff",
   border: "none",
   borderRadius: 8,
@@ -344,7 +344,7 @@ const avatarStyle = {
   height: 32,
   borderRadius: "50%",
   background: "var(--orange-tint, #FDEAE2)",
-  color: "var(--orange, #F2591F)",
+  color: "var(--orange, #E06334)",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
