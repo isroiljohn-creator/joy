@@ -591,7 +591,7 @@ export default function ErpClient({
                 <h3 style={{ margin: "0 0 16px 0", fontSize: 16, fontWeight: 700 }}>Xonadonlar Holati Analitikasi</h3>
                 
                 {/* CSS Based Progress bar representation of inventory */}
-                <div style={{
+                <div className="progress-track" style={{
                   height: 24,
                   background: "#eee",
                   borderRadius: 12,
@@ -702,7 +702,7 @@ export default function ErpClient({
                             <span><strong>{s.name}</strong> ({s.sales_count} ta shartnoma)</span>
                             <strong>${s.sales_volume?.toLocaleString()}</strong>
                           </div>
-                          <div style={{ height: 8, background: "#eee", borderRadius: 4, overflow: "hidden" }}>
+                          <div className="progress-track" style={{ height: 8, background: "#eee", borderRadius: 4, overflow: "hidden" }}>
                             <div style={{
                               height: "100%",
                               background: "var(--orange)",
@@ -824,7 +824,7 @@ export default function ErpClient({
                         }}></span>
                         {getStatusLabel(status)}
                       </h4>
-                      <span style={{
+                      <span className="kanban-badge" style={{
                         background: "#fff",
                         padding: "2px 8px",
                         borderRadius: 10,
@@ -836,7 +836,7 @@ export default function ErpClient({
 
                     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                       {columnLeads.map(l => (
-                        <div key={l.id} style={{
+                        <div key={l.id} className="kanban-card" style={{
                           background: "#fff",
                           borderRadius: 14,
                           padding: 12,
@@ -871,7 +871,7 @@ export default function ErpClient({
                             )}
                           </div>
 
-                          <div style={{ fontSize: 12, color: "#666", background: "#f9f9f9", padding: 6, borderRadius: 8, marginBottom: 12, fontStyle: "italic" }}>
+                          <div className="kanban-card-notes" style={{ fontSize: 12, color: "#666", background: "#f9f9f9", padding: 6, borderRadius: 8, marginBottom: 12, fontStyle: "italic" }}>
                             {l.notes || "Izoh kiritilmagan"}
                           </div>
 
@@ -1047,7 +1047,7 @@ export default function ErpClient({
                       <span>Progress (G'isht/Karkas):</span>
                       <strong>{p.progress_brick}%</strong>
                     </div>
-                    <div style={{ height: 6, background: "#eee", borderRadius: 3, overflow: "hidden" }}>
+                    <div className="progress-track" style={{ height: 6, background: "#eee", borderRadius: 3, overflow: "hidden" }}>
                       <div style={{ height: "100%", background: "var(--orange)", width: `${p.progress_brick}%` }}></div>
                     </div>
                   </div>
@@ -1263,7 +1263,7 @@ export default function ErpClient({
                                 <span>{percentPaid}% to'landi</span>
                                 {outstanding > 0 && <span style={{ color: "var(--orange-dark)" }}>Qarz: ${outstanding.toLocaleString()}</span>}
                               </div>
-                              <div style={{ height: 6, background: "#eee", borderRadius: 3, overflow: "hidden", marginTop: 2 }}>
+                              <div className="progress-track" style={{ height: 6, background: "#eee", borderRadius: 3, overflow: "hidden", marginTop: 2 }}>
                                 <div style={{ height: "100%", background: outstanding === 0 ? "#22c55e" : "var(--orange)", width: `${percentPaid}%` }}></div>
                               </div>
                               
@@ -2100,7 +2100,7 @@ export default function ErpClient({
                 1.1. Sotuvchi shartnoma shartlariga muvofiq o'zining qurilish loyihasi bo'lgan <strong>{showContractModal.project_name}</strong> turar-joy majmuasidan quyidagi xonadonni Xaridorga rasmiylashtirish majburiyatini oladi, Xaridor esa to'lovni o'z vaqtida amalga oshirish majburiyatini oladi.
               </p>
 
-              <div style={{ border: "1px solid #000", padding: 12, borderRadius: 8, margin: "14px 0", background: "#fcfcfc" }}>
+              <div className="printable-contract-box" style={{ border: "1px solid #000", padding: 12, borderRadius: 8, margin: "14px 0", background: "#fcfcfc" }}>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                   <div>🏢 Loyiha: <strong>{showContractModal.project_name}</strong></div>
                   <div>🚪 Xonadon raqami: <strong>{showContractModal.unit_number}</strong></div>
@@ -2189,6 +2189,74 @@ export default function ErpClient({
               @keyframes fadeIn {
                 from { opacity: 0; }
                 to { opacity: 1; }
+              }
+
+              /* Dark theme adaptive overrides for ERP/CRM panels */
+              [data-theme="dark"] .create-agency-card {
+                background: var(--card-bg) !important;
+                color: var(--ink) !important;
+                border: 1px solid var(--sand) !important;
+              }
+              [data-theme="dark"] .create-agency-card input,
+              [data-theme="dark"] .create-agency-card select,
+              [data-theme="dark"] .create-agency-card textarea {
+                background: var(--cream) !important;
+                color: var(--ink) !important;
+                border: 1.5px solid var(--sand) !important;
+              }
+              [data-theme="dark"] .create-agency-card label {
+                color: var(--text2) !important;
+              }
+              [data-theme="dark"] .kanban-column {
+                background: var(--cream) !important;
+                border-color: var(--sand) !important;
+              }
+              [data-theme="dark"] .kanban-badge {
+                background: var(--sand) !important;
+                color: var(--ink) !important;
+              }
+              [data-theme="dark"] .kanban-card {
+                background: var(--card-bg) !important;
+                border-color: var(--sand) !important;
+                color: var(--ink) !important;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+              }
+              [data-theme="dark"] .kanban-card select {
+                background: var(--cream) !important;
+                color: var(--ink) !important;
+                border-color: var(--sand) !important;
+              }
+              [data-theme="dark"] .kanban-card-notes {
+                background: var(--cream) !important;
+                color: var(--text2) !important;
+              }
+              [data-theme="dark"] .dashboard-listings-table th {
+                background: var(--sand) !important;
+                color: var(--ink) !important;
+              }
+              [data-theme="dark"] .dashboard-listings-table td {
+                border-bottom-color: var(--sand) !important;
+              }
+              [data-theme="dark"] .dashboard-listings-table tr:hover td {
+                background: var(--cream) !important;
+              }
+              [data-theme="dark"] .progress-track {
+                background: var(--sand) !important;
+              }
+              [data-theme="dark"] .contract-print-modal-inner {
+                background: var(--card-bg) !important;
+                color: var(--ink) !important;
+                border: 1px solid var(--sand) !important;
+              }
+              [data-theme="dark"] .printable-contract {
+                color: var(--ink) !important;
+              }
+              [data-theme="dark"] .printable-contract h2 {
+                color: var(--ink) !important;
+              }
+              [data-theme="dark"] .printable-contract-box {
+                background: var(--cream) !important;
+                border-color: var(--sand) !important;
               }
             `}</style>
           </div>
