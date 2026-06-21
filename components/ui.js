@@ -174,6 +174,11 @@ export function Nav() {
                     {t("admin_panel")}
                   </Link>
                 )}
+                {(user.role === "owner" || user.role === "rop" || user.role === "seller") && (
+                  <Link href="/erp" className="btn-ghost" style={{ border: "1px solid var(--orange)", color: "var(--orange)", background: "var(--cream)" }}>
+                    <i className="ti ti-device-analytics" style={{ marginRight: 4, verticalAlign: -1 }}></i> ERP Panel
+                  </Link>
+                )}
                 <Link href="/compare" className="btn-ghost" title="E'lonlarni solishtirish" style={{ display: "inline-flex", alignItems: "center", gap: 6, position: "relative" }}>
                   <i className="ti ti-git-compare" style={{ fontSize: 16 }}></i>
                   <span>Solishtirish</span>
@@ -312,6 +317,11 @@ export function Nav() {
                   {user.role === "admin" && (
                     <Link href="/admin" onClick={() => setMobileMenuOpen(false)} style={{ color: "var(--purple)" }}>
                       <i className="ti ti-shield" style={{ color: "var(--purple)" }}></i> {t("admin_panel")}
+                    </Link>
+                  )}
+                  {(user.role === "owner" || user.role === "rop" || user.role === "seller") && (
+                    <Link href="/erp" onClick={() => setMobileMenuOpen(false)} style={{ color: "var(--orange)" }}>
+                      <i className="ti ti-device-analytics" style={{ color: "var(--orange)" }}></i> ERP Panel
                     </Link>
                   )}
                   <Link href="/agency-dashboard" onClick={() => setMobileMenuOpen(false)}>
