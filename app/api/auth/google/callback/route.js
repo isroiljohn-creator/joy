@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import pool from "@/lib/db";
-import { hashPassword } from "@/lib/hash";
+import { hashPassword, signValue } from "@/lib/hash";
 
 const COOKIE_OPTIONS = { 
   path: "/", 
@@ -23,6 +23,7 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
   const error = searchParams.get("error");
+  const state = searchParams.get("state");
   
   const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || "localhost:3000";
   let proto = "http";
@@ -31,6 +32,14 @@ export async function GET(request) {
     proto = request.headers.get("x-forwarded-proto") || reqUrlObj.protocol.replace(":", "");
   }
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || `${proto}://${host}`;
+
+  // Dev logindan tashqari holatlar uchun CSRF state parametrini tekshiramiz
+  if (code !== "mock_dev_code") {
+    const storedState = cookies().get("google_oauth_state")?.value;
+    if (!state || state !== storedState) {
+      return NextResponse.redirect(`${appUrl}/login?error=Google login xavfsizlik tekshiruvidan o'tmadi (CSRF)`);
+    }
+  }
 
   if (error || !code) {
     return NextResponse.redirect(`${appUrl}/login?error=Google login rad etildi`);
@@ -43,7 +52,8 @@ export async function GET(request) {
 
     let email, name;
 
-    if (!clientId || !clientSecret || code === "mock_dev_code") {
+    const isDev = process.env.NODE_ENV === "development";
+    if (isDev && (!clientId || !clientSecret || code === "mock_dev_code")) {
       email = searchParams.get("email") || "developer@maskon.uz";
       name = searchParams.get("name") || "Developer maskon";
     } else {
@@ -103,7 +113,7 @@ export async function GET(request) {
     }
 
     const cookieStore = cookies();
-    cookieStore.set("user_id", String(user.id), COOKIE_OPTIONS);
+    cookieStore.set("user_id", signValue(String(user.id)), COOKIE_OPTIONS);
     cookieStore.set("user_name", user.name, COOKIE_OPTIONS);
     cookieStore.set("user_display_name", user.name, PUBLIC_COOKIE_OPTIONS);
     cookieStore.set("user_phone", user.phone, COOKIE_OPTIONS);

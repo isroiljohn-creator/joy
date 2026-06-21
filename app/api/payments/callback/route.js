@@ -4,7 +4,14 @@ import { revalidatePath } from "next/cache";
 
 export async function POST(req) {
   try {
-    const { tx_id, status } = await req.json();
+    const secretToken = req.headers.get("x-webhook-secret") || new URL(req.url).searchParams.get("secret");
+    const expectedSecret = process.env.PAYMENT_WEBHOOK_SECRET || "default_webhook_secret_key_9988";
+    
+    if (!secretToken || secretToken !== expectedSecret) {
+      return NextResponse.json({ error: "Unauthorized webhook caller" }, { status: 401 });
+    }
+
+    const { tx_id, status, amount } = await req.json();
 
     if (!tx_id || status !== "success") {
       return NextResponse.json({ error: "Invalid payment callback" }, { status: 400 });
@@ -17,6 +24,11 @@ export async function POST(req) {
     }
 
     const tx = txRows[0];
+
+    // Verify amount matches expected value
+    if (amount === undefined || amount === null || parseInt(amount) !== tx.amount) {
+      return NextResponse.json({ error: "Transaction amount mismatch" }, { status: 400 });
+    }
 
     // Tranzaksiyani boshlash
     await pool.query("BEGIN");

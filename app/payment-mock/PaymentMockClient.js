@@ -1,7 +1,7 @@
 "use client";
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { confirmPaymentAction } from "@/app/actions";
 
 export default function PaymentMockClient({ user, txId, amount, type }) {
   const router = useRouter();
@@ -12,18 +12,12 @@ export default function PaymentMockClient({ user, txId, amount, type }) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/payments/callback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tx_id: parseInt(txId), status: "success" }),
-      });
-      
-      const data = await res.json();
-      if (res.ok) {
+      const res = await confirmPaymentAction(parseInt(txId));
+      if (res && res.success) {
         // To'lov muvaffaqiyatli, profilga qaytaramiz
         router.push("/profile?payment_success=true");
       } else {
-        setError(data.error || "To'lov xatosi");
+        setError(res?.error || "To'lov tasdiqlashda xatolik");
         setLoading(false);
       }
     } catch (err) {

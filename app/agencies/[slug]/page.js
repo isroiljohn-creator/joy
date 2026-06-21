@@ -44,7 +44,7 @@ export default async function AgencyProfilePage({ params }) {
       SELECT l.*, u.name AS owner_name
       FROM listings l
       LEFT JOIN users u ON l.owner_id = u.id
-      WHERE l.agency_id = $1 AND l.status = 'active'
+      WHERE l.agency_id = $1 AND l.status = 'active' AND l.deleted_at IS NULL
       ORDER BY l.top DESC, l.id DESC
       LIMIT 20
     `, [agency.id]);

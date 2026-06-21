@@ -31,16 +31,23 @@ export default function ChatClient({ user, initialMessages }) {
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
-        const res = await fetch("/api/messages");
+        const latestTime = messages.length > 0 
+          ? new Date(Math.max(...messages.map(m => new Date(m.createdAt).getTime()))).toISOString() 
+          : null;
+        
+        const url = latestTime ? `/api/messages?since=${encodeURIComponent(latestTime)}` : "/api/messages";
+        const res = await fetch(url);
         if (res.ok) {
           const data = await res.json();
-          if (data.messages) {
-            // Compare lengths or contents to avoid redundant updates
-            const currentIds = messages.map(m => m.id).join(",");
-            const incomingIds = data.messages.map(m => m.id).join(",");
-            if (currentIds !== incomingIds) {
-              setMessages(data.messages);
-            }
+          if (data.messages && data.messages.length > 0) {
+            setMessages((prev) => {
+              const existingIds = new Set(prev.map(m => m.id));
+              const newMsgs = data.messages.filter(m => !existingIds.has(m.id));
+              if (newMsgs.length > 0) {
+                return [...prev, ...newMsgs];
+              }
+              return prev;
+            });
           }
         }
       } catch (err) {

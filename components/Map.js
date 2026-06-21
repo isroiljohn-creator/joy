@@ -329,9 +329,35 @@ export default function Map({ listings, activePin, onPinClick, mini = false, pol
 
     if (!Array.isArray(items)) return;
 
+    const usedCoords = [];
+
     items.forEach((l, i) => {
       try {
-        const coords = getCoords(l.addr);
+        let coords = getCoords(l.addr);
+        
+        // Jitter mechanism for overlapping coordinates
+        let isOverlapping = true;
+        let attempts = 0;
+        while (isOverlapping && attempts < 10) {
+          isOverlapping = false;
+          for (const uc of usedCoords) {
+            const distance = Math.sqrt(Math.pow(uc[0] - coords[0], 2) + Math.pow(uc[1] - coords[1], 2));
+            if (distance < 0.00015) {
+              isOverlapping = true;
+              break;
+            }
+          }
+          if (isOverlapping) {
+            const angle = Math.random() * Math.PI * 2;
+            const distanceOffset = 0.00025 + Math.random() * 0.0001;
+            coords = [
+              coords[0] + Math.cos(angle) * distanceOffset,
+              coords[1] + Math.sin(angle) * distanceOffset
+            ];
+          }
+          attempts++;
+        }
+        usedCoords.push(coords);
         const priceLabel = l.priceNum != null
           ? l.priceNum >= 1000
             ? `$${Math.round(l.priceNum / 1000)}k`

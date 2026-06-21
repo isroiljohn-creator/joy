@@ -1,27 +1,47 @@
 import { NextResponse } from "next/server";
 import pool from "@/lib/db";
 import { cookies } from "next/headers";
+import { verifySignedValue } from "@/lib/hash";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request) {
   try {
     const cookieStore = cookies();
-    const userId = cookieStore.get("user_id")?.value;
+    const signedId = cookieStore.get("user_id")?.value;
+    const userId = signedId ? verifySignedValue(signedId) : null;
     if (!userId) {
       return NextResponse.json({ messages: [] }, { status: 401 });
     }
 
-    const { rows } = await pool.query(
-      `SELECT m.*, l.type as listing_type, 
-              r.name AS receiver_name, r.phone AS receiver_phone
-       FROM messages m
-       LEFT JOIN listings l ON m.listing_id = l.id
-       LEFT JOIN users r ON m.receiver_id = r.id
-       WHERE m.receiver_id = $1 OR m.sender_id = $1
-       ORDER BY m.id ASC`,
-      [parseInt(userId)]
-    );
+    const { searchParams } = new URL(request.url);
+    const since = searchParams.get("since");
+    const page = parseInt(searchParams.get("page")) || 1;
+    const limit = parseInt(searchParams.get("limit")) || 100;
+    const offset = (page - 1) * limit;
+
+    let query = `
+      SELECT m.*, l.type as listing_type, 
+             r.name AS receiver_name, r.phone AS receiver_phone
+      FROM messages m
+      LEFT JOIN listings l ON m.listing_id = l.id
+      LEFT JOIN users r ON m.receiver_id = r.id
+      WHERE (m.receiver_id = $1 OR m.sender_id = $1)
+    `;
+    const params = [parseInt(userId)];
+
+    if (since) {
+      const parsedSince = new Date(since);
+      if (!isNaN(parsedSince.getTime())) {
+        query += " AND m.created_at > $" + (params.length + 1);
+        params.push(parsedSince);
+      }
+    }
+
+    query += ` ORDER BY m.id ASC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    params.push(limit, offset);
+
+    const { rows } = await pool.query(query, params);
 
     const messages = rows.map(r => ({
       id: r.id,

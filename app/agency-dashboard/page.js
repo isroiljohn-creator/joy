@@ -43,7 +43,7 @@ export default async function AgencyDashboardPage() {
       const { rows: listingRows } = await pool.query(`
         SELECT l.id, l.type, l.price, l.addr, l.status, l.views, l.saves, l.created_at
         FROM listings l
-        WHERE l.agency_id = $1
+        WHERE l.agency_id = $1 AND l.deleted_at IS NULL
         ORDER BY l.id DESC
         LIMIT 50
       `, [myAgency.id]);
@@ -53,9 +53,9 @@ export default async function AgencyDashboardPage() {
       const { rows: leadRows } = await pool.query(`
         SELECT m.*, l.type as listing_type, l.addr as listing_addr,
                u.name as assigned_to_name
-        FROM messages m
-        LEFT JOIN listings l ON m.listing_id = l.id
-        LEFT JOIN users u ON m.assigned_to = u.id
+         FROM messages m
+         LEFT JOIN listings l ON m.listing_id = l.id AND l.deleted_at IS NULL
+         LEFT JOIN users u ON m.assigned_to = u.id
         WHERE m.agency_id = $1
         ORDER BY m.created_at DESC
         LIMIT 50

@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
 import pool from "@/lib/db";
 import { cookies } from "next/headers";
+import { verifySignedValue } from "@/lib/hash";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request) {
   try {
     const cookieStore = cookies();
-    const userId = cookieStore.get("user_id")?.value;
+    const signedId = cookieStore.get("user_id")?.value;
+    const userId = signedId ? verifySignedValue(signedId) : null;
     
     if (!userId) {
       return NextResponse.json({ count: 0 });

@@ -3,7 +3,68 @@ import pool from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { hashPassword, verifyPassword } from "@/lib/hash";
+import { hashPassword, verifyPassword, signValue, verifySignedValue } from "@/lib/hash";
+import crypto from "crypto";
+
+// OTP Brute force rate limiting (In-memory cache)
+global.otpAttempts = global.otpAttempts || {};
+
+function checkOtpRateLimit(phone) {
+  const record = global.otpAttempts[phone];
+  const now = Date.now();
+  if (record) {
+    if (record.blockedUntil && record.blockedUntil > now) {
+      return false;
+    }
+    if (record.blockedUntil && record.blockedUntil <= now) {
+      delete global.otpAttempts[phone];
+    }
+  }
+  return true;
+}
+
+function recordOtpFailure(phone) {
+  global.otpAttempts[phone] = global.otpAttempts[phone] || { count: 0 };
+  global.otpAttempts[phone].count += 1;
+  if (global.otpAttempts[phone].count >= 5) {
+    global.otpAttempts[phone].blockedUntil = Date.now() + 1000 * 60 * 5; // 5 daqiqa bloklash
+  }
+}
+
+function clearOtpFailures(phone) {
+  delete global.otpAttempts[phone];
+}
+
+
+// Login Brute force rate limiting (In-memory cache)
+global.loginAttempts = global.loginAttempts || {};
+
+function checkLoginRateLimit(phone) {
+  const record = global.loginAttempts[phone];
+  const now = Date.now();
+  if (record) {
+    if (record.blockedUntil && record.blockedUntil > now) {
+      return false;
+    }
+    if (record.blockedUntil && record.blockedUntil <= now) {
+      delete global.loginAttempts[phone];
+    }
+  }
+  return true;
+}
+
+function recordLoginFailure(phone) {
+  global.loginAttempts[phone] = global.loginAttempts[phone] || { count: 0 };
+  global.loginAttempts[phone].count += 1;
+  if (global.loginAttempts[phone].count >= 5) {
+    global.loginAttempts[phone].blockedUntil = Date.now() + 1000 * 60 * 5; // 5 minutes lock
+  }
+}
+
+function clearLoginFailures(phone) {
+  delete global.loginAttempts[phone];
+}
+
 
 // Cookie sozlamalari (30 kunlik muddat, xavfsiz HttpOnly)
 const COOKIE_OPTIONS = { 
@@ -41,8 +102,11 @@ const DISTRICT_PINS = {
 // Sessiyadagi joriy foydalanuvchini olish
 export async function getCurrentUser() {
   const cookieStore = cookies();
-  const id = cookieStore.get("user_id")?.value;
+  const signedId = cookieStore.get("user_id")?.value;
   const name = cookieStore.get("user_name")?.value;
+  if (!signedId) return null;
+
+  const id = verifySignedValue(signedId);
   if (!id) return null;
 
   try {
@@ -72,15 +136,21 @@ export async function loginAction(formData) {
   const phone = formData.get("phone");
   const password = formData.get("password");
 
+  if (!checkLoginRateLimit(phone)) {
+    return { error: "Urinishlar soni juda ko'p. Iltimos, 5 daqiqa kuting." };
+  }
+
   try {
     const { rows } = await pool.query("SELECT * FROM users WHERE phone = $1", [phone]);
     if (rows.length === 0 || !verifyPassword(password, rows[0].password)) {
+      recordLoginFailure(phone);
       return { error: "Telefon raqami yoki parol noto'g'ri" };
     }
 
+    clearLoginFailures(phone);
     const user = rows[0];
     const cookieStore = cookies();
-    cookieStore.set("user_id", String(user.id), COOKIE_OPTIONS);
+    cookieStore.set("user_id", signValue(String(user.id)), COOKIE_OPTIONS);
     cookieStore.set("user_name", user.name, COOKIE_OPTIONS);
     cookieStore.set("user_display_name", user.name, PUBLIC_COOKIE_OPTIONS);
     cookieStore.set("user_phone", user.phone, COOKIE_OPTIONS);
@@ -98,7 +168,16 @@ export async function registerAction(formData) {
   const name = formData.get("name");
   const phone = formData.get("phone");
   const password = formData.get("password");
+
+  if (!password || password.length < 8) {
+    return { error: "Parol uzunligi kamida 8 ta belgidan iborat bo'lishi shart!" };
+  }
+
   const hashedPassword = hashPassword(password);
+
+  if (phone && phone.toLowerCase().startsWith("google_")) {
+    return { error: "Yaroqsiz telefon raqami formati" };
+  }
 
   try {
     const { rows } = await pool.query(
@@ -107,7 +186,7 @@ export async function registerAction(formData) {
     );
     const user = rows[0];
     const cookieStore = cookies();
-    cookieStore.set("user_id", String(user.id), COOKIE_OPTIONS);
+    cookieStore.set("user_id", signValue(String(user.id)), COOKIE_OPTIONS);
     cookieStore.set("user_name", user.name, COOKIE_OPTIONS);
     cookieStore.set("user_display_name", user.name, PUBLIC_COOKIE_OPTIONS);
     cookieStore.set("user_phone", user.phone, COOKIE_OPTIONS);
@@ -128,7 +207,12 @@ export async function sendOtpAction(phone) {
     await pool.query("INSERT INTO verification_codes (phone, code) VALUES ($1, $2)", [phone, code]);
     
     console.log(`[SMS OTP] Verification code for ${phone} is: ${code}`);
-    return { success: true, demoCode: code };
+    
+    const response = { success: true };
+    if (process.env.NODE_ENV !== "production") {
+      response.demoCode = code;
+    }
+    return response;
   } catch (error) {
     console.error("sendOtpAction error:", error);
     return { error: "SMS kod yuborishda xatolik yuz berdi" };
@@ -138,23 +222,30 @@ export async function sendOtpAction(phone) {
 // SMS OTP tekshirish va Kirish
 export async function verifyOtpAction(phone, code) {
   try {
+    if (!checkOtpRateLimit(phone)) {
+      return { error: "Urinishlar soni juda ko'p. Iltimos, 5 daqiqa kuting." };
+    }
+
     const { rows: codeRows } = await pool.query(
-      "SELECT * FROM verification_codes WHERE phone = $1 AND code = $2 AND created_at > NOW() - INTERVAL '5 minutes'",
+      "SELECT * FROM verification_codes WHERE phone = $1 AND code = $2 AND is_used = FALSE AND created_at > NOW() - INTERVAL '5 minutes'",
       [phone, code]
     );
 
     if (codeRows.length === 0) {
+      recordOtpFailure(phone);
       return { error: "Tasdiqlash kodi noto'g'ri yoki muddati o'tgan" };
     }
+
+    // Kodni ishlatilgan deb belgilaymiz
+    await pool.query("UPDATE verification_codes SET is_used = TRUE WHERE phone = $1", [phone]);
+    clearOtpFailures(phone);
 
     const { rows: userRows } = await pool.query("SELECT * FROM users WHERE phone = $1", [phone]);
     
     if (userRows.length > 0) {
-      await pool.query("DELETE FROM verification_codes WHERE phone = $1", [phone]);
-
       const user = userRows[0];
       const cookieStore = cookies();
-      cookieStore.set("user_id", String(user.id), COOKIE_OPTIONS);
+      cookieStore.set("user_id", signValue(String(user.id)), COOKIE_OPTIONS);
       cookieStore.set("user_name", user.name, COOKIE_OPTIONS);
       cookieStore.set("user_display_name", user.name, PUBLIC_COOKIE_OPTIONS);
       cookieStore.set("user_phone", user.phone, COOKIE_OPTIONS);
@@ -174,23 +265,30 @@ export async function verifyOtpAction(phone, code) {
 // SMS orqali ro'yxatdan o'tishni yakunlash
 export async function completeSmsRegisterAction(phone, code, name) {
   try {
+    if (!checkOtpRateLimit(phone)) {
+      return { error: "Urinishlar soni juda ko'p. Iltimos, 5 daqiqa kuting." };
+    }
+
     const { rows: codeRows } = await pool.query(
-      "SELECT * FROM verification_codes WHERE phone = $1 AND code = $2 AND created_at > NOW() - INTERVAL '5 minutes'",
+      "SELECT * FROM verification_codes WHERE phone = $1 AND code = $2 AND is_used = FALSE AND created_at > NOW() - INTERVAL '5 minutes'",
       [phone, code]
     );
 
     if (codeRows.length === 0) {
+      recordOtpFailure(phone);
       return { error: "Tasdiqlash kodi noto'g'ri yoki muddati o'tgan. Iltimos, qaytadan kod oling." };
     }
 
-    await pool.query("DELETE FROM verification_codes WHERE phone = $1", [phone]);
+    await pool.query("UPDATE verification_codes SET is_used = TRUE WHERE phone = $1", [phone]);
+    clearOtpFailures(phone);
 
     const { rows: existingUser } = await pool.query("SELECT * FROM users WHERE phone = $1", [phone]);
     if (existingUser.length > 0) {
       return { error: "Ushbu telefon raqami allaqachon ro'yxatdan o'tgan" };
     }
 
-    const dummyPassword = hashPassword(Math.random().toString(36));
+    // Kriptografik xavfsiz parol yaratamiz
+    const dummyPassword = hashPassword(crypto.randomBytes(16).toString("hex"));
     const { rows: userRows } = await pool.query(
       "INSERT INTO users (name, phone, password) VALUES ($1, $2, $3) RETURNING *",
       [name, phone, dummyPassword]
@@ -198,7 +296,7 @@ export async function completeSmsRegisterAction(phone, code, name) {
 
     const user = userRows[0];
     const cookieStore = cookies();
-    cookieStore.set("user_id", String(user.id), COOKIE_OPTIONS);
+    cookieStore.set("user_id", signValue(String(user.id)), COOKIE_OPTIONS);
     cookieStore.set("user_name", user.name, COOKIE_OPTIONS);
     cookieStore.set("user_display_name", user.name, PUBLIC_COOKIE_OPTIONS);
     cookieStore.set("user_phone", user.phone, COOKIE_OPTIONS);
@@ -212,47 +310,67 @@ export async function completeSmsRegisterAction(phone, code, name) {
   }
 }
 
-// Google orqali kirish / ro'yxatdan o'tish
-export async function googleLoginAction(email, name) {
-  try {
-    const { rows: existingUser } = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
-    
-    if (existingUser.length > 0) {
-      const user = existingUser[0];
-      const cookieStore = cookies();
-      cookieStore.set("user_id", String(user.id), COOKIE_OPTIONS);
-      cookieStore.set("user_name", user.name, COOKIE_OPTIONS);
-      cookieStore.set("user_display_name", user.name, PUBLIC_COOKIE_OPTIONS);
-      cookieStore.set("user_phone", user.phone, COOKIE_OPTIONS);
-      cookieStore.set("user_role", user.role || "user", PUBLIC_COOKIE_OPTIONS);
-      cookieStore.set("is_logged_in", "true", PUBLIC_COOKIE_OPTIONS);
-      
-      return { success: true };
-    } else {
-      const randomDigits = Math.floor(1000000 + Math.random() * 9000000).toString();
-      const placeholderPhone = `google_${randomDigits}`;
-      const dummyPassword = hashPassword(Math.random().toString(36));
-
-      const { rows: newUser } = await pool.query(
-        "INSERT INTO users (name, phone, password, email) VALUES ($1, $2, $3, $4) RETURNING *",
-        [name, placeholderPhone, dummyPassword, email]
-      );
-
-      const user = newUser[0];
-      const cookieStore = cookies();
-      cookieStore.set("user_id", String(user.id), COOKIE_OPTIONS);
-      cookieStore.set("user_name", user.name, COOKIE_OPTIONS);
-      cookieStore.set("user_display_name", user.name, PUBLIC_COOKIE_OPTIONS);
-      cookieStore.set("user_phone", user.phone, COOKIE_OPTIONS);
-      cookieStore.set("user_role", user.role || "user", PUBLIC_COOKIE_OPTIONS);
-      cookieStore.set("is_logged_in", "true", PUBLIC_COOKIE_OPTIONS);
-
-      return { success: true };
-    }
-  } catch (error) {
-    console.error("googleLoginAction error:", error);
-    return { error: "Google orqali tizimga kirishda xatolik yuz berdi" };
+// To'lovni tasdiqlash (Secure Server Action)
+export async function confirmPaymentAction(txId) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return { error: "unauthorized" };
   }
+
+  const txIdNum = parseInt(txId);
+  if (isNaN(txIdNum)) {
+    return { error: "invalid_id" };
+  }
+
+  try {
+    // 1. Tranzaksiya egasini tekshiramiz
+    const { rows: txRows } = await pool.query(
+      "SELECT * FROM transactions WHERE id = $1 AND user_id = $2 AND status = 'pending'",
+      [txIdNum, user.id]
+    );
+
+    if (txRows.length === 0) {
+      return { error: "Tranzaksiya topilmadi yoki allaqachon bajarilgan" };
+    }
+
+    const tx = txRows[0];
+
+    // ACID Tranzaksiyasi
+    await pool.query("BEGIN");
+
+    // 2. Tranzaksiyani completed qilish
+    await pool.query("UPDATE transactions SET status = 'completed' WHERE id = $1", [txIdNum]);
+
+    // 3. Biznes mantig'ini ishga tushirish (Premium obuna yoki TOP pin)
+    if (tx.payment_type === "subscription") {
+      await pool.query(
+        "UPDATE users SET is_verified = TRUE, subscription_plan = 'premium', subscription_expires_at = NOW() + INTERVAL '30 days' WHERE id = $1",
+        [tx.user_id]
+      );
+    } else if (tx.payment_type === "pin_listing" && tx.reference_id) {
+      await pool.query(
+        "UPDATE listings SET top = TRUE, top_expires_at = NOW() + INTERVAL '7 days' WHERE id = $1",
+        [tx.reference_id]
+      );
+    }
+
+    await pool.query("COMMIT");
+
+    revalidatePath("/");
+    revalidatePath("/profile");
+    revalidatePath("/listings");
+
+    return { success: true };
+  } catch (error) {
+    await pool.query("ROLLBACK");
+    console.error("confirmPaymentAction error:", error);
+    return { error: "To'lovni kiritishda xatolik yuz berdi" };
+  }
+}
+
+// Google orqali kirish / ro'yxatdan o'tish (Bypass xavfi sababli bekor qilindi, callback route ishlatiladi)
+export async function googleLoginAction(email, name) {
+  return { error: "Google Login to'g'diran-to'g'ri server action orqali chaqirilishi taqiqlangan." };
 }
 
 
@@ -268,7 +386,17 @@ export async function getGoogleAuthUrlAction(clientOrigin) {
     return { url: `${appUrl}/login/google-oauth` };
   }
   
-  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent("openid email profile")}&state=google`;
+  const state = "google_state_" + Math.random().toString(36).substring(2);
+  const cookieStore = cookies();
+  cookieStore.set("google_oauth_state", state, { 
+    path: "/", 
+    maxAge: 60 * 5, // 5 daqiqa
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax"
+  });
+
+  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent("openid email profile")}&state=${state}`;
   
   return { url };
 }
@@ -304,6 +432,14 @@ export async function createListingAction(formData) {
   const quarter = formData.get("quarter") || "9-kvartal";
 
   const priceNum = parseInt(priceInput.replace(/\s/g, "")) || 0;
+  
+  if (priceNum <= 0) {
+    return { error: "Narx noldan katta bo'lishi shart" };
+  }
+  if (rooms <= 0 || baths <= 0 || area <= 0) {
+    return { error: "Xona soni, yuvinish xonalari soni va maydon noldan katta bo'lishi shart" };
+  }
+
   const priceFormatted = "$" + priceNum.toLocaleString().replace(/,/g, " ");
 
   let cat = catRaw || "Yangi uylar";
@@ -334,7 +470,7 @@ export async function createListingAction(formData) {
     const { rows: agencyRows } = await pool.query("SELECT listing_quota FROM agencies WHERE id = $1", [agencyId]);
     if (agencyRows.length > 0) {
       const quota = agencyRows[0].listing_quota;
-      const { rows: countRows } = await pool.query("SELECT COUNT(*) FROM listings WHERE agency_id = $1", [agencyId]);
+      const { rows: countRows } = await pool.query("SELECT COUNT(*) FROM listings WHERE agency_id = $1 AND deleted_at IS NULL", [agencyId]);
       const currentCount = parseInt(countRows[0].count, 10);
       if (currentCount >= quota) {
         return { error: `Agentlik e'lonlar kvotasi to'lgan (${quota} ta).` };
@@ -374,7 +510,7 @@ export async function deleteListingAction(listingId) {
   try {
     // Egalikni tekshiramiz (ID bo'yicha)
     const { rows } = await pool.query(
-      "SELECT * FROM listings WHERE id = $1 AND owner_id = $2",
+      "SELECT * FROM listings WHERE id = $1 AND owner_id = $2 AND deleted_at IS NULL",
       [listingId, user.id]
     );
 
@@ -385,7 +521,7 @@ export async function deleteListingAction(listingId) {
     // ACID tranzaksiyasi
     await pool.query("BEGIN");
     await pool.query("DELETE FROM favorites WHERE listing_id = $1", [listingId]);
-    await pool.query("DELETE FROM listings WHERE id = $1", [listingId]);
+    await pool.query("UPDATE listings SET deleted_at = NOW() WHERE id = $1", [listingId]);
     await pool.query("COMMIT");
 
     revalidatePath("/");
@@ -411,7 +547,7 @@ export async function updateListingAction(formData) {
   try {
     // Egalikni tekshiramiz (ID bo'yicha)
     const { rows: existing } = await pool.query(
-      "SELECT * FROM listings WHERE id = $1 AND owner_id = $2",
+      "SELECT * FROM listings WHERE id = $1 AND owner_id = $2 AND deleted_at IS NULL",
       [listingId, user.id]
     );
 
@@ -429,19 +565,34 @@ export async function updateListingAction(formData) {
     const price = formData.get("price");
     if (price) {
       const priceNum = parseInt(price.replace(/\s/g, "")) || 0;
+      if (priceNum <= 0) {
+        return { error: "Narx noldan katta bo'lishi shart" };
+      }
       const priceFormatted = "$" + priceNum.toLocaleString().replace(/,/g, " ");
       updates.push(`price = $${paramIndex++}`); values.push(priceFormatted);
       updates.push(`price_num = $${paramIndex++}`); values.push(priceNum);
     }
 
     const rooms = formData.get("rooms");
-    if (rooms) { updates.push(`rooms = $${paramIndex++}`); values.push(parseInt(rooms)); }
+    if (rooms) {
+      const roomsNum = parseInt(rooms);
+      if (roomsNum <= 0) return { error: "Xonalar soni noldan katta bo'lishi shart" };
+      updates.push(`rooms = $${paramIndex++}`); values.push(roomsNum);
+    }
 
     const baths = formData.get("baths");
-    if (baths) { updates.push(`baths = $${paramIndex++}`); values.push(parseInt(baths)); }
+    if (baths) {
+      const bathsNum = parseInt(baths);
+      if (bathsNum <= 0) return { error: "Yuvinish xonalari soni noldan katta bo'lishi shart" };
+      updates.push(`baths = $${paramIndex++}`); values.push(bathsNum);
+    }
 
     const area = formData.get("area");
-    if (area) { updates.push(`area = $${paramIndex++}`); values.push(parseInt(area)); }
+    if (area) {
+      const areaNum = parseInt(area);
+      if (areaNum <= 0) return { error: "Maydon noldan katta bo'lishi shart" };
+      updates.push(`area = $${paramIndex++}`); values.push(areaNum);
+    }
 
     const floor = formData.get("floor");
     if (floor) { updates.push(`floor = $${paramIndex++}`); values.push(floor); }
@@ -497,7 +648,7 @@ export async function verifyCadastreAction(listingId, cadastreNumber) {
   if (!user) return { error: "Ro'yxatdan o'tmagansiz" };
 
   try {
-    const { rows: listingRows } = await pool.query("SELECT owner_id FROM listings WHERE id = $1", [listingId]);
+    const { rows: listingRows } = await pool.query("SELECT owner_id FROM listings WHERE id = $1 AND deleted_at IS NULL", [listingId]);
     if (listingRows.length === 0) return { error: "E'lon topilmadi" };
     if (listingRows[0].owner_id !== user.id && user.role !== "admin") {
       return { error: "Sizda ushbu e'lonni tahrirlash huquqi yo'q" };
@@ -528,7 +679,18 @@ export async function verifyCadastreAction(listingId, cadastreNumber) {
 // Ko'rishlar sonini oshirish
 export async function incrementViewAction(listingId) {
   try {
-    await pool.query("UPDATE listings SET views = views + 1 WHERE id = $1", [listingId]);
+    const listingIdNum = parseInt(listingId);
+    if (isNaN(listingIdNum)) return { error: "invalid_id" };
+
+    const cookieStore = cookies();
+    const viewedKey = `viewed_${listingIdNum}`;
+    if (cookieStore.get(viewedKey)) {
+      return { success: true }; // Bu sessiyada allaqachon ko'rildi
+    }
+
+    // 24 soatga cookie o'rnatamiz
+    cookieStore.set(viewedKey, "true", { path: "/", maxAge: 60 * 60 * 24 });
+    await pool.query("UPDATE listings SET views = views + 1 WHERE id = $1", [listingIdNum]);
     return { success: true };
   } catch (error) {
     console.error("incrementViewAction error:", error);
@@ -576,7 +738,7 @@ export async function toggleFavoriteAction(listingId) {
 // Xabar yuborish (Send message to owner - referenced with IDs)
 export async function sendMessageAction(formData) {
   const user = await getCurrentUser();
-  const listingId = parseInt(formData.get("listing_id"));
+  const listingId = parseInt(formData.get("listing_id")) || null;
   const receiverId = parseInt(formData.get("receiver_id"));
   const content = formData.get("content");
   
@@ -589,25 +751,27 @@ export async function sendMessageAction(formData) {
     senderPhone = user.phone;
   }
 
-  if (!senderName || !senderPhone || !content || !receiverId || !listingId) {
+  if (!senderName || !senderPhone || !content || !receiverId) {
     return { error: "Ma'lumotlar to'liq kiritilmadi" };
   }
 
   try {
-    // E'lon agentlikka tegishli ekanligini va uni kim yuklaganini tekshiramiz
-    const { rows: listingRows } = await pool.query(
-      "SELECT agency_id, owner_id FROM listings WHERE id = $1",
-      [listingId]
-    );
-
     let agencyId = null;
     let assignedTo = null;
 
-    if (listingRows.length > 0) {
-      agencyId = listingRows[0].agency_id;
-      if (agencyId) {
-        // Agar listing agentlikka tegishli bo'lsa, avtomatik ravishda e'lon egasiga (maklerga) taqsimlaymiz
-        assignedTo = listingRows[0].owner_id;
+    if (listingId) {
+      // E'lon agentlikka tegishli ekanligini va uni kim yuklaganini tekshiramiz
+      const { rows: listingRows } = await pool.query(
+        "SELECT agency_id, owner_id FROM listings WHERE id = $1 AND deleted_at IS NULL",
+        [listingId]
+      );
+
+      if (listingRows.length > 0) {
+        agencyId = listingRows[0].agency_id;
+        if (agencyId) {
+          // Agar listing agentlikka tegishli bo'lsa, avtomatik ravishda e'lon egasiga (maklerga) taqsimlaymiz
+          assignedTo = listingRows[0].owner_id;
+        }
       }
     }
 
@@ -691,8 +855,14 @@ export async function changePasswordAction(formData) {
   const oldPassword = formData.get("oldPassword");
   const newPassword = formData.get("newPassword");
 
-  if (!oldPassword || !newPassword) {
-    return { error: "Eski va yangi parolni kiriting" };
+  const isGoogleUser = user.phone && user.phone.startsWith("google_");
+
+  if (!newPassword) {
+    return { error: "Yangi parolni kiriting" };
+  }
+
+  if (!isGoogleUser && !oldPassword) {
+    return { error: "Eski parolni kiriting" };
   }
 
   if (newPassword.length < 6) {
@@ -701,13 +871,21 @@ export async function changePasswordAction(formData) {
 
   try {
     // Eski parolni tekshiramiz
-    const { rows } = await pool.query("SELECT password FROM users WHERE id = $1", [user.id]);
-    if (rows.length === 0 || !verifyPassword(oldPassword, rows[0].password)) {
+    const { rows } = await pool.query("SELECT password, phone FROM users WHERE id = $1", [user.id]);
+    if (rows.length === 0) {
+      return { error: "Foydalanuvchi topilmadi" };
+    }
+
+    const dbUser = rows[0];
+    const dbIsGoogleUser = dbUser && dbUser.phone && dbUser.phone.startsWith("google_");
+
+    if (!dbIsGoogleUser && !verifyPassword(oldPassword, dbUser.password)) {
       return { error: "Eski parol noto'g'ri" };
     }
 
     // Yangi parolni shifrlab saqlaymiz
     const hashedNew = hashPassword(newPassword);
+    // Agar Google user bo'lsa va parolini birinchi marta o'rnatayotgan bo'lsa, phone formatini ham o'zgartirishni so'rashimiz mumkin, lekin hozircha faqat parolni o'zgartiramiz.
     await pool.query("UPDATE users SET password = $1 WHERE id = $2", [hashedNew, user.id]);
     return { success: true };
   } catch (error) {
@@ -730,7 +908,17 @@ export async function updateSettingsAction(formData) {
     return { error: "Ma'lumotlarni to'ldiring" };
   }
 
+  if (phone && phone.toLowerCase().startsWith("google_")) {
+    return { error: "Yaroqsiz telefon raqami formati" };
+  }
+
   try {
+    // Telefon raqami band emasligini tekshiramiz
+    const { rows: dupRows } = await pool.query("SELECT id FROM users WHERE phone = $1 AND id != $2", [phone, user.id]);
+    if (dupRows.length > 0) {
+      return { error: "Ushbu telefon raqami allaqachon ro'yxatdan o'tgan" };
+    }
+
     await pool.query("UPDATE users SET name = $1, phone = $2 WHERE id = $3", [name, phone, user.id]);
     
     // Cookie-larni yangilaymiz
@@ -802,7 +990,7 @@ export async function adminDeleteListingAction(listingId) {
     await pool.query("BEGIN");
     await pool.query("DELETE FROM favorites WHERE listing_id = $1", [listingId]);
     await pool.query("DELETE FROM messages WHERE listing_id = $1", [listingId]);
-    await pool.query("DELETE FROM listings WHERE id = $1", [listingId]);
+    await pool.query("UPDATE listings SET deleted_at = NOW() WHERE id = $1", [listingId]);
     await pool.query("COMMIT");
 
     revalidatePath("/");
@@ -973,7 +1161,7 @@ export async function addAgencyMemberAction(agencyId, phone) {
 
     // Foydalanuvchini topamiz
     const { rows: userRows } = await pool.query(
-      "SELECT id, name, phone FROM users WHERE phone = $1",
+      "SELECT id, name, phone, agency_id FROM users WHERE phone = $1",
       [phone]
     );
     if (userRows.length === 0) {
@@ -981,6 +1169,11 @@ export async function addAgencyMemberAction(agencyId, phone) {
     }
 
     const member = userRows[0];
+    if (member.agency_id !== null) {
+      return { error: "Ushbu foydalanuvchi allaqachon boshqa agentlik a'zosi yoki egasi!" };
+    }
+
+    await pool.query("BEGIN");
 
     const { rows: insertRows } = await pool.query(
       "INSERT INTO agency_members (agency_id, user_id, role) VALUES ($1, $2, 'agent') ON CONFLICT (agency_id, user_id) DO NOTHING RETURNING id",
@@ -988,11 +1181,13 @@ export async function addAgencyMemberAction(agencyId, phone) {
     );
 
     if (insertRows.length === 0) {
+      await pool.query("ROLLBACK");
       return { error: "Bu foydalanuvchi allaqachon jamoada" };
     }
 
     // Xodimning agency_id sini yangilaymiz
     await pool.query("UPDATE users SET agency_id = $1 WHERE id = $2", [agencyId, member.id]);
+    await pool.query("COMMIT");
 
     revalidatePath("/agency-dashboard");
     return {
@@ -1000,6 +1195,7 @@ export async function addAgencyMemberAction(agencyId, phone) {
       member: { ...member, role: "agent", member_id: insertRows[0].id }
     };
   } catch (error) {
+    await pool.query("ROLLBACK");
     console.error("addAgencyMemberAction error:", error);
     return { error: "Xodim qo'shishda xatolik" };
   }
@@ -1023,13 +1219,21 @@ export async function removeAgencyMemberAction(memberRowId) {
     if (rows[0].role === "owner") return { error: "Agentlik egasini chiqarib bo'lmaydi" };
 
     const membUserId = rows[0].user_id;
+    const agencyId = rows[0].agency_id;
+
+    await pool.query("BEGIN");
 
     await pool.query("DELETE FROM agency_members WHERE id = $1", [memberRowId]);
     await pool.query("UPDATE users SET agency_id = NULL WHERE id = $1", [membUserId]);
+    // Agentlikka bog'liq e'lonlarni desinxronizatsiya qilamiz
+    await pool.query("UPDATE listings SET agency_id = NULL WHERE owner_id = $1 AND agency_id = $2", [membUserId, agencyId]);
+
+    await pool.query("COMMIT");
 
     revalidatePath("/agency-dashboard");
     return { success: true };
   } catch (error) {
+    await pool.query("ROLLBACK");
     console.error("removeAgencyMemberAction error:", error);
     return { error: "Xodim chiqarishda xatolik" };
   }
@@ -1043,13 +1247,25 @@ export async function assignLeadAction(messageId, assignedUserId) {
   try {
     // Agentlik egasimi tekshiramiz
     const { rows } = await pool.query(
-      `SELECT m.id FROM messages m
+      `SELECT m.id, m.agency_id FROM messages m
        JOIN agencies a ON m.agency_id = a.id
        WHERE m.id = $1 AND a.owner_id = $2`,
       [messageId, user.id]
     );
 
     if (rows.length === 0) return { error: "Ruxsat yo'q" };
+
+    const agencyId = rows[0].agency_id;
+
+    // Biriktirilayotgan xodim ushbu agentlikka tegishlimi tekshiramiz
+    const { rows: memberRows } = await pool.query(
+      "SELECT id FROM agency_members WHERE agency_id = $1 AND user_id = $2",
+      [agencyId, assignedUserId]
+    );
+
+    if (memberRows.length === 0) {
+      return { error: "Foydalanuvchi jamoangiz a'zosi emas" };
+    }
 
     await pool.query(
       "UPDATE messages SET assigned_to = $1 WHERE id = $2",
@@ -1092,7 +1308,7 @@ export async function importFeedAction(agencyId, listings) {
     const agency = agencyRows[0];
 
     const { rows: countRows } = await pool.query(
-      "SELECT COUNT(*) FROM listings WHERE agency_id = $1",
+      "SELECT COUNT(*) FROM listings WHERE agency_id = $1 AND deleted_at IS NULL",
       [agencyId]
     );
     const currentCount = parseInt(countRows[0].count, 10);
@@ -1178,15 +1394,37 @@ export async function addReviewAction(formData) {
   }
 
   try {
-    // Bir e'longa bir marta sharh yozish mumkin
-    if (listingId) {
-      const { rows: existing } = await pool.query(
-        "SELECT id FROM reviews WHERE reviewer_id = $1 AND listing_id = $2",
-        [user.id, listingId]
-      );
-      if (existing.length > 0) {
-        return { error: "Siz bu e'lon uchun allaqachon sharh yozgansiz" };
-      }
+    // 1. Biznes aloqa mavjudligini tekshiramiz (yozishmalar yoki uchrashuvlar)
+    const { rows: contactRows } = await pool.query(
+      `SELECT id FROM messages 
+       WHERE (sender_id = $1 AND receiver_id = $2) 
+          OR (sender_id = $2 AND receiver_id = $1) 
+       LIMIT 1`,
+      [user.id, reviewedUserId]
+    );
+
+    const { rows: meetingRows } = await pool.query(
+      `SELECT m.id FROM erp_meetings m
+       JOIN erp_leads l ON m.lead_id = l.id
+       WHERE (l.assigned_to = $1 AND l.phone = (SELECT phone FROM users WHERE id = $2))
+          OR (l.assigned_to = $2 AND l.phone = (SELECT phone FROM users WHERE id = $1))
+       LIMIT 1`,
+      [user.id, reviewedUserId]
+    );
+
+    if (contactRows.length === 0 && meetingRows.length === 0) {
+      return { error: "Sizda ushbu foydalanuvchi bilan yozishmalar yoki uchrashuvlar mavjud emas, sharh yozish taqiqlanadi" };
+    }
+
+    // 2. Bir e'lon yoki global darajada bir marta sharh yozish cheklovi (Unique)
+    const { rows: existing } = await pool.query(
+      `SELECT id FROM reviews 
+       WHERE reviewer_id = $1 AND reviewed_user_id = $2 
+         AND (listing_id = $3 OR (listing_id IS NULL AND $3 IS NULL))`,
+      [user.id, reviewedUserId, listingId]
+    );
+    if (existing.length > 0) {
+      return { error: "Siz bu foydalanuvchiga/e'longa allaqachon sharh yozgansiz" };
     }
 
     const { rows } = await pool.query(
@@ -1195,7 +1433,9 @@ export async function addReviewAction(formData) {
       [user.id, reviewedUserId, listingId, rating, comment]
     );
 
-    revalidatePath(`/property/${listingId}`);
+    if (listingId) {
+      revalidatePath(`/property/${listingId}`);
+    }
     return { success: true, review: rows[0] };
   } catch (error) {
     console.error("addReviewAction error:", error);

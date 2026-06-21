@@ -7,7 +7,7 @@ export async function POST(req) {
     const body = await req.json();
     const { message, url, line, col, stack, ua } = body;
 
-    const logDir = "/Users/a1234/.gemini/antigravity/brain/db0697c6-bb47-405c-b1c1-ce62c7b819aa/scratch";
+    const logDir = path.join(process.cwd(), "scratch");
     if (!fs.existsSync(logDir)) {
       fs.mkdirSync(logDir, { recursive: true });
     }

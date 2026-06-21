@@ -52,7 +52,7 @@ export default async function ProfilePage({ searchParams }) {
       `SELECT l.*, u.name as owner_name FROM listings l 
        LEFT JOIN users u ON l.owner_id = u.id
        JOIN favorites f ON l.id = f.listing_id 
-       WHERE f.user_id = $1 
+       WHERE f.user_id = $1 AND l.deleted_at IS NULL
        ORDER BY l.id DESC`,
       [user.id]
     );
