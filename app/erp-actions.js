@@ -614,3 +614,16 @@ export async function erpUpdateUserRole(targetUserId, newRole) {
     return { error: "Xodim rolini o'zgartirishda xatolik" };
   }
 }
+
+export async function erpDeleteProject(projectId) {
+  await verifyAccess(["owner", "rop"]);
+  try {
+    await pool.query("DELETE FROM erp_projects WHERE id = $1", [projectId]);
+    revalidatePath("/erp");
+    return { success: true };
+  } catch (error) {
+    console.error("erpDeleteProject error:", error);
+    return { error: "Loyihani o'chirishda xatolik yuz berdi" };
+  }
+}
+

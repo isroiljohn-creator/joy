@@ -16,7 +16,8 @@ import {
   erpReserveUnit,
   erpAddSale,
   erpRecordPayment,
-  erpUpdateUserRole
+  erpUpdateUserRole,
+  erpDeleteProject
 } from "@/app/erp-actions";
 
 export default function ErpClient({
@@ -199,6 +200,27 @@ export default function ErpClient({
       }
     } catch {
       showToast("Xatolik yuz berdi", true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteProject = async (projectId) => {
+    if (!window.confirm("Haqiqatan ham ushbu loyihani o'chirmoqchisiz? Barcha tegishli xonadonlar va sotuvlar ham o'chiriladi!")) {
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await erpDeleteProject(projectId);
+      if (res.error) {
+        showToast(res.error, true);
+      } else {
+        showToast("Loyiha muvaffaqiyatli o'chirildi!");
+        router.refresh();
+        setTimeout(() => window.location.reload(), 1000);
+      }
+    } catch {
+      showToast("Loyihani o'chirishda xatolik yuz berdi", true);
     } finally {
       setLoading(false);
     }
@@ -1356,9 +1378,18 @@ export default function ErpClient({
                   
                   <div style={{ display: "flex", gap: 8 }}>
                     {(user.role === 'owner' || user.role === 'rop') && (
-                      <button onClick={() => setShowAddUnitModal(true)} className="btn btn-secondary">
-                        <i className="ti ti-plus"></i> Xonadon Qo'shish
-                      </button>
+                      <>
+                        <button 
+                          onClick={() => handleDeleteProject(selectedProject.id)} 
+                          className="btn btn-secondary" 
+                          style={{ borderColor: "#dc2626", color: "#dc2626" }}
+                        >
+                          <i className="ti ti-trash"></i> Loyihani O'chirish
+                        </button>
+                        <button onClick={() => setShowAddUnitModal(true)} className="btn btn-secondary">
+                          <i className="ti ti-plus"></i> Xonadon Qo'shish
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
