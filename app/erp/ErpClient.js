@@ -4015,11 +4015,10 @@ export default function ErpClient({
               </div>
               <div className="form-group" style={{ marginBottom: 16 }}>
                 <label style={{ fontSize: 11, color: "var(--muted)", display: "block", marginBottom: 4 }}>Bajarish muddati</label>
-                <input
-                  type="datetime-local"
+                <CustomDateTimePicker
                   value={newTaskDueDate}
-                  onChange={(e) => setNewTaskDueDate(e.target.value)}
-                  style={{ width: "100%", padding: "10px 12px", border: "1.5px solid var(--sand)", borderRadius: 12, fontSize: 13 }}
+                  onChange={(val) => setNewTaskDueDate(val)}
+                  placeholder="Bajarish muddatini tanlang..."
                 />
               </div>
               <button type="submit" className="btn btn-primary btn-full" disabled={isSavingTask} style={{ background: "var(--purple)", borderColor: "var(--purple)" }}>
