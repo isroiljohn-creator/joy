@@ -1,8 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
-export default function GoogleOAuthMock() {
+function GoogleOAuthMockContent() {
   const searchParams = useSearchParams();
   const [step, setStep] = useState(1); // 1: Email input, 2: Name input
   const [email, setEmail] = useState("");
@@ -167,6 +167,14 @@ export default function GoogleOAuthMock() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function GoogleOAuthMock() {
+  return (
+    <Suspense fallback={<div>Yuklanmoqda...</div>}>
+      <GoogleOAuthMockContent />
+    </Suspense>
   );
 }
 

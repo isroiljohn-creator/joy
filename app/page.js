@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { Nav, ListingCard } from "@/components/ui";
 import SearchBox from "@/components/SearchBox";
 import Footer from "@/components/Footer";
@@ -195,7 +196,9 @@ export default async function Home() {
       </div>
 
       {/* Mobil versiya */}
-      <MobileHome listings={allActive} count={count} />
+      <Suspense fallback={<div>Yuklanmoqda...</div>}>
+        <MobileHome listings={allActive} count={count} />
+      </Suspense>
     </>
   );
 }

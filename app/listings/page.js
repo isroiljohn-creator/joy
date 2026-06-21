@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import ListingsClient from "./ListingsClient";
 import { getListings } from "@/lib/data";
 import { getCurrentUser } from "@/app/actions";
@@ -28,5 +29,10 @@ export default async function ListingsPage({ searchParams }) {
     }
   }
 
-  return <ListingsClient initialListings={listings} favoriteIds={favoriteIds} />;
+  return (
+    <Suspense fallback={<div>Yuklanmoqda...</div>}>
+      <ListingsClient initialListings={listings} favoriteIds={favoriteIds} />
+    </Suspense>
+  );
 }
+

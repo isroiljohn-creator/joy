@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { 
@@ -24,7 +24,7 @@ function getPasswordStrength(pw) {
   return { label: "Kuchli", color: "#5cb85c", width: "100%" };
 }
 
-export default function Login() {
+function LoginContent() {
   const searchParams = useSearchParams();
   const errorParam = searchParams.get("error");
 
@@ -585,5 +585,13 @@ export default function Login() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Login() {
+  return (
+    <Suspense fallback={<div>Yuklanmoqda...</div>}>
+      <LoginContent />
+    </Suspense>
   );
 }
