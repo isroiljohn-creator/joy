@@ -1385,89 +1385,105 @@ export default function ErpClient({
                 ) : (
                   <div>
                     {/* Grid Legend */}
-                    <div style={{ display: "flex", gap: 16, justifyContent: "center", marginBottom: 20 }}>
-                      <span style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 6 }}>
-                        <span style={{ width: 14, height: 14, borderRadius: 4, background: "#22c55e", display: "inline-block" }}></span> Bo'sh (Available)
+                    <div style={{ display: "flex", gap: 20, justifyContent: "center", marginBottom: 28, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 8, fontWeight: 600 }}>
+                        <span style={{ width: 16, height: 16, borderRadius: 6, background: "rgba(29, 158, 117, 0.12)", border: "1.5px solid rgba(29, 158, 117, 0.35)", display: "inline-block" }}></span> Bo'sh (Available)
                       </span>
-                      <span style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 6 }}>
-                        <span style={{ width: 14, height: 14, borderRadius: 4, background: "#f59e0b", display: "inline-block" }}></span> Bron qilingan (Reserved)
+                      <span style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 8, fontWeight: 600 }}>
+                        <span style={{ width: 16, height: 16, borderRadius: 6, background: "rgba(224, 99, 52, 0.12)", border: "1.5px solid rgba(224, 99, 52, 0.35)", display: "inline-block" }}></span> Bron qilingan (Reserved)
                       </span>
-                      <span style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 6 }}>
-                        <span style={{ width: 14, height: 14, borderRadius: 4, background: "#ef4444", display: "inline-block" }}></span> Sotilgan (Sold)
+                      <span style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 8, fontWeight: 600 }}>
+                        <span style={{ width: 16, height: 16, borderRadius: 6, background: "rgba(110, 102, 95, 0.1)", border: "1.5px solid var(--sand)", display: "inline-block" }}></span> Sotilgan (Sold)
                       </span>
                     </div>
 
                     {/* Group units by floor to render row-by-row */}
-                    {Object.entries(
-                      units.reduce((acc, unit) => {
-                        const floor = unit.floor;
-                        if (!acc[floor]) acc[floor] = [];
-                        acc[floor].push(unit);
-                        return acc;
-                      }, {})
-                    )
-                    .sort((a, b) => parseInt(b[0]) - parseInt(a[0])) // Sort floors in descending order
-                    .map(([floor, floorUnits]) => (
-                      <div key={floor} style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
-                        {/* Floor Label */}
-                        <div style={{
-                          width: 44,
-                          height: 44,
-                          background: "var(--cream)",
-                          border: "1px solid var(--sand)",
-                          borderRadius: 8,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: 12,
-                          fontWeight: 700
-                        }}>{floor}-qavat</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                      {Object.entries(
+                        units.reduce((acc, unit) => {
+                          const floor = unit.floor;
+                          if (!acc[floor]) acc[floor] = [];
+                          acc[floor].push(unit);
+                          return acc;
+                        }, {})
+                      )
+                      .sort((a, b) => parseInt(b[0]) - parseInt(a[0])) // Sort floors in descending order
+                      .map(([floor, floorUnits]) => (
+                        <div key={floor} style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                          {/* Floor Label */}
+                          <div style={{
+                            width: 70,
+                            height: 56,
+                            background: "var(--cream)",
+                            border: "1.5px solid var(--sand)",
+                            borderRadius: 12,
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: 14,
+                            fontWeight: 800,
+                            color: "var(--ink)",
+                            flexShrink: 0,
+                          }}>
+                            <span>{floor}</span>
+                            <span style={{ fontSize: 9, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", marginTop: 1, letterSpacing: "0.05em" }}>qavat</span>
+                          </div>
 
-                        {/* Apartments grid */}
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                          {floorUnits.sort((a,b) => a.unit_number.localeCompare(b.unit_number)).map(u => {
-                            const isReserved = u.status === 'reserved';
-                            const isSold = u.status === 'sold';
-                            const isAvailable = u.status === 'available';
+                          {/* Apartments grid */}
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                            {floorUnits.sort((a,b) => a.unit_number.localeCompare(b.unit_number)).map(u => {
+                              const isReserved = u.status === 'reserved';
+                              const isSold = u.status === 'sold';
+                              
+                              let bg = "rgba(29, 158, 117, 0.12)";
+                              let color = "#1D9E75";
+                              let border = "1.5px solid rgba(29, 158, 117, 0.35)";
 
-                            let bg = "#22c55e"; // green
-                            if (isReserved) bg = "#f59e0b";
-                            if (isSold) bg = "#ef4444";
+                              if (isReserved) {
+                                bg = "rgba(224, 99, 52, 0.12)";
+                                color = "var(--orange-dark)";
+                                border = "1.5px solid rgba(224, 99, 52, 0.35)";
+                              } else if (isSold) {
+                                bg = "rgba(110, 102, 95, 0.1)";
+                                color = "var(--muted)";
+                                border = "1.5px solid var(--sand)";
+                              }
 
-                            return (
-                              <div
-                                key={u.id}
-                                onClick={() => {
-                                  setSelectedUnitForAction(u);
-                                  setBookingSoldPrice(u.price);
-                                }}
-                                style={{
-                                  width: 64,
-                                  height: 48,
-                                  background: bg,
-                                  color: "#fff",
-                                  borderRadius: 8,
-                                  display: "flex",
-                                  flexDirection: "column",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  cursor: "pointer",
-                                  position: "relative",
-                                  transition: "all 0.1s",
-                                  border: "2.5px solid transparent",
-                                  boxShadow: "0 2px 4px rgba(0,0,0,0.05)"
-                                }}
-                                className="unit-grid-cell"
-                                title={`Xonadon ${u.unit_number}, ${u.rooms} xona, ${u.area} m²`}
-                              >
-                                <span style={{ fontWeight: 700, fontSize: 13 }}>{u.unit_number}</span>
-                                <span style={{ fontSize: 9, opacity: 0.8 }}>{u.rooms} x / {Math.round(u.area)}m²</span>
-                              </div>
-                            );
-                          })}
+                              return (
+                                <div
+                                  key={u.id}
+                                  onClick={() => {
+                                    setSelectedUnitForAction(u);
+                                    setBookingSoldPrice(u.price);
+                                  }}
+                                  style={{
+                                    width: 96,
+                                    height: 56,
+                                    background: bg,
+                                    color: color,
+                                    border: border,
+                                    borderRadius: 12,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    cursor: "pointer",
+                                    position: "relative",
+                                    boxShadow: "0 2px 6px rgba(0,0,0,0.02)"
+                                  }}
+                                  className="unit-grid-cell"
+                                  title={`Xonadon ${u.unit_number}, ${u.rooms} xona, ${u.area} m²`}
+                                >
+                                  <span style={{ fontWeight: 800, fontSize: 15, fontFamily: "'Bricolage Grotesque', sans-serif" }}>{u.unit_number}</span>
+                                  <span style={{ fontSize: 10, fontWeight: 600, opacity: 0.85, marginTop: 1 }}>{u.rooms}x • {Math.round(u.area)}m²</span>
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -2426,6 +2442,20 @@ export default function ErpClient({
                 .no-print {
                   display: none !important;
                 }
+              }
+              
+              /* Premium Shaxmatka cell styling */
+              .unit-grid-cell {
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+              }
+              .unit-grid-cell:hover {
+                transform: translateY(-2px) scale(1.03);
+                box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1) !important;
+                filter: brightness(1.04);
+                z-index: 5;
+              }
+              .unit-grid-cell:active {
+                transform: translateY(0) scale(0.98);
               }
               
               /* Keyframes animations for visual elements */
