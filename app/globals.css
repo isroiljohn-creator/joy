@@ -2449,7 +2449,7 @@ html { scroll-behavior: smooth }
   color: var(--text2);
   margin-bottom: 6px;
 }
-.form-group input,
+.form-group input:not([type="radio"]):not([type="checkbox"]),
 .form-group textarea,
 .form-group select {
   width: 100%;

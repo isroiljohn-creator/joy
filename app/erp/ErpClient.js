@@ -1679,15 +1679,52 @@ export default function ErpClient({
               <button onClick={() => setSelectedUnitForAction(null)} style={{ background: "none", border: "none", fontSize: 18, cursor: "pointer", color: "var(--muted)" }}>✕</button>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, fontSize: 13, background: "var(--cream)", padding: 14, borderRadius: 16, marginBottom: 16 }}>
-              <div>Qavat: <strong>{selectedUnitForAction.floor}-qavat</strong></div>
-              <div>Xonalar soni: <strong>{selectedUnitForAction.rooms} xona</strong></div>
-              <div>Umumiy maydon: <strong>{selectedUnitForAction.area} m²</strong></div>
-              <div>Boshlang'ich narxi: <strong style={{ color: "var(--orange-dark)" }}>${parseInt(selectedUnitForAction.price).toLocaleString()}</strong></div>
-              <div style={{ gridColumn: "span 2" }}>Xolat: <strong style={{ textTransform: "uppercase" }}>{selectedUnitForAction.status === 'available' ? 'Bo\'sh (Sotuvda)' : selectedUnitForAction.status === 'reserved' ? 'Band qilingan' : 'Sotilgan'}</strong></div>
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "12px 20px",
+              fontSize: 13,
+              background: "var(--cream)",
+              padding: 16,
+              borderRadius: 16,
+              border: "1px solid var(--sand)",
+              marginBottom: 20
+            }}>
+              <div>
+                <span style={{ color: "var(--muted)", display: "block", fontSize: 11, marginBottom: 2 }}>QAVAT</span>
+                <strong>{selectedUnitForAction.floor}-qavat</strong>
+              </div>
+              <div>
+                <span style={{ color: "var(--muted)", display: "block", fontSize: 11, marginBottom: 2 }}>XONALAR SONI</span>
+                <strong>{selectedUnitForAction.rooms} xona</strong>
+              </div>
+              <div>
+                <span style={{ color: "var(--muted)", display: "block", fontSize: 11, marginBottom: 2 }}>UMUMIY MAYDON</span>
+                <strong>{selectedUnitForAction.area} m²</strong>
+              </div>
+              <div>
+                <span style={{ color: "var(--muted)", display: "block", fontSize: 11, marginBottom: 2 }}>BOSHLANG'ICH NARXI</span>
+                <strong style={{ color: "var(--orange-dark)" }}>${parseInt(selectedUnitForAction.price).toLocaleString()}</strong>
+              </div>
+              <div style={{ gridColumn: "span 2", display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--sand)", paddingTop: 12, marginTop: 4 }}>
+                <span style={{ color: "var(--muted)", fontSize: 11 }}>XOLATI</span>
+                <span style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  padding: "4px 10px",
+                  borderRadius: 8,
+                  textTransform: "uppercase",
+                  background: selectedUnitForAction.status === 'available' ? "rgba(29, 158, 117, 0.12)" : selectedUnitForAction.status === 'reserved' ? "rgba(224, 99, 52, 0.12)" : "rgba(110, 102, 95, 0.1)",
+                  color: selectedUnitForAction.status === 'available' ? "#1D9E75" : selectedUnitForAction.status === 'reserved' ? "var(--orange-dark)" : "var(--muted)",
+                  border: selectedUnitForAction.status === 'available' ? "1px solid rgba(29, 158, 117, 0.25)" : selectedUnitForAction.status === 'reserved' ? "1px solid rgba(224, 99, 52, 0.25)" : "1px solid var(--sand)"
+                }}>
+                  {selectedUnitForAction.status === 'available' ? 'Bo\'sh (Sotuvda)' : selectedUnitForAction.status === 'reserved' ? 'Band qilingan' : 'Sotilgan'}
+                </span>
+              </div>
               {selectedUnitForAction.status === 'reserved' && (
-                <div style={{ gridColumn: "span 2", fontSize: 12, color: "var(--orange-dark)", marginTop: 4 }}>
-                  📌 Bron muddati: {new Date(selectedUnitForAction.reserved_until).toLocaleDateString("uz-UZ")} gacha ({selectedUnitForAction.seller_name} tomonidan)
+                <div style={{ gridColumn: "span 2", fontSize: 12, color: "var(--orange-dark)", background: "rgba(224, 99, 52, 0.08)", padding: "10px 12px", borderRadius: 10, display: "flex", alignItems: "center", gap: 6 }}>
+                  <i className="ti ti-pin" style={{ fontSize: 14 }}></i>
+                  <span>Bron muddati: <strong>{new Date(selectedUnitForAction.reserved_until).toLocaleDateString("uz-UZ")}</strong> gacha ({selectedUnitForAction.seller_name} tomonidan)</span>
                 </div>
               )}
             </div>
@@ -1695,17 +1732,45 @@ export default function ErpClient({
             {/* If Available: allow reserving or selling */}
             {selectedUnitForAction.status === 'available' && (
               <form onSubmit={handleUnitBookingSubmit}>
-                <div className="form-group" style={{ marginBottom: 12 }}>
-                  <label style={{ fontSize: 12 }}>Harakat turi:</label>
-                  <div style={{ display: "flex", gap: 12, marginTop: 4 }}>
-                    <label style={{ display: "flex", alignItems: "center", gap: 4, cursor: "pointer" }}>
-                      <input type="radio" value="reserve" checked={bookingType === "reserve"} onChange={() => setBookingType("reserve")} />
+                <div className="form-group" style={{ marginBottom: 16 }}>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: "var(--text2)", display: "block", marginBottom: 6 }}>Harakat turi</label>
+                  <div style={{ display: "flex", gap: 8, background: "var(--cream)", padding: 4, borderRadius: 12, border: "1.5px solid var(--sand)" }}>
+                    <button
+                      type="button"
+                      onClick={() => setBookingType("reserve")}
+                      style={{
+                        flex: 1,
+                        padding: "8px 12px",
+                        borderRadius: 8,
+                        border: "none",
+                        background: bookingType === "reserve" ? "var(--orange)" : "transparent",
+                        color: bookingType === "reserve" ? "#fff" : "var(--ink)",
+                        fontWeight: 600,
+                        fontSize: 13,
+                        cursor: "pointer",
+                        transition: "all 0.15s ease",
+                      }}
+                    >
                       Bron qilish (Rezerv)
-                    </label>
-                    <label style={{ display: "flex", alignItems: "center", gap: 4, cursor: "pointer" }}>
-                      <input type="radio" value="sell" checked={bookingType === "sell"} onChange={() => setBookingType("sell")} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBookingType("sell")}
+                      style={{
+                        flex: 1,
+                        padding: "8px 12px",
+                        borderRadius: 8,
+                        border: "none",
+                        background: bookingType === "sell" ? "var(--orange)" : "transparent",
+                        color: bookingType === "sell" ? "#fff" : "var(--ink)",
+                        fontWeight: 600,
+                        fontSize: 13,
+                        cursor: "pointer",
+                        transition: "all 0.15s ease",
+                      }}
+                    >
                       Sotuvni rasmiylashtirish
-                    </label>
+                    </button>
                   </div>
                 </div>
 
