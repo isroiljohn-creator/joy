@@ -41,16 +41,7 @@ export default function Loading() {
         ))}
       </div>
 
-      <style>{`
-        @keyframes logoPulse {
-          0%, 100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.3); opacity: 0.6; }
-        }
-        @keyframes dotBounce {
-          0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
-          40% { transform: translateY(-8px); opacity: 1; }
-        }
-      `}</style>
+
     </div>
   );
 }

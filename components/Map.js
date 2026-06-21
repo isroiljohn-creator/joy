@@ -444,9 +444,7 @@ export default function Map({ listings, activePin, onPinClick, mini = false, pol
             animation: "spin 0.8s linear infinite"
           }} />
           <div style={{ fontSize: 13, color: "var(--muted)", fontWeight: 500 }}>Xarita yuklanmoqda...</div>
-          <style dangerouslySetInnerHTML={{__html: `
-            @keyframes spin { to { transform: rotate(360deg); } }
-          `}} />
+
         </div>
       )}
       {!mini && (

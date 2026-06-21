@@ -119,16 +119,7 @@ export default function NotFound() {
         Bosh sahifaga qaytish
       </Link>
 
-      <style>{`
-        @keyframes notFoundPulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.06); }
-        }
-        @keyframes notFoundFloat {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-8px); }
-        }
-      `}</style>
+
     </div>
   );
 }

@@ -85,6 +85,7 @@ export default function AboutPage() {
       {/* Mission & Vision */}
       <section className="wrap" style={{ paddingTop: 56, paddingBottom: 56 }}>
         <div
+          className="about-grid-2"
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
@@ -323,11 +324,7 @@ export default function AboutPage() {
 
       <Footer />
 
-      <style>{`
-        @media (max-width: 760px) {
-          .about-grid-2 { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
+
     </>
   );
 }

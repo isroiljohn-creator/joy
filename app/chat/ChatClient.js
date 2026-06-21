@@ -434,12 +434,7 @@ export default function ChatClient({ user, initialMessages }) {
                       </span>
                     </div>
                   )}
-                  <style>{`
-                    @keyframes dot-pulse {
-                      from { opacity: 0.3; transform: scale(0.8); }
-                      to { opacity: 1; transform: scale(1.2); }
-                    }
-                  `}</style>
+
                   <div ref={messagesEndRef} />
                 </div>
 

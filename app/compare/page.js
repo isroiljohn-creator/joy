@@ -278,11 +278,7 @@ export default function ComparePage() {
           </div>
         )}
       </div>
-      <style jsx global>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
+
     </>
   );
 }
