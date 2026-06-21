@@ -430,7 +430,7 @@ export default function ErpClient({
         <div className="wrap">
           <div className="dashboard-header-inner">
             <div className="dashboard-header-left">
-              <Link href="/" onClick={handleBack} className="dashboard-back-btn">
+              <Link href="/" onClick={handleBack} className="btn-back-modern">
                 <i className="ti ti-arrow-left"></i> Chiqish
               </Link>
               <div className="dashboard-title-block">
@@ -2288,6 +2288,68 @@ export default function ErpClient({
               [data-theme="dark"] .printable-contract-box {
                 background: var(--cream) !important;
                 border-color: var(--sand) !important;
+              }
+
+              /* Modern Back Button & Alignment overrides */
+              .btn-back-modern {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--text2) !important;
+                background: var(--cream) !important;
+                border: 1px solid var(--sand) !important;
+                padding: 6px 14px;
+                border-radius: 20px;
+                transition: all 0.2s ease;
+                text-decoration: none;
+                cursor: pointer;
+              }
+              .btn-back-modern:hover {
+                background: var(--sand) !important;
+                color: var(--orange) !important;
+                border-color: var(--orange) !important;
+                transform: translateX(-3px);
+              }
+              .btn-back-modern i {
+                font-size: 14px;
+              }
+              .dashboard-header-inner {
+                padding: 4px 0;
+              }
+              .dashboard-title-block {
+                margin-left: 4px;
+              }
+              .dashboard-title {
+                font-family: 'Bricolage Grotesque', sans-serif;
+                font-size: 24px !important;
+                font-weight: 800 !important;
+                color: var(--ink) !important;
+                margin: 0 0 4px 0 !important;
+              }
+              .dashboard-subtitle {
+                font-size: 13px !important;
+                color: var(--text2) !important;
+                margin: 0 !important;
+              }
+
+              /* Dark theme background correction for header */
+              [data-theme="dark"] .dashboard-header {
+                background: var(--card-bg) !important;
+                border-bottom-color: var(--sand) !important;
+              }
+
+              /* Mobile responsive alignment overrides for btn-back-modern */
+              @media (max-width: 768px) {
+                .btn-back-modern {
+                  grid-column: 1 !important;
+                  grid-row: 1 !important;
+                  justify-self: start !important;
+                  background: var(--sand) !important;
+                  padding: 6px 12px !important;
+                  font-size: 12px !important;
+                }
               }
             ` }} />
           </div>
