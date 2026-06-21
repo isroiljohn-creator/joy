@@ -1195,7 +1195,7 @@ html { scroll-behavior: smooth }
   position: absolute;
   top: -4px;
   right: -4px;
-  background: var(--orange, #F2591F);
+  background: var(--orange, #E06334);
   color: #ffffff;
   border-radius: 10px;
   padding: 2px 7px;
@@ -1278,7 +1278,7 @@ html { scroll-behavior: smooth }
 }
 
 .tg-chat-search input:focus {
-  border-color: var(--orange, #F2591F);
+  border-color: var(--orange, #E06334);
   background: var(--card-bg, #ffffff);
   box-shadow: 0 0 0 3px rgba(242, 89, 31, 0.1);
 }
@@ -1304,7 +1304,7 @@ html { scroll-behavior: smooth }
 
 .tg-thread-item.active {
   background: rgba(242, 89, 31, 0.08);
-  border-left: 4px solid var(--orange, #F2591F);
+  border-left: 4px solid var(--orange, #E06334);
   padding-left: 12px;
 }
 
@@ -1367,7 +1367,7 @@ html { scroll-behavior: smooth }
 }
 
 .tg-unread-badge {
-  background: var(--orange, #F2591F);
+  background: var(--orange, #E06334);
   color: #ffffff;
   font-size: 10px;
   font-weight: 700;
@@ -1442,7 +1442,7 @@ html { scroll-behavior: smooth }
 
 .tg-chat-btn:hover {
   background: var(--cream, #fbf7f3);
-  color: var(--orange, #F2591F);
+  color: var(--orange, #E06334);
 }
 
 .tg-chat-btn.danger:hover {
@@ -1548,7 +1548,7 @@ html { scroll-behavior: smooth }
 }
 
 .tg-chat-input-bar textarea:focus {
-  border-color: var(--orange, #F2591F);
+  border-color: var(--orange, #E06334);
   background: var(--card-bg, #ffffff);
   box-shadow: 0 0 0 3px rgba(242, 89, 31, 0.1);
 }
@@ -1557,7 +1557,7 @@ html { scroll-behavior: smooth }
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: var(--orange, #F2591F);
+  background: var(--orange, #E06334);
   color: #ffffff;
   border: none;
   cursor: pointer;
@@ -2962,7 +2962,7 @@ html { scroll-behavior: smooth }
 }
 .tg-mobile-header .tg-back-link {
   font-size: 20px;
-  color: var(--orange, #F2591F);
+  color: var(--orange, #E06334);
   display: flex;
   align-items: center;
   justify-content: center;

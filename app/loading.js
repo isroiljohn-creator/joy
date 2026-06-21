@@ -32,7 +32,7 @@ export default function Loading() {
               width: 8,
               height: 8,
               borderRadius: "50%",
-              background: "var(--orange, #F2591F)",
+              background: "var(--orange, #E06334)",
               animation: `dotBounce 1s ease-in-out infinite`,
               animationDelay: `${i * 0.15}s`,
               opacity: 0.7,

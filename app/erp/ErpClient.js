@@ -593,7 +593,7 @@ export default function ErpClient({
                 {/* CSS Based Progress bar representation of inventory */}
                 <div className="progress-track" style={{
                   height: 24,
-                  background: "#eee",
+                  background: "var(--sand)",
                   borderRadius: 12,
                   display: "flex",
                   overflow: "hidden",
@@ -702,7 +702,7 @@ export default function ErpClient({
                             <span><strong>{s.name}</strong> ({s.sales_count} ta shartnoma)</span>
                             <strong>${s.sales_volume?.toLocaleString()}</strong>
                           </div>
-                          <div className="progress-track" style={{ height: 8, background: "#eee", borderRadius: 4, overflow: "hidden" }}>
+                          <div className="progress-track" style={{ height: 8, background: "var(--sand)", borderRadius: 4, overflow: "hidden" }}>
                             <div style={{
                               height: "100%",
                               background: "var(--orange)",
@@ -825,7 +825,7 @@ export default function ErpClient({
                         {getStatusLabel(status)}
                       </h4>
                       <span className="kanban-badge" style={{
-                        background: "#fff",
+                        background: "var(--sand)",
                         padding: "2px 8px",
                         borderRadius: 10,
                         fontSize: 11,
@@ -837,7 +837,7 @@ export default function ErpClient({
                     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                       {columnLeads.map(l => (
                         <div key={l.id} className="kanban-card" style={{
-                          background: "#fff",
+                          background: "var(--card-bg)",
                           borderRadius: 14,
                           padding: 12,
                           border: "1px solid var(--sand)",
@@ -871,17 +871,18 @@ export default function ErpClient({
                             )}
                           </div>
 
-                          <div className="kanban-card-notes" style={{ fontSize: 12, color: "#666", background: "#f9f9f9", padding: 6, borderRadius: 8, marginBottom: 12, fontStyle: "italic" }}>
+                          <div className="kanban-card-notes" style={{ fontSize: 12, color: "var(--text2)", background: "var(--cream)", padding: 6, borderRadius: 8, marginBottom: 12, fontStyle: "italic" }}>
                             {l.notes || "Izoh kiritilmagan"}
                           </div>
 
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #f0f0f0", paddingTop: 10 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--sand)", paddingTop: 10 }}>
                             {/* ROP/Owner assignment */}
                             {(user.role === 'rop' || user.role === 'owner') ? (
                               <select
+                                className="erp-select"
                                 value={l.assigned_to || ""}
                                 onChange={(e) => handleAssignLead(l.id, e.target.value)}
-                                style={{ fontSize: 11, padding: "2px 6px", border: "1px solid #ddd", borderRadius: 8, maxWidth: 120 }}
+                                style={{ fontSize: 11, padding: "2px 6px", borderRadius: 8, maxWidth: 120 }}
                               >
                                 <option value="">Biriktirish...</option>
                                 {sellers.map(s => (
@@ -896,9 +897,10 @@ export default function ErpClient({
 
                             {/* Dropdown to change status */}
                             <select
+                              className="erp-select"
                               value={l.status}
                               onChange={(e) => handleUpdateLeadStatus(l.id, e.target.value)}
-                              style={{ fontSize: 11, padding: "2px 6px", border: "1px solid #ddd", borderRadius: 8 }}
+                              style={{ fontSize: 11, padding: "2px 6px", borderRadius: 8 }}
                             >
                               <option value="new">Yangi lid</option>
                               <option value="contacted">Aloqada</option>
@@ -1047,7 +1049,7 @@ export default function ErpClient({
                       <span>Progress (G'isht/Karkas):</span>
                       <strong>{p.progress_brick}%</strong>
                     </div>
-                    <div className="progress-track" style={{ height: 6, background: "#eee", borderRadius: 3, overflow: "hidden" }}>
+                    <div className="progress-track" style={{ height: 6, background: "var(--sand)", borderRadius: 3, overflow: "hidden" }}>
                       <div style={{ height: "100%", background: "var(--orange)", width: `${p.progress_brick}%` }}></div>
                     </div>
                   </div>
@@ -1102,9 +1104,10 @@ export default function ErpClient({
                         <div key={stage.key} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                           <label style={{ fontSize: 11, color: "var(--muted)" }}>{stage.label}:</label>
                           <select
+                            className="erp-select"
                             value={selectedProject[stage.key]}
                             onChange={(e) => handleProgressChange(selectedProject.id, stage.key, e.target.value)}
-                            style={{ padding: "4px 8px", border: "1px solid #ddd", borderRadius: 8, fontSize: 12 }}
+                            style={{ padding: "4px 8px", borderRadius: 8, fontSize: 12 }}
                           >
                             {[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map(pct => (
                               <option key={pct} value={pct}>{pct}%</option>
@@ -1263,7 +1266,7 @@ export default function ErpClient({
                                 <span>{percentPaid}% to'landi</span>
                                 {outstanding > 0 && <span style={{ color: "var(--orange-dark)" }}>Qarz: ${outstanding.toLocaleString()}</span>}
                               </div>
-                              <div className="progress-track" style={{ height: 6, background: "#eee", borderRadius: 3, overflow: "hidden", marginTop: 2 }}>
+                              <div className="progress-track" style={{ height: 6, background: "var(--sand)", borderRadius: 3, overflow: "hidden", marginTop: 2 }}>
                                 <div style={{ height: "100%", background: outstanding === 0 ? "#22c55e" : "var(--orange)", width: `${percentPaid}%` }}></div>
                               </div>
                               
@@ -1346,9 +1349,10 @@ export default function ErpClient({
                       <td>
                         {member.id !== user.id ? (
                           <select
+                            className="erp-select"
                             value={member.role}
                             onChange={(e) => handleUserRoleChange(member.id, e.target.value)}
-                            style={{ fontSize: 12, padding: "4px 8px", border: "1px solid #ddd", borderRadius: 8 }}
+                            style={{ fontSize: 12, padding: "4px 8px", borderRadius: 8 }}
                           >
                             <option value="seller">Sotuvchi</option>
                             <option value="rop">ROP</option>
@@ -1385,7 +1389,7 @@ export default function ErpClient({
           <div className="create-agency-card" style={{
             width: "100%",
             maxWidth: 500,
-            background: "#fff",
+            background: "var(--card-bg)",
             borderRadius: 24,
             padding: 24,
             boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
@@ -1432,10 +1436,11 @@ export default function ErpClient({
                 <div className="form-group" style={{ marginBottom: 12 }}>
                   <label style={{ fontSize: 12 }}>Xaridor (Mijoz) *</label>
                   <select
+                    className="erp-select"
                     value={bookingLeadId}
                     onChange={(e) => setBookingLeadId(e.target.value)}
                     required
-                    style={{ width: "100%", padding: 10, border: "1.5px solid var(--sand)", borderRadius: 12, marginTop: 4 }}
+                    style={{ width: "100%", padding: 10, borderRadius: 12, marginTop: 4 }}
                   >
                     <option value="">Mijozni tanlang...</option>
                     {activeLeads.map(l => (
@@ -1448,9 +1453,10 @@ export default function ErpClient({
                   <div className="form-group" style={{ marginBottom: 20 }}>
                     <label style={{ fontSize: 12 }}>Bron muddati (kunlarda) *</label>
                     <select
+                      className="erp-select"
                       value={bookingReserveDays}
                       onChange={(e) => setBookingReserveDays(parseInt(e.target.value))}
-                      style={{ width: "100%", padding: 10, border: "1.5px solid var(--sand)", borderRadius: 12, marginTop: 4 }}
+                      style={{ width: "100%", padding: 10, borderRadius: 12, marginTop: 4 }}
                     >
                       <option value="1">1 kun</option>
                       <option value="3">3 kun</option>
@@ -1476,9 +1482,10 @@ export default function ErpClient({
                       <div className="form-group">
                         <label style={{ fontSize: 12 }}>To'lov turi</label>
                         <select
+                          className="erp-select"
                           value={bookingPaymentPlan}
                           onChange={(e) => setBookingPaymentPlan(e.target.value)}
-                          style={{ width: "100%", padding: 10, border: "1.5px solid var(--sand)", borderRadius: 12, marginTop: 4 }}
+                          style={{ width: "100%", padding: 10, borderRadius: 12, marginTop: 4 }}
                         >
                           <option value="cash">Naqd to'liq</option>
                           <option value="installments">Bo'lib to'lash (Nasiya)</option>
@@ -1603,7 +1610,7 @@ export default function ErpClient({
           <div className="create-agency-card" style={{
             width: "100%",
             maxWidth: 400,
-            background: "#fff",
+            background: "var(--card-bg)",
             borderRadius: 24,
             padding: 24,
             boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
@@ -1652,7 +1659,7 @@ export default function ErpClient({
           <div className="create-agency-card" style={{
             width: "100%",
             maxWidth: 450,
-            background: "#fff",
+            background: "var(--card-bg)",
             borderRadius: 24,
             padding: 24,
             boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
@@ -1704,9 +1711,10 @@ export default function ErpClient({
                 <div className="form-group">
                   <label style={{ fontSize: 12 }}>Manba</label>
                   <select
+                    className="erp-select"
                     value={leadForm.source}
                     onChange={(e) => setLeadForm(p => ({ ...p, source: e.target.value }))}
-                    style={{ width: "100%", padding: 10, border: "1.5px solid var(--sand)", borderRadius: 12, marginTop: 4 }}
+                    style={{ width: "100%", padding: 10, borderRadius: 12, marginTop: 4 }}
                   >
                     <option value="telegram">Telegram</option>
                     <option value="instagram">Instagram</option>
@@ -1764,7 +1772,7 @@ export default function ErpClient({
           <div className="create-agency-card" style={{
             width: "100%",
             maxWidth: 450,
-            background: "#fff",
+            background: "var(--card-bg)",
             borderRadius: 24,
             padding: 24,
             boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
@@ -1779,10 +1787,11 @@ export default function ErpClient({
               <div className="form-group" style={{ marginBottom: 10 }}>
                 <label style={{ fontSize: 12 }}>Mijoz (Lid) *</label>
                 <select
+                  className="erp-select"
                   value={meetingForm.lead_id}
                   onChange={(e) => setMeetingForm(p => ({ ...p, lead_id: e.target.value }))}
                   required
-                  style={{ width: "100%", padding: 10, border: "1.5px solid var(--sand)", borderRadius: 12, marginTop: 4 }}
+                  style={{ width: "100%", padding: 10, borderRadius: 12, marginTop: 4 }}
                 >
                   <option value="">Mijozni tanlang...</option>
                   {activeLeads.map(l => (
@@ -1817,9 +1826,10 @@ export default function ErpClient({
                 <div className="form-group" style={{ marginBottom: 10 }}>
                   <label style={{ fontSize: 12 }}>Mas'ul sotuvchi</label>
                   <select
+                    className="erp-select"
                     value={meetingForm.user_id}
                     onChange={(e) => setMeetingForm(p => ({ ...p, user_id: e.target.value }))}
-                    style={{ width: "100%", padding: 10, border: "1.5px solid var(--sand)", borderRadius: 12, marginTop: 4 }}
+                    style={{ width: "100%", padding: 10, borderRadius: 12, marginTop: 4 }}
                   >
                     <option value="">O'zim (yoki tanlang)</option>
                     {sellers.map(s => (
@@ -1866,7 +1876,7 @@ export default function ErpClient({
           <div className="create-agency-card" style={{
             width: "100%",
             maxWidth: 450,
-            background: "#fff",
+            background: "var(--card-bg)",
             borderRadius: 24,
             padding: 24,
             boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
@@ -1949,7 +1959,7 @@ export default function ErpClient({
           <div className="create-agency-card" style={{
             width: "100%",
             maxWidth: 450,
-            background: "#fff",
+            background: "var(--card-bg)",
             borderRadius: 24,
             padding: 24,
             boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
@@ -2052,7 +2062,7 @@ export default function ErpClient({
           <div className="contract-print-modal-inner" style={{
             width: "100%",
             maxWidth: 800,
-            background: "#fff",
+            background: "var(--card-bg)",
             borderRadius: 24,
             padding: 32,
             maxHeight: "90vh",
@@ -2158,7 +2168,7 @@ export default function ErpClient({
             </div>
 
             {/* Print style block */}
-            <style jsx global>{`
+            <style dangerouslySetInnerHTML={{ __html: `
               @media print {
                 body * {
                   visibility: hidden;
@@ -2189,6 +2199,46 @@ export default function ErpClient({
               @keyframes fadeIn {
                 from { opacity: 0; }
                 to { opacity: 1; }
+              }
+
+              /* Custom styled selects */
+              .erp-select {
+                appearance: none;
+                -webkit-appearance: none;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23E06334' stroke-width='2.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E") !important;
+                background-repeat: no-repeat !important;
+                background-position: right 8px center !important;
+                background-size: 11px !important;
+                padding-right: 24px !important;
+                background-color: #ffffff;
+                color: var(--ink) !important;
+                border: 1.5px solid var(--sand) !important;
+                outline: none;
+                transition: border-color .2s, box-shadow .2s;
+                cursor: pointer;
+              }
+              .erp-select:focus {
+                border-color: var(--orange) !important;
+                box-shadow: 0 0 0 3px var(--orange-tint) !important;
+              }
+              [data-theme="dark"] .erp-select {
+                background-color: #231F1A !important;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23FF8F6B' stroke-width='2.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E") !important;
+                color: var(--ink) !important;
+                border-color: var(--sand) !important;
+              }
+
+              /* Global input overrides in dark mode */
+              [data-theme="dark"] input,
+              [data-theme="dark"] textarea {
+                background-color: #231F1A !important;
+                color: var(--ink) !important;
+                border-color: var(--sand) !important;
+              }
+              [data-theme="dark"] input:focus,
+              [data-theme="dark"] textarea:focus {
+                border-color: var(--orange) !important;
+                box-shadow: 0 0 0 3px var(--orange-tint) !important;
               }
 
               /* Dark theme adaptive overrides for ERP/CRM panels */
@@ -2258,7 +2308,7 @@ export default function ErpClient({
                 background: var(--cream) !important;
                 border-color: var(--sand) !important;
               }
-            `}</style>
+            ` }} />
           </div>
         </div>
       )}
