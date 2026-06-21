@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/app/actions";
 import {
@@ -47,16 +48,18 @@ export default async function ErpPage() {
   }
 
   return (
-    <ErpClient
-      user={user}
-      stats={stats}
-      sellersPerformance={sellersPerformance}
-      initialProjects={projects}
-      initialLeads={leads}
-      initialMeetings={meetings}
-      initialSales={sales}
-      sellers={sellers}
-      allStaff={allStaff}
-    />
+    <Suspense fallback={<div style={{ padding: 60, textAlign: "center", color: "var(--muted)" }}>Yuklanmoqda...</div>}>
+      <ErpClient
+        user={user}
+        stats={stats}
+        sellersPerformance={sellersPerformance}
+        initialProjects={projects}
+        initialLeads={leads}
+        initialMeetings={meetings}
+        initialSales={sales}
+        sellers={sellers}
+        allStaff={allStaff}
+      />
+    </Suspense>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { CustomSelect, CustomDateTimePicker } from "@/components/ui";
 import {
   erpAddProject,
@@ -31,7 +31,23 @@ export default function ErpClient({
   allStaff
 }) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState("overview");
+  const searchParams = useSearchParams();
+  const urlTab = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState(urlTab || "overview");
+
+  useEffect(() => {
+    if (urlTab && urlTab !== activeTab) {
+      setActiveTab(urlTab);
+    }
+  }, [urlTab]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("tab") !== activeTab) {
+      params.set("tab", activeTab);
+      router.push(`/erp?${params.toString()}`, { scroll: false });
+    }
+  }, [activeTab, router]);
   const [stats, setStats] = useState(initialStats);
   const [sellersPerformance, setSellersPerformance] = useState(initialSellersPerformance);
   const [projects, setProjects] = useState(initialProjects || []);
@@ -1521,27 +1537,39 @@ export default function ErpClient({
                       return (
                         <tr key={s.id}>
                           <td>
-                            <strong>{s.project_name}</strong>
-                            <div style={{ fontSize: 11, color: "var(--muted)" }}>{s.unit_number}-xonadon · {s.rooms} xona · {s.area} m²</div>
+                            <strong style={{ fontSize: 14, color: "var(--ink)" }}>{s.project_name}</strong>
+                            <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>{s.unit_number}-xonadon · {s.rooms} xona · {s.area} m²</div>
                           </td>
                           <td>
-                            <strong>{s.lead_name}</strong>
-                            <div style={{ fontSize: 11, color: "var(--muted)" }}>{s.lead_phone}</div>
+                            <strong style={{ fontSize: 14, color: "var(--ink)" }}>{s.lead_name}</strong>
+                            <div style={{ fontSize: 11, color: "var(--muted)", display: "flex", alignItems: "center", gap: 3, marginTop: 2 }}>
+                              <i className="ti ti-phone" style={{ fontSize: 11 }}></i>
+                              {s.lead_phone}
+                            </div>
                           </td>
-                          <td><strong>${parseInt(s.sold_price).toLocaleString()}</strong></td>
+                          <td><strong style={{ fontSize: 14, color: outstanding === 0 ? "#1d9e75" : "var(--orange-dark)" }}>${parseInt(s.sold_price).toLocaleString()}</strong></td>
                           <td>
-                            <span style={{ textTransform: "capitalize", fontSize: 12 }}>
+                            <span style={{
+                              fontSize: 11,
+                              fontWeight: 700,
+                              padding: "4px 8px",
+                              borderRadius: 6,
+                              textTransform: "uppercase",
+                              background: s.payment_plan === 'cash' ? "rgba(29, 158, 117, 0.1)" : s.payment_plan === 'installments' ? "rgba(224, 99, 52, 0.1)" : "rgba(24, 95, 165, 0.1)",
+                              color: s.payment_plan === 'cash' ? "#1D9E75" : s.payment_plan === 'installments' ? "var(--orange-dark)" : "#185FA5",
+                              border: s.payment_plan === 'cash' ? "1px solid rgba(29, 158, 117, 0.2)" : s.payment_plan === 'installments' ? "1px solid rgba(224, 99, 52, 0.2)" : "1px solid rgba(24, 95, 165, 0.2)"
+                            }}>
                               {s.payment_plan === 'cash' ? 'Naqd' : s.payment_plan === 'installments' ? 'Nasiya' : 'Ipoteka'}
                             </span>
                           </td>
                           <td>
-                            <div style={{ width: 140 }}>
+                            <div style={{ width: 150 }}>
                               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--muted)" }}>
-                                <span>{percentPaid}% to'landi</span>
-                                {outstanding > 0 && <span style={{ color: "var(--orange-dark)" }}>Qarz: ${outstanding.toLocaleString()}</span>}
+                                <span style={{ fontWeight: 600 }}>{percentPaid}% to'landi</span>
+                                {outstanding > 0 && <span style={{ color: "var(--orange-dark)", fontWeight: 700 }}>Qarz: ${outstanding.toLocaleString()}</span>}
                               </div>
-                              <div className="progress-track" style={{ height: 6, background: "var(--sand)", borderRadius: 3, overflow: "hidden", marginTop: 2 }}>
-                                <div style={{ height: "100%", background: outstanding === 0 ? "#22c55e" : "var(--orange)", width: `${percentPaid}%` }}></div>
+                              <div className="progress-track" style={{ height: 6, background: "var(--sand)", borderRadius: 3, overflow: "hidden", marginTop: 4 }}>
+                                <div style={{ height: "100%", background: outstanding === 0 ? "#1D9E75" : "var(--orange)", width: `${percentPaid}%`, borderRadius: 3 }}></div>
                               </div>
                               
                               {/* Add payment action button for Owner/ROP */}
@@ -1553,32 +1581,50 @@ export default function ErpClient({
                                   }}
                                   style={{
                                     border: "none",
-                                    background: "none",
-                                    color: "var(--orange)",
+                                    background: "var(--orange-tint)",
+                                    color: "var(--orange-dark)",
                                     fontSize: 10,
                                     fontWeight: 700,
                                     cursor: "pointer",
-                                    padding: 0,
-                                    marginTop: 4,
-                                    display: "block"
+                                    padding: "4px 8px",
+                                    borderRadius: 6,
+                                    marginTop: 8,
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: 2,
+                                    transition: "all 0.15s ease",
                                   }}
+                                  onMouseEnter={(e) => { e.currentTarget.style.background = "var(--orange)"; e.currentTarget.style.color = "#fff"; }}
+                                  onMouseLeave={(e) => { e.currentTarget.style.background = "var(--orange-tint)"; e.currentTarget.style.color = "var(--orange-dark)"; }}
                                 >
-                                  + To'lov Qabul Qilish
+                                  <i className="ti ti-plus"></i> To'lov qabul qilish
                                 </button>
                               )}
                             </div>
                           </td>
-                          <td style={{ fontSize: 12, opacity: 0.7 }}>
+                          <td style={{ fontSize: 12, opacity: 0.8, color: "var(--ink)" }}>
                             {new Date(s.sold_at).toLocaleDateString("uz-UZ")}
                           </td>
-                          <td>{s.seller_name || "—"}</td>
+                          <td style={{ fontSize: 13, color: "var(--ink)" }}>{s.seller_name || "—"}</td>
                           <td>
                             <button
                               onClick={() => triggerPrintContract(s)}
                               className="btn btn-secondary"
-                              style={{ padding: "4px 8px", fontSize: 11 }}
+                              style={{
+                                padding: "6px 12px",
+                                fontSize: 11,
+                                borderRadius: 8,
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 4,
+                                cursor: "pointer",
+                                background: "transparent",
+                                border: "1.5px solid var(--sand)",
+                                color: "var(--ink)",
+                                transition: "all 0.15s ease",
+                              }}
                             >
-                              <i className="ti ti-printer"></i> Chop etish
+                              <i className="ti ti-printer" style={{ fontSize: 13 }}></i> Chop etish
                             </button>
                           </td>
                         </tr>
