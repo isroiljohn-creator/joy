@@ -1256,7 +1256,7 @@ export default function ErpClient({
         {activeTab === "crm" && (
           <div className="dashboard-content" style={{ animation: "fadeIn 0.2s ease" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-              <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Mijozlar Kanban Doskasi (Sales Pipeline)</h3>
+              <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Mijozlar Kanban Doskasi</h3>
               <button onClick={() => setShowAddLeadModal(true)} className="btn btn-primary">
                 <i className="ti ti-plus"></i> Yangi Mijoz
               </button>
@@ -1969,7 +1969,7 @@ export default function ErpClient({
                       alignItems: "end"
                     }}>
                       <div className="form-group" style={{ margin: 0 }}>
-                        <label style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>🔍 Xonadon raqami</label>
+                        <label style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>Xonadon raqami</label>
                         <input
                           type="text"
                           placeholder="Masalan: 101"
@@ -1979,23 +1979,23 @@ export default function ErpClient({
                         />
                       </div>
                       <div className="form-group" style={{ margin: 0 }}>
-                        <label style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>🟢 Holati</label>
+                        <label style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>Holati</label>
                         <div style={{ marginTop: 4 }}>
                           <CustomSelect
                             value={chessFilterStatus}
                             onChange={(val) => setChessFilterStatus(val)}
                             options={[
                               { value: "all", label: "Barcha holatlar" },
-                              { value: "available", label: "Bo'sh (Available)" },
-                              { value: "reserved", label: "Bron (Reserved)" },
-                              { value: "sold", label: "Sotilgan (Sold)" }
+                              { value: "available", label: "Bo'sh" },
+                              { value: "reserved", label: "Bron" },
+                              { value: "sold", label: "Sotilgan" }
                             ]}
                             className="csel-compact"
                           />
                         </div>
                       </div>
                       <div className="form-group" style={{ margin: 0 }}>
-                        <label style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>🚪 Xonalar soni</label>
+                        <label style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>Xonalar soni</label>
                         <div style={{ marginTop: 4 }}>
                           <CustomSelect
                             value={chessFilterRooms}
@@ -2012,7 +2012,7 @@ export default function ErpClient({
                         </div>
                       </div>
                       <div className="form-group" style={{ margin: 0 }}>
-                        <label style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>💰 Narxi dan ({currency === "USD" ? "$" : "UZS"})</label>
+                        <label style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>Narxi dan ({currency === "USD" ? "$" : "UZS"})</label>
                         <input
                           type="number"
                           placeholder="0"
@@ -2022,7 +2022,7 @@ export default function ErpClient({
                         />
                       </div>
                       <div className="form-group" style={{ margin: 0 }}>
-                        <label style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>💰 Narxi gacha ({currency === "USD" ? "$" : "UZS"})</label>
+                        <label style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>Narxi gacha ({currency === "USD" ? "$" : "UZS"})</label>
                         <input
                           type="number"
                           placeholder="Ko'p"
@@ -2051,13 +2051,13 @@ export default function ErpClient({
                     {/* Grid Legend */}
                     <div style={{ display: "flex", gap: 20, justifyContent: "center", marginBottom: 28, flexWrap: "wrap" }}>
                       <span style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 8, fontWeight: 600 }}>
-                        <span style={{ width: 16, height: 16, borderRadius: 6, background: "rgba(29, 158, 117, 0.12)", border: "1.5px solid rgba(29, 158, 117, 0.35)", display: "inline-block" }}></span> Bo'sh (Available)
+                        <span style={{ width: 16, height: 16, borderRadius: 6, background: "rgba(29, 158, 117, 0.12)", border: "1.5px solid rgba(29, 158, 117, 0.35)", display: "inline-block" }}></span> Bo'sh
                       </span>
                       <span style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 8, fontWeight: 600 }}>
-                        <span style={{ width: 16, height: 16, borderRadius: 6, background: "rgba(224, 99, 52, 0.12)", border: "1.5px solid rgba(224, 99, 52, 0.35)", display: "inline-block" }}></span> Bron qilingan (Reserved)
+                        <span style={{ width: 16, height: 16, borderRadius: 6, background: "rgba(224, 99, 52, 0.12)", border: "1.5px solid rgba(224, 99, 52, 0.35)", display: "inline-block" }}></span> Bron qilingan
                       </span>
                       <span style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 8, fontWeight: 600 }}>
-                        <span style={{ width: 16, height: 16, borderRadius: 6, background: "rgba(110, 102, 95, 0.1)", border: "1.5px solid var(--sand)", display: "inline-block" }}></span> Sotilgan (Sold)
+                        <span style={{ width: 16, height: 16, borderRadius: 6, background: "rgba(110, 102, 95, 0.1)", border: "1.5px solid var(--sand)", display: "inline-block" }}></span> Sotilgan
                       </span>
                     </div>
 
@@ -3895,10 +3895,12 @@ export default function ErpClient({
           bottom: 0,
           background: "rgba(0,0,0,0.5)",
           display: "flex",
-          alignItems: "center",
+          alignItems: "flex-start",
           justifyContent: "center",
           zIndex: 9999,
-          padding: 16
+          padding: 16,
+          paddingTop: "60px",
+          overflowY: "auto"
         }} onClick={() => setSelectedLeadForTasks(null)}>
           <div className="create-agency-card" style={{
             width: "100%",
@@ -3907,12 +3909,13 @@ export default function ErpClient({
             borderRadius: 24,
             padding: 24,
             boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
-            position: "relative"
+            position: "relative",
+            marginTop: "20px"
           }} onClick={(e) => e.stopPropagation()}>
             
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
               <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "var(--ink)", display: "flex", alignItems: "center", gap: 8 }}>
-                📋 Vazifalar: {selectedLeadForTasks.name}
+                Vazifalar: {selectedLeadForTasks.name}
               </h3>
               <button onClick={() => setSelectedLeadForTasks(null)} style={{ background: "none", border: "none", fontSize: 18, cursor: "pointer", color: "var(--muted)" }}>✕</button>
             </div>
@@ -4005,7 +4008,7 @@ export default function ErpClient({
                 />
               </div>
               <div className="form-group" style={{ marginBottom: 16 }}>
-                <label style={{ fontSize: 11, color: "var(--muted)", display: "block", marginBottom: 4 }}>Bajarish muddati (Due Date)</label>
+                <label style={{ fontSize: 11, color: "var(--muted)", display: "block", marginBottom: 4 }}>Bajarish muddati</label>
                 <input
                   type="datetime-local"
                   value={newTaskDueDate}

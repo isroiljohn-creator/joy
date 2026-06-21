@@ -420,7 +420,7 @@ export default function ClientPortalPage() {
                   padding: 24
                 }}>
                   <h3 style={{ margin: "0 0 16px 0", fontSize: 16, fontWeight: 700, color: "#fff", borderBottom: "1px solid rgba(224, 213, 201, 0.1)", paddingBottom: 10 }}>
-                    🏢 Olingan Xonadon Tafsilotlari
+                    Olingan Xonadon Tafsilotlari
                   </h3>
                   
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
@@ -463,7 +463,7 @@ export default function ClientPortalPage() {
                 }}>
                   <div>
                     <h3 style={{ margin: "0 0 16px 0", fontSize: 16, fontWeight: 700, color: "#fff", borderBottom: "1px solid rgba(224, 213, 201, 0.1)", paddingBottom: 10 }}>
-                      💰 To'lov Progressi va Balans
+                      To'lov Progressi va Balans
                     </h3>
                     
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
@@ -509,7 +509,7 @@ export default function ClientPortalPage() {
 
               {/* Action Bar for printing */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }} className="no-print">
-                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#fff" }}>📄 Rasmiy Shartnoma Hujjati</h3>
+                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#fff" }}>Rasmiy Shartnoma Hujjati</h3>
                 <div style={{ display: "flex", gap: 12 }}>
                   <button
                     onClick={() => setShowReceipt(true)}
@@ -584,12 +584,12 @@ export default function ClientPortalPage() {
 
                 <div style={{ border: "1.5px solid rgba(224, 213, 201, 0.2)", padding: 12, borderRadius: 12, margin: "14px 0", background: "rgba(10, 7, 5, 0.2)" }}>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 12 }}>
-                    <div>🏢 Loyiha: <strong>{contract.project_name}</strong></div>
-                    <div>🚪 Xonadon raqami: <strong>{contract.unit_number}</strong></div>
-                    <div>🪜 Qavat: <strong>{contract.floor}-qavat</strong></div>
-                    <div>📐 Maydoni: <strong>{contract.area} m²</strong></div>
-                    <div>🚪 Xonalar soni: <strong>{contract.rooms} xona</strong></div>
-                    <div>📍 Manzili: <strong>{contract.project_location}</strong></div>
+                    <div>Loyiha: <strong>{contract.project_name}</strong></div>
+                    <div>Xonadon raqami: <strong>{contract.unit_number}</strong></div>
+                    <div>Qavat: <strong>{contract.floor}-qavat</strong></div>
+                    <div>Maydoni: <strong>{contract.area} m²</strong></div>
+                    <div>Xonalar soni: <strong>{contract.rooms} xona</strong></div>
+                    <div>Manzili: <strong>{contract.project_location}</strong></div>
                   </div>
                 </div>
 
@@ -641,7 +641,7 @@ export default function ClientPortalPage() {
             }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, borderBottom: "1px solid rgba(224, 213, 201, 0.1)", paddingBottom: 10 }} className="no-print">
                 <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#fff" }}>
-                  {contract.payment_plan === "installments" ? "📅 Bo'lib to'lash (12 oylik) shartnoma grafigi" : "📅 To'lov grafigi"}
+                  {contract.payment_plan === "installments" ? "Bo'lib to'lash (12 oylik) shartnoma grafigi" : "To'lov grafigi"}
                 </h3>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <span style={{ fontSize: 12, color: "rgba(224, 213, 201, 0.6)" }}>
@@ -737,10 +737,10 @@ export default function ClientPortalPage() {
                 marginBottom: 24
               }}>
                 {[
-                  { name: "Kotlovan ishlari", percent: contract.progress_kotlovan || 0, icon: "🚜" },
-                  { name: "G'isht quyish ishlari", percent: contract.progress_brick || 0, icon: "🧱" },
-                  { name: "Fasad ishlari", percent: contract.progress_facade || 0, icon: "🏢" },
-                  { name: "Ichki pardozlash", percent: contract.progress_interior || 0, icon: "🎨" }
+                  { name: "Kotlovan ishlari", percent: contract.progress_kotlovan || 0, icon: "" },
+                  { name: "G'isht quyish ishlari", percent: contract.progress_brick || 0, icon: "" },
+                  { name: "Fasad ishlari", percent: contract.progress_facade || 0, icon: "" },
+                  { name: "Ichki pardozlash", percent: contract.progress_interior || 0, icon: "" }
                 ].map((s, idx) => (
                   <div key={idx} style={{
                     background: "rgba(35, 27, 21, 0.5)",
@@ -749,7 +749,7 @@ export default function ClientPortalPage() {
                     padding: 20,
                     textAlign: "center"
                   }}>
-                    <div style={{ fontSize: 24, marginBottom: 8 }}>{s.icon}</div>
+                    {s.icon && <div style={{ fontSize: 24, marginBottom: 8 }}>{s.icon}</div>}
                     <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 6 }}>{s.name}</div>
                     <div style={{ fontSize: 18, fontWeight: 800, color: "#E06334", marginBottom: 12 }}>{s.percent}%</div>
                     
@@ -768,7 +768,7 @@ export default function ClientPortalPage() {
 
               {/* LIVE CAMERA FEEDS SIMULATOR */}
               <h3 style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 16 }}>
-                📹 Jonli Qurilish Kameralari (Live Feeds)
+                Jonli Qurilish Kameralari
               </h3>
               
               <div style={{
@@ -999,7 +999,7 @@ export default function ClientPortalPage() {
                       pointerEvents: "none",
                       userSelect: "none"
                     }} className="receipt-watermark">
-                      TO'LANDI / PAID
+                      TO'LANDI
                     </div>
 
                     {/* Receipt Header */}
@@ -1018,7 +1018,7 @@ export default function ClientPortalPage() {
                     {/* Receipt Details */}
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24, fontSize: 12 }}>
                       <div>
-                        <span style={{ fontSize: 10, color: "rgba(224, 213, 201, 0.5)" }}>TO'LOVCHI / PAYER:</span>
+                        <span style={{ fontSize: 10, color: "rgba(224, 213, 201, 0.5)" }}>TO'LOVCHI:</span>
                         <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginTop: 2 }} className="receipt-text-white">{contract.lead_name}</div>
                         <div style={{ color: "rgba(224, 213, 201, 0.7)", marginTop: 1 }}>Tel: {contract.lead_phone}</div>
                       </div>
@@ -1033,25 +1033,25 @@ export default function ClientPortalPage() {
                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, marginBottom: 24 }}>
                       <thead>
                         <tr style={{ borderBottom: "1.5px solid rgba(224, 213, 201, 0.15)", textAlign: "left" }}>
-                          <th style={{ padding: "8px 4px", color: "rgba(224, 213, 201, 0.5)", fontWeight: 600 }}>Tavsif / Description</th>
-                          <th style={{ padding: "8px 4px", color: "rgba(224, 213, 201, 0.5)", fontWeight: 600, textAlign: "right" }}>Summa / Amount</th>
+                          <th style={{ padding: "8px 4px", color: "rgba(224, 213, 201, 0.5)", fontWeight: 600 }}>Tavsif</th>
+                          <th style={{ padding: "8px 4px", color: "rgba(224, 213, 201, 0.5)", fontWeight: 600, textAlign: "right" }}>Summa</th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr style={{ borderBottom: "1px solid rgba(224, 213, 201, 0.05)" }}>
-                          <td style={{ padding: "10px 4px" }}>Shartnoma umumiy qiymati (Contract Price)</td>
+                          <td style={{ padding: "10px 4px" }}>Shartnoma umumiy qiymati</td>
                           <td style={{ padding: "10px 4px", textAlign: "right", fontWeight: 600 }}>{formatPrice(contract.sold_price)}</td>
                         </tr>
                         <tr style={{ borderBottom: "1px solid rgba(224, 213, 201, 0.05)" }}>
-                          <td style={{ padding: "10px 4px" }}>Boshlang'ich to'lov (Downpayment)</td>
+                          <td style={{ padding: "10px 4px" }}>Boshlang'ich to'lov</td>
                           <td style={{ padding: "10px 4px", textAlign: "right" }}>{formatPrice(contract.initial_payment)}</td>
                         </tr>
                         <tr style={{ borderBottom: "1.5px solid rgba(224, 213, 201, 0.15)", background: "rgba(34, 197, 94, 0.03)" }}>
-                          <td style={{ padding: "12px 4px", fontWeight: 700, color: "#22c55e" }}>To'langan umumiy summa (Paid Amount)</td>
+                          <td style={{ padding: "12px 4px", fontWeight: 700, color: "#22c55e" }}>To'langan umumiy summa</td>
                           <td style={{ padding: "12px 4px", textAlign: "right", fontWeight: 800, color: "#22c55e", fontSize: 13 }}>{formatPrice(contract.paid_amount)}</td>
                         </tr>
                         <tr>
-                          <td style={{ padding: "12px 4px", fontWeight: 700, color: debtAmount > 0 ? "rgba(224, 213, 201, 0.8)" : "#22c55e" }}>Qolgan qarz balansi (Remaining Debt)</td>
+                          <td style={{ padding: "12px 4px", fontWeight: 700, color: debtAmount > 0 ? "rgba(224, 213, 201, 0.8)" : "#22c55e" }}>Qolgan qarz balansi</td>
                           <td style={{ padding: "12px 4px", textAlign: "right", fontWeight: 800, color: debtAmount > 0 ? "#ef4444" : "#22c55e", fontSize: 13 }}>{formatPrice(debtAmount)}</td>
                         </tr>
                       </tbody>
@@ -1100,11 +1100,11 @@ export default function ClientPortalPage() {
                       <div style={{ fontSize: 11, display: "flex", gap: 30 }}>
                         <div style={{ textAlign: "center" }}>
                           <div style={{ borderBottom: "1px solid rgba(224, 213, 201, 0.3)", width: 100, height: 18 }} className="signature-line"></div>
-                          <div style={{ fontSize: 9, color: "rgba(224, 213, 201, 0.5)", marginTop: 4 }}>Kassir (Cashier)</div>
+                          <div style={{ fontSize: 9, color: "rgba(224, 213, 201, 0.5)", marginTop: 4 }}>Kassir</div>
                         </div>
                         <div style={{ textAlign: "center" }}>
                           <div style={{ borderBottom: "1px solid rgba(224, 213, 201, 0.3)", width: 100, height: 18 }} className="signature-line"></div>
-                          <div style={{ fontSize: 9, color: "rgba(224, 213, 201, 0.5)", marginTop: 4 }}>Mijoz (Client)</div>
+                          <div style={{ fontSize: 9, color: "rgba(224, 213, 201, 0.5)", marginTop: 4 }}>Mijoz</div>
                         </div>
                       </div>
                     </div>
