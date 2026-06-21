@@ -71,6 +71,8 @@ export default function ErpClient({
   const [showAddUnitModal, setShowAddUnitModal] = useState(false);
   const [selectedUnitForAction, setSelectedUnitForAction] = useState(null);
   const [showContractModal, setShowContractModal] = useState(null); // holds sale object
+  const [showDeleteProjectModal, setShowDeleteProjectModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
   
   // Quick booking state
   const [bookingType, setBookingType] = useState("reserve"); // 'reserve' or 'sell'
@@ -205,13 +207,20 @@ export default function ErpClient({
     }
   };
 
-  const handleDeleteProject = async (projectId) => {
-    if (!window.confirm("Haqiqatan ham ushbu loyihani o'chirmoqchisiz? Barcha tegishli xonadonlar va sotuvlar ham o'chiriladi!")) {
+  const triggerDeleteProject = () => {
+    setDeleteConfirmText("");
+    setShowDeleteProjectModal(true);
+  };
+
+  const confirmDeleteProject = async () => {
+    if (deleteConfirmText !== "o'chirilsin") {
+      showToast("Iltimos, tasdiqlash uchun 'o'chirilsin' deb yozing", true);
       return;
     }
     setLoading(true);
+    setShowDeleteProjectModal(false);
     try {
-      const res = await erpDeleteProject(projectId);
+      const res = await erpDeleteProject(selectedProject.id);
       if (res.error) {
         showToast(res.error, true);
       } else {
@@ -1380,7 +1389,7 @@ export default function ErpClient({
                     {(user.role === 'owner' || user.role === 'rop') && (
                       <>
                         <button 
-                          onClick={() => handleDeleteProject(selectedProject.id)} 
+                          onClick={triggerDeleteProject} 
                           className="btn btn-secondary" 
                           style={{ borderColor: "#dc2626", color: "#dc2626" }}
                         >
@@ -2336,6 +2345,77 @@ export default function ErpClient({
                 {loading ? "Saqlanmoqda..." : "Loyihani Saqlash"}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ───────────────── MODAL: DELETE PROJECT CONFIRMATION ───────────────── */}
+      {showDeleteProjectModal && selectedProject && (
+        <div className="modal-overlay" style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: "rgba(0,0,0,0.5)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 9999,
+          padding: 16
+        }} onClick={() => setShowDeleteProjectModal(false)}>
+          <div className="create-agency-card" style={{
+            width: "100%",
+            maxWidth: 450,
+            background: "var(--card-bg)",
+            borderRadius: 24,
+            padding: 24,
+            boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
+            animation: "slideUp 0.2s ease"
+          }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--sand)", paddingBottom: 12, marginBottom: 16 }}>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#dc2626", display: "flex", alignItems: "center", gap: 8 }}>
+                <i className="ti ti-alert-triangle"></i> Loyihani O'chirish
+              </h3>
+              <button onClick={() => setShowDeleteProjectModal(false)} style={{ background: "none", border: "none", fontSize: 18, cursor: "pointer", color: "var(--muted)" }}>✕</button>
+            </div>
+            
+            <div style={{ marginBottom: 20 }}>
+              <p style={{ fontSize: 14, margin: "0 0 12px 0", lineHeight: "1.5" }}>
+                Haqiqatan ham <strong>{selectedProject.name}</strong> loyihasini o'chirmoqchisiz?
+              </p>
+              <div style={{ background: "rgba(220, 38, 38, 0.08)", borderLeft: "3px solid #dc2626", padding: 12, borderRadius: 8, marginBottom: 16 }}>
+                <p style={{ fontSize: 12, color: "#b91c1c", margin: 0 }}>
+                  <strong>Diqqat:</strong> Loyiha o'chirilganda, unga tegishli barcha xonadonlar va sotuvlar ham ma'lumotlar bazasidan butunlay o'chib ketadi! Bu amalni ortga qaytarib bo'lmaydi.
+                </p>
+              </div>
+              <div className="form-group">
+                <label style={{ fontSize: 12, color: "var(--muted)" }}>
+                  Tasdiqlash uchun pastga <strong>o'chirilsin</strong> deb yozing:
+                </label>
+                <input
+                  type="text"
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  placeholder="o'chirilsin"
+                  style={{ width: "100%", padding: 10, border: "1.5px solid var(--sand)", borderRadius: 12, marginTop: 8 }}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={() => setShowDeleteProjectModal(false)} className="btn btn-secondary" style={{ flex: 1 }}>
+                Bekor qilish
+              </button>
+              <button 
+                onClick={confirmDeleteProject} 
+                className="btn btn-primary" 
+                style={{ flex: 1, backgroundColor: "#dc2626", borderColor: "#dc2626" }}
+                disabled={deleteConfirmText !== "o'chirilsin" || loading}
+              >
+                {loading ? "O'chirilmoqda..." : "Tasdiqlayman"}
+              </button>
+            </div>
           </div>
         </div>
       )}
