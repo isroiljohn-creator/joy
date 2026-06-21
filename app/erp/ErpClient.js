@@ -17,7 +17,14 @@ import {
   erpAddSale,
   erpRecordPayment,
   erpUpdateUserRole,
-  erpDeleteProject
+  erpDeleteProject,
+  erpGetTasks,
+  erpAddTask,
+  erpToggleTask,
+  erpDeleteTask,
+  erpGetNotifications,
+  erpSendManualNotification,
+  erpCheckAndSendAutomaticNotifications
 } from "@/app/erp-actions";
 
 export default function ErpClient({
@@ -76,6 +83,158 @@ export default function ErpClient({
   const [currency, setCurrency] = useState("USD"); // "USD" or "UZS"
   const [financeTimeFrame, setFinanceTimeFrame] = useState("monthly"); // "weekly", "monthly", "yearly"
   const [financeProjectId, setFinanceProjectId] = useState("all");
+
+  // Chessboard filters state
+  const [chessFilterStatus, setChessFilterStatus] = useState("all");
+  const [chessFilterRooms, setChessFilterRooms] = useState("all");
+  const [chessSearchNumber, setChessSearchNumber] = useState("");
+  const [chessFilterPriceMin, setChessFilterPriceMin] = useState("");
+  const [chessFilterPriceMax, setChessFilterPriceMax] = useState("");
+
+
+  // Tasks state
+  const [selectedLeadForTasks, setSelectedLeadForTasks] = useState(null);
+  const [leadTasks, setLeadTasks] = useState([]);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskDueDate, setNewTaskDueDate] = useState("");
+  const [isSavingTask, setIsSavingTask] = useState(false);
+
+  // Notifications state
+  const [notifications, setNotifications] = useState([]);
+  const [notificationForm, setNotificationForm] = useState({ type: "sms", recipient: "", message: "" });
+  const [isSendingNotification, setIsSendingNotification] = useState(false);
+  const [isCheckingNotifications, setIsCheckingNotifications] = useState(false);
+
+  const fetchTasksForLead = async (leadId) => {
+    try {
+      const data = await erpGetTasks(leadId);
+      setLeadTasks(data);
+    } catch (err) {
+      console.error("fetchTasksForLead error:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedLeadForTasks) {
+      fetchTasksForLead(selectedLeadForTasks.id);
+    } else {
+      setLeadTasks([]);
+    }
+  }, [selectedLeadForTasks]);
+
+  const fetchNotifications = async () => {
+    try {
+      const data = await erpGetNotifications();
+      setNotifications(data);
+    } catch (err) {
+      console.error("fetchNotifications error:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "notifications") {
+      fetchNotifications();
+    }
+  }, [activeTab]);
+
+  const handleAddTask = async (e) => {
+    e.preventDefault();
+    if (!selectedLeadForTasks || !newTaskTitle.trim()) return;
+    setIsSavingTask(true);
+    try {
+      const res = await erpAddTask(selectedLeadForTasks.id, newTaskTitle.trim(), newTaskDueDate);
+      if (res.error) {
+        alert(res.error);
+      } else {
+        setNewTaskTitle("");
+        setNewTaskDueDate("");
+        await fetchTasksForLead(selectedLeadForTasks.id);
+        const updatedLeads = await erpGetLeads();
+        setLeads(updatedLeads);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSavingTask(false);
+    }
+  };
+
+  const handleToggleTask = async (taskId) => {
+    try {
+      const res = await erpToggleTask(taskId);
+      if (res.error) {
+        alert(res.error);
+      } else {
+        if (selectedLeadForTasks) {
+          await fetchTasksForLead(selectedLeadForTasks.id);
+        }
+        const updatedLeads = await erpGetLeads();
+        setLeads(updatedLeads);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteTask = async (taskId) => {
+    if (!confirm("Vazifani o'chirishni tasdiqlaysizmi?")) return;
+    try {
+      const res = await erpDeleteTask(taskId);
+      if (res.error) {
+        alert(res.error);
+      } else {
+        if (selectedLeadForTasks) {
+          await fetchTasksForLead(selectedLeadForTasks.id);
+        }
+        const updatedLeads = await erpGetLeads();
+        setLeads(updatedLeads);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleSendManualNotification = async (e) => {
+    e.preventDefault();
+    const { type, recipient, message } = notificationForm;
+    if (!recipient.trim() || !message.trim()) {
+      alert("Qabul qiluvchi va xabar maydonlari to'ldirilishi shart!");
+      return;
+    }
+    setIsSendingNotification(true);
+    try {
+      const res = await erpSendManualNotification(type, recipient, message);
+      if (res.error) {
+        alert(res.error);
+      } else {
+        setNotificationForm({ type: "sms", recipient: "", message: "" });
+        alert("Eslatma muvaffaqiyatli yuborildi!");
+        await fetchNotifications();
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSendingNotification(false);
+    }
+  };
+
+  const handleCheckAndSendAutomaticNotifications = async () => {
+    setIsCheckingNotifications(true);
+    try {
+      const res = await erpCheckAndSendAutomaticNotifications();
+      if (res.error) {
+        alert(res.error);
+      } else {
+        alert(`Tekshiruv yakunlandi! Yangi yuborilgan eslatmalar soni: ${res.createdCount}`);
+        await fetchNotifications();
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsCheckingNotifications(false);
+    }
+  };
+
 
   const formatPrice = (valueInUSD) => {
     if (valueInUSD === null || valueInUSD === undefined || valueInUSD === "") return "—";
@@ -809,6 +968,13 @@ export default function ErpClient({
             <i className="ti ti-cash"></i>
             <span>Sotuvlar</span>
           </button>
+          <button 
+            className={`dashboard-tab ${activeTab === "notifications" ? "active" : ""}`} 
+            onClick={() => setActiveTab("notifications")}
+          >
+            <i className="ti ti-bell"></i>
+            <span>Eslatmalar</span>
+          </button>
           {(user.role === 'owner' || user.role === 'rop') && (
             <button 
               className={`dashboard-tab ${activeTab === "finance" ? "active" : ""}`} 
@@ -1169,6 +1335,26 @@ export default function ErpClient({
                                 fontWeight: 600
                               }}>{formatPrice(l.budget)}</span>
                             )}
+
+                            <span 
+                              onClick={() => setSelectedLeadForTasks(l)}
+                              style={{
+                                background: l.total_tasks > 0 && parseInt(l.completed_tasks) === parseInt(l.total_tasks) ? "rgba(22, 163, 74, 0.1)" : "rgba(124, 58, 237, 0.1)",
+                                color: l.total_tasks > 0 && parseInt(l.completed_tasks) === parseInt(l.total_tasks) ? "#16a34a" : "var(--purple)",
+                                fontSize: 10,
+                                padding: "2px 6px",
+                                borderRadius: 6,
+                                fontWeight: 600,
+                                cursor: "pointer",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 4
+                              }}
+                              title="Vazifalar ro'yxatini ko'rish"
+                            >
+                              <i className="ti ti-checkbox"></i>
+                              Vazifalar: {l.completed_tasks || 0}/{l.total_tasks || 0}
+                            </span>
                           </div>
 
                           <div className="kanban-card-notes" style={{ fontSize: 12, color: "var(--text2)", background: "var(--cream)", padding: 6, borderRadius: 8, marginBottom: 12, fontStyle: "italic" }}>
@@ -1770,6 +1956,98 @@ export default function ErpClient({
                   </div>
                 ) : (
                   <div>
+                    {/* Advanced Shaxmatka Filters Bar */}
+                    <div style={{
+                      background: "var(--cream)",
+                      padding: 16,
+                      borderRadius: 20,
+                      border: "1px solid var(--sand)",
+                      marginBottom: 20,
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+                      gap: 12,
+                      alignItems: "end"
+                    }}>
+                      <div className="form-group" style={{ margin: 0 }}>
+                        <label style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>🔍 Xonadon raqami</label>
+                        <input
+                          type="text"
+                          placeholder="Masalan: 101"
+                          value={chessSearchNumber}
+                          onChange={(e) => setChessSearchNumber(e.target.value)}
+                          style={{ width: "100%", padding: "8px 12px", border: "1px solid var(--sand)", borderRadius: 10, fontSize: 12, marginTop: 4 }}
+                        />
+                      </div>
+                      <div className="form-group" style={{ margin: 0 }}>
+                        <label style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>🟢 Holati</label>
+                        <div style={{ marginTop: 4 }}>
+                          <CustomSelect
+                            value={chessFilterStatus}
+                            onChange={(val) => setChessFilterStatus(val)}
+                            options={[
+                              { value: "all", label: "Barcha holatlar" },
+                              { value: "available", label: "Bo'sh (Available)" },
+                              { value: "reserved", label: "Bron (Reserved)" },
+                              { value: "sold", label: "Sotilgan (Sold)" }
+                            ]}
+                            className="csel-compact"
+                          />
+                        </div>
+                      </div>
+                      <div className="form-group" style={{ margin: 0 }}>
+                        <label style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>🚪 Xonalar soni</label>
+                        <div style={{ marginTop: 4 }}>
+                          <CustomSelect
+                            value={chessFilterRooms}
+                            onChange={(val) => setChessFilterRooms(val)}
+                            options={[
+                              { value: "all", label: "Barcha xonalar" },
+                              { value: "1", label: "1 xonali" },
+                              { value: "2", label: "2 xonali" },
+                              { value: "3", label: "3 xonali" },
+                              { value: "4", label: "4 xonali" }
+                            ]}
+                            className="csel-compact"
+                          />
+                        </div>
+                      </div>
+                      <div className="form-group" style={{ margin: 0 }}>
+                        <label style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>💰 Narxi dan ({currency === "USD" ? "$" : "UZS"})</label>
+                        <input
+                          type="number"
+                          placeholder="0"
+                          value={chessFilterPriceMin}
+                          onChange={(e) => setChessFilterPriceMin(e.target.value)}
+                          style={{ width: "100%", padding: "8px 12px", border: "1px solid var(--sand)", borderRadius: 10, fontSize: 12, marginTop: 4 }}
+                        />
+                      </div>
+                      <div className="form-group" style={{ margin: 0 }}>
+                        <label style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>💰 Narxi gacha ({currency === "USD" ? "$" : "UZS"})</label>
+                        <input
+                          type="number"
+                          placeholder="Ko'p"
+                          value={chessFilterPriceMax}
+                          onChange={(e) => setChessFilterPriceMax(e.target.value)}
+                          style={{ width: "100%", padding: "8px 12px", border: "1px solid var(--sand)", borderRadius: 10, fontSize: 12, marginTop: 4 }}
+                        />
+                      </div>
+                      {(chessSearchNumber || chessFilterStatus !== "all" || chessFilterRooms !== "all" || chessFilterPriceMin || chessFilterPriceMax) && (
+                        <button
+                          onClick={() => {
+                            setChessSearchNumber("");
+                            setChessFilterStatus("all");
+                            setChessFilterRooms("all");
+                            setChessFilterPriceMin("");
+                            setChessFilterPriceMax("");
+                          }}
+                          className="btn btn-secondary"
+                          style={{ height: 35, padding: "0 10px", fontSize: 11, display: "flex", alignItems: "center", justifyContent: "center", margin: 0 }}
+                        >
+                          Tozalash
+                        </button>
+                      )}
+                    </div>
+
                     {/* Grid Legend */}
                     <div style={{ display: "flex", gap: 20, justifyContent: "center", marginBottom: 28, flexWrap: "wrap" }}>
                       <span style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 8, fontWeight: 600 }}>
@@ -1783,18 +2061,45 @@ export default function ErpClient({
                       </span>
                     </div>
 
-                    {/* Group units by floor to render row-by-row */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                      {Object.entries(
-                        units.reduce((acc, unit) => {
-                          const floor = unit.floor;
-                          if (!acc[floor]) acc[floor] = [];
-                          acc[floor].push(unit);
-                          return acc;
-                        }, {})
-                      )
-                      .sort((a, b) => parseInt(b[0]) - parseInt(a[0])) // Sort floors in descending order
-                      .map(([floor, floorUnits]) => (
+                    {/* Filter units logic and group */}
+                    {(() => {
+                      const filteredUnits = units.filter(u => {
+                        if (chessFilterStatus !== "all" && u.status !== chessFilterStatus) return false;
+                        if (chessFilterRooms !== "all" && parseInt(u.rooms) !== parseInt(chessFilterRooms)) return false;
+                        if (chessSearchNumber.trim() && !u.unit_number.toLowerCase().includes(chessSearchNumber.trim().toLowerCase())) return false;
+                        
+                        let priceMin = chessFilterPriceMin ? parseInt(chessFilterPriceMin) : null;
+                        let priceMax = chessFilterPriceMax ? parseInt(chessFilterPriceMax) : null;
+                        if (currency === "UZS") {
+                          if (priceMin) priceMin = priceMin / 12000;
+                          if (priceMax) priceMax = priceMax / 12000;
+                        }
+                        if (priceMin !== null && parseInt(u.price) < priceMin) return false;
+                        if (priceMax !== null && parseInt(u.price) > priceMax) return false;
+                        return true;
+                      });
+
+                      if (filteredUnits.length === 0) {
+                        return (
+                          <div style={{ textAlign: "center", padding: "40px 0", color: "var(--muted)", fontStyle: "italic" }}>
+                            Kiritilgan filtrlarga mos keladigan xonadonlar topilmadi.
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                          {Object.entries(
+                            filteredUnits.reduce((acc, unit) => {
+                              const floor = unit.floor;
+                              if (!acc[floor]) acc[floor] = [];
+                              acc[floor].push(unit);
+                              return acc;
+                            }, {})
+                          )
+                          .sort((a, b) => parseInt(b[0]) - parseInt(a[0])) // Sort floors in descending order
+                          .map(([floor, floorUnits]) => (
+
                         <div key={floor} style={{ display: "flex", alignItems: "center", gap: 16 }}>
                           {/* Floor Label */}
                           <div style={{
@@ -1870,8 +2175,10 @@ export default function ErpClient({
                         </div>
                       ))}
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
+              </div>
+            )}
               </div>
             )}
           </div>
@@ -2271,6 +2578,149 @@ export default function ErpClient({
                   ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {/* ───────────────── NOTIFICATIONS LOG TAB ───────────────── */}
+        {activeTab === "notifications" && (
+          <div className="dashboard-content" style={{ animation: "fadeIn 0.2s ease" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Eslatmalar va Ogohlantirishlar Tizimi</h3>
+                <p style={{ margin: "4px 0 0 0", fontSize: 12, color: "var(--muted)" }}>
+                  Mijozlar to'lov grafiklari va sotuvchilar uchrashuvlari bo'yicha yuborilgan avtomatik xabarlar jurnali
+                </p>
+              </div>
+              <button 
+                onClick={handleCheckAndSendAutomaticNotifications}
+                className="btn btn-primary"
+                disabled={isCheckingNotifications}
+                style={{ display: "flex", alignItems: "center", gap: 8 }}
+              >
+                {isCheckingNotifications ? (
+                  <>Aylanmoqda...</>
+                ) : (
+                  <>
+                    <i className="ti ti-refresh"></i>
+                    Avtomatik Tekshirish va Yuborish
+                  </>
+                )}
+              </button>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 20, alignItems: "start" }}>
+              
+              {/* Log Timeline/Table */}
+              <div className="dashboard-listings-table" style={{ background: "var(--card-bg)", borderRadius: 20, padding: 4 }}>
+                <h4 style={{ padding: "16px 16px 8px 16px", margin: 0, fontSize: 14, fontWeight: 700 }}>Yuborilgan Eslatmalar Jurnali</h4>
+                <table>
+                  <thead>
+                    <tr>
+                      <th style={{ width: 100 }}>Turi</th>
+                      <th style={{ width: 150 }}>Qabul qiluvchi</th>
+                      <th>Xabar matni</th>
+                      <th style={{ width: 150 }}>Yuborilgan vaqti</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {notifications.length === 0 ? (
+                      <tr>
+                        <td colSpan="4" style={{ textAlign: "center", padding: 30, color: "var(--muted)", fontStyle: "italic" }}>
+                          Hozircha yuborilgan eslatmalar mavjud emas. Yuqoridagi tekshiruv tugmasini bosib simulyatsiya qiling.
+                        </td>
+                      </tr>
+                    ) : (
+                      notifications.map(n => (
+                        <tr key={n.id}>
+                          <td>
+                            <span style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 4,
+                              padding: "4px 8px",
+                              borderRadius: 8,
+                              fontSize: 11,
+                              fontWeight: 600,
+                              background: n.type === 'telegram' ? "rgba(34, 158, 217, 0.1)" : "rgba(224, 99, 52, 0.1)",
+                              color: n.type === 'telegram' ? "#229ED9" : "var(--orange-dark)"
+                            }}>
+                              <i className={n.type === 'telegram' ? "ti ti-brand-telegram" : "ti ti-message"}></i>
+                              {n.type === 'telegram' ? 'Telegram' : 'SMS'}
+                            </span>
+                          </td>
+                          <td>
+                            <strong>{n.recipient}</strong>
+                          </td>
+                          <td style={{ fontSize: 12, lineHeight: "1.4", whiteSpace: "normal", wordBreak: "break-word" }}>
+                            {n.message}
+                          </td>
+                          <td style={{ fontSize: 11, opacity: 0.7 }}>
+                            {new Date(n.sent_at).toLocaleDateString("uz-UZ")} {new Date(n.sent_at).toLocaleTimeString("uz-UZ", {hour: '2-digit', minute:'2-digit'})}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Quick Send Manual Notification Test Panel */}
+              <div className="create-agency-card" style={{ padding: 20, borderRadius: 20, background: "var(--card-bg)" }}>
+                <h4 style={{ margin: "0 0 16px 0", fontSize: 14, fontWeight: 700 }}>
+                  <i className="ti ti-send" style={{ marginRight: 6 }}></i>
+                  Test Eslatma Yuborish
+                </h4>
+                
+                <form onSubmit={handleSendManualNotification}>
+                  <div className="form-group" style={{ marginBottom: 12 }}>
+                    <label style={{ fontSize: 11, color: "var(--muted)" }}>Kanal turi</label>
+                    <div style={{ marginTop: 6 }}>
+                      <CustomSelect
+                        value={notificationForm.type}
+                        onChange={(val) => setNotificationForm(p => ({ ...p, type: val }))}
+                        options={[
+                          { value: "sms", label: "SMS Xabar" },
+                          { value: "telegram", label: "Telegram Bot" }
+                        ]}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group" style={{ marginBottom: 12 }}>
+                    <label style={{ fontSize: 11, color: "var(--muted)" }}>Qabul qiluvchi (Ism yoki Tel)</label>
+                    <input
+                      type="text"
+                      placeholder="Masalan: +998 90 123 45 67"
+                      value={notificationForm.recipient}
+                      onChange={(e) => setNotificationForm(p => ({ ...p, recipient: e.target.value }))}
+                      required
+                      style={{ width: "100%", padding: 10, border: "1.5px solid var(--sand)", borderRadius: 12, marginTop: 4, fontSize: 12 }}
+                    />
+                  </div>
+
+                  <div className="form-group" style={{ marginBottom: 16 }}>
+                    <label style={{ fontSize: 11, color: "var(--muted)" }}>Xabar matni</label>
+                    <textarea
+                      placeholder="Eslatma matnini bu yerga yozing..."
+                      value={notificationForm.message}
+                      onChange={(e) => setNotificationForm(p => ({ ...p, message: e.target.value }))}
+                      required
+                      rows={4}
+                      style={{ width: "100%", padding: 10, border: "1.5px solid var(--sand)", borderRadius: 12, marginTop: 4, fontSize: 12, resize: "none" }}
+                    />
+                  </div>
+
+                  <button 
+                    type="submit" 
+                    className="btn btn-primary btn-full"
+                    disabled={isSendingNotification}
+                  >
+                    {isSendingNotification ? "Yuborilmoqda..." : "Eslatmani Yuborish"}
+                  </button>
+                </form>
+              </div>
+
             </div>
           </div>
         )}
@@ -3098,6 +3548,25 @@ export default function ErpClient({
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #ddd", paddingBottom: 16, marginBottom: 24 }} className="no-print">
               <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Shartnoma Generator Loyihasi</h3>
               <div style={{ display: "flex", gap: 10 }}>
+                <Link 
+                  href={`/client-portal?phone=${encodeURIComponent(showContractModal.lead_phone)}&contract=${encodeURIComponent(showContractModal.id)}`}
+                  target="_blank"
+                  style={{ 
+                    padding: "8px 16px", 
+                    background: "rgba(224, 99, 52, 0.15)", 
+                    color: "var(--orange-dark)", 
+                    border: "1px solid rgba(224, 99, 52, 0.3)", 
+                    borderRadius: 12, 
+                    fontSize: 13, 
+                    fontWeight: 600, 
+                    display: "inline-flex", 
+                    alignItems: "center", 
+                    gap: 6,
+                    textDecoration: "none"
+                  }}
+                >
+                  <i className="ti ti-external-link"></i> Mijoz Portali
+                </Link>
                 <button onClick={handlePrint} className="btn btn-primary" style={{ padding: "8px 16px" }}>
                   <i className="ti ti-printer"></i> Shartnomani Chop Etish (Print)
                 </button>
@@ -3412,6 +3881,143 @@ export default function ErpClient({
                 overflow-y: auto !important;
               }
             ` }} />
+          </div>
+        </div>
+      )}
+
+      {/* ───────────────── MODAL: LEAD TASKS MANAGEMENT ───────────────── */}
+      {selectedLeadForTasks && (
+        <div className="modal-overlay" style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: "rgba(0,0,0,0.5)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 9999,
+          padding: 16
+        }} onClick={() => setSelectedLeadForTasks(null)}>
+          <div className="create-agency-card" style={{
+            width: "100%",
+            maxWidth: 500,
+            background: "var(--card-bg)",
+            borderRadius: 24,
+            padding: 24,
+            boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+            position: "relative"
+          }} onClick={(e) => e.stopPropagation()}>
+            
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "var(--ink)", display: "flex", alignItems: "center", gap: 8 }}>
+                📋 Vazifalar: {selectedLeadForTasks.name}
+              </h3>
+              <button onClick={() => setSelectedLeadForTasks(null)} style={{ background: "none", border: "none", fontSize: 18, cursor: "pointer", color: "var(--muted)" }}>✕</button>
+            </div>
+
+            {/* Task list */}
+            <div style={{ maxHeight: 250, overflowY: "auto", marginBottom: 20, paddingRight: 4 }}>
+              {leadTasks.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "20px 0", color: "var(--muted)", fontStyle: "italic", fontSize: 13 }}>
+                  Hozircha vazifalar mavjud emas. Yangi vazifa qo'shing.
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {leadTasks.map(t => {
+                    const isOverdue = t.due_date && new Date(t.due_date) < new Date() && !t.is_completed;
+                    return (
+                      <div key={t.id} style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "10px 12px",
+                        background: t.is_completed ? "rgba(22, 163, 74, 0.05)" : "var(--cream)",
+                        border: "1px solid var(--sand)",
+                        borderRadius: 12,
+                        transition: "all 0.2s ease"
+                      }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
+                          <input
+                            type="checkbox"
+                            checked={t.is_completed}
+                            onChange={() => handleToggleTask(t.id)}
+                            style={{ width: 18, height: 18, accentColor: "var(--purple)", cursor: "pointer" }}
+                          />
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div style={{
+                              textDecoration: t.is_completed ? "line-through" : "none",
+                              color: t.is_completed ? "var(--muted)" : "var(--ink)",
+                              fontSize: 14,
+                              fontWeight: t.is_completed ? 400 : 500,
+                              wordBreak: "break-word"
+                            }}>
+                              {t.title}
+                            </div>
+                            {t.due_date && (
+                              <div style={{
+                                fontSize: 11,
+                                color: isOverdue ? "#ef4444" : "var(--muted)",
+                                fontWeight: isOverdue ? 600 : 400,
+                                marginTop: 2
+                              }}>
+                                <i className="ti ti-calendar" style={{ marginRight: 3 }}></i>
+                                {new Date(t.due_date).toLocaleDateString("uz-UZ")} {new Date(t.due_date).toLocaleTimeString("uz-UZ", {hour: '2-digit', minute:'2-digit'})} 
+                                {isOverdue && " (Muddati o'tgan!)"}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <button 
+                          onClick={() => handleDeleteTask(t.id)}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            color: "#ef4444",
+                            cursor: "pointer",
+                            padding: 6,
+                            borderRadius: 8
+                          }}
+                          title="Vazifani o'chirish"
+                        >
+                          <i className="ti ti-trash" style={{ fontSize: 16 }}></i>
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Add task form */}
+            <form onSubmit={handleAddTask} style={{ borderTop: "1px solid var(--sand)", paddingTop: 16 }}>
+              <h4 style={{ margin: "0 0 12px 0", fontSize: 13, fontWeight: 700 }}>Yangi Vazifa Qo'shish</h4>
+              <div className="form-group" style={{ marginBottom: 12 }}>
+                <input
+                  type="text"
+                  placeholder="Vazifa nomi (masalan: Prezentatsiya yuborish)"
+                  value={newTaskTitle}
+                  onChange={(e) => setNewTaskTitle(e.target.value)}
+                  required
+                  style={{ width: "100%", padding: "10px 12px", border: "1.5px solid var(--sand)", borderRadius: 12, fontSize: 13 }}
+                />
+              </div>
+              <div className="form-group" style={{ marginBottom: 16 }}>
+                <label style={{ fontSize: 11, color: "var(--muted)", display: "block", marginBottom: 4 }}>Bajarish muddati (Due Date)</label>
+                <input
+                  type="datetime-local"
+                  value={newTaskDueDate}
+                  onChange={(e) => setNewTaskDueDate(e.target.value)}
+                  style={{ width: "100%", padding: "10px 12px", border: "1.5px solid var(--sand)", borderRadius: 12, fontSize: 13 }}
+                />
+              </div>
+              <button type="submit" className="btn btn-primary btn-full" disabled={isSavingTask} style={{ background: "var(--purple)", borderColor: "var(--purple)" }}>
+                {isSavingTask ? "Saqlanmoqda..." : "Vazifani Qo'shish"}
+              </button>
+            </form>
+
           </div>
         </div>
       )}

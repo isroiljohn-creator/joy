@@ -3,8 +3,44 @@ import pool from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/app/actions";
 
+// Initialize additional tables dynamically
+async function initFeatureTables() {
+  if (global.featureTablesInitialized) return;
+  try {
+    // 1. Create erp_tasks
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS erp_tasks (
+        id SERIAL PRIMARY KEY,
+        lead_id INTEGER NOT NULL REFERENCES erp_leads(id) ON DELETE CASCADE,
+        title VARCHAR(255) NOT NULL,
+        due_date TIMESTAMP,
+        is_completed BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    
+    // 2. Create erp_notifications
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS erp_notifications (
+        id SERIAL PRIMARY KEY,
+        type VARCHAR(50) NOT NULL, -- 'sms', 'telegram'
+        recipient VARCHAR(100) NOT NULL,
+        message TEXT NOT NULL,
+        status VARCHAR(50) DEFAULT 'sent',
+        sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    
+    global.featureTablesInitialized = true;
+    console.log("✅ Custom ERP feature tables verified/created.");
+  } catch (error) {
+    console.error("❌ initFeatureTables error:", error);
+  }
+}
+
 // Helper to check access and roles
 async function verifyAccess(allowedRoles = ["owner", "rop", "seller"]) {
+  await initFeatureTables();
   const user = await getCurrentUser();
   if (!user) {
     throw new Error("Tizimga kirmagansiz!");
@@ -14,6 +50,7 @@ async function verifyAccess(allowedRoles = ["owner", "rop", "seller"]) {
   }
   return user;
 }
+
 
 // 1. Overview Statistics
 export async function erpGetOverviewStats() {
@@ -247,7 +284,9 @@ export async function erpGetLeads() {
   const user = await verifyAccess();
   try {
     let query = `
-      SELECT l.*, u.name as seller_name 
+      SELECT l.*, u.name as seller_name,
+             (SELECT COUNT(*) FROM erp_tasks WHERE lead_id = l.id) as total_tasks,
+             (SELECT COUNT(*) FROM erp_tasks WHERE lead_id = l.id AND is_completed = TRUE) as completed_tasks
       FROM erp_leads l
       LEFT JOIN users u ON l.assigned_to = u.id
     `;
@@ -626,4 +665,256 @@ export async function erpDeleteProject(projectId) {
     return { error: "Loyihani o'chirishda xatolik yuz berdi" };
   }
 }
+
+// 7. Task Management (To-Do List) Actions
+export async function erpGetTasks(leadId) {
+  await verifyAccess();
+  try {
+    const { rows } = await pool.query(
+      "SELECT * FROM erp_tasks WHERE lead_id = $1 ORDER BY due_date ASC, id ASC",
+      [leadId]
+    );
+    return rows;
+  } catch (error) {
+    console.error("erpGetTasks error:", error);
+    return [];
+  }
+}
+
+export async function erpAddTask(leadId, title, dueDate) {
+  await verifyAccess();
+  try {
+    const parsedDate = dueDate ? new Date(dueDate) : null;
+    await pool.query(
+      "INSERT INTO erp_tasks (lead_id, title, due_date) VALUES ($1, $2, $3)",
+      [leadId, title, parsedDate]
+    );
+    revalidatePath("/erp");
+    return { success: true };
+  } catch (error) {
+    console.error("erpAddTask error:", error);
+    return { error: "Vazifa qo'shishda xatolik" };
+  }
+}
+
+export async function erpToggleTask(taskId) {
+  await verifyAccess();
+  try {
+    await pool.query(
+      "UPDATE erp_tasks SET is_completed = NOT is_completed WHERE id = $1",
+      [taskId]
+    );
+    revalidatePath("/erp");
+    return { success: true };
+  } catch (error) {
+    console.error("erpToggleTask error:", error);
+    return { error: "Vazifa holatini o'zgartirishda xatolik" };
+  }
+}
+
+export async function erpDeleteTask(taskId) {
+  await verifyAccess();
+  try {
+    await pool.query("DELETE FROM erp_tasks WHERE id = $1", [taskId]);
+    revalidatePath("/erp");
+    return { success: true };
+  } catch (error) {
+    console.error("erpDeleteTask error:", error);
+    return { error: "Vazifani o'chirishda xatolik" };
+  }
+}
+
+// 8. Notifications Log & Automatic Simulators
+export async function erpGetNotifications() {
+  await verifyAccess();
+  try {
+    const { rows } = await pool.query(
+      "SELECT * FROM erp_notifications ORDER BY sent_at DESC LIMIT 50"
+    );
+    return rows;
+  } catch (error) {
+    console.error("erpGetNotifications error:", error);
+    return [];
+  }
+}
+
+export async function erpSendManualNotification(type, recipient, message) {
+  await verifyAccess();
+  try {
+    await pool.query(
+      "INSERT INTO erp_notifications (type, recipient, message, status) VALUES ($1, $2, $3, 'sent')",
+      [type, recipient, message]
+    );
+    revalidatePath("/erp");
+    return { success: true };
+  } catch (error) {
+    console.error("erpSendManualNotification error:", error);
+    return { error: "Eslatma yuborishda xatolik" };
+  }
+}
+
+export async function erpCheckAndSendAutomaticNotifications() {
+  await verifyAccess();
+  let createdCount = 0;
+  const now = new Date();
+  
+  try {
+    // 1. Check Installments due in 3 days (Mijozlar to'lov grafigiga 3 kun qolganda)
+    const activeSalesRes = await pool.query(`
+      SELECT s.*, l.name as lead_name, l.phone as lead_phone, p.name as project_name, u.unit_number
+      FROM erp_sales s
+      JOIN erp_leads l ON s.lead_id = l.id
+      JOIN erp_units u ON s.unit_id = u.id
+      JOIN erp_projects p ON u.project_id = p.id
+      WHERE s.payment_plan = 'installments' AND s.status = 'active'
+    `);
+    
+    for (const s of activeSalesRes.rows) {
+      const soldAt = new Date(s.sold_at);
+      const totalAmount = parseInt(s.sold_price);
+      const initPayment = parseInt(s.initial_payment);
+      const monthlyInstallment = Math.round((totalAmount - initPayment) / 12);
+      
+      for (let i = 1; i <= 12; i++) {
+        // Due Date = soldAt + i months
+        const dueDate = new Date(soldAt.getFullYear(), soldAt.getMonth() + i, soldAt.getDate());
+        const diffDays = Math.round((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        
+        // If due date is in exactly 3 days (allow window 2.5 to 3.5 days)
+        if (diffDays === 3) {
+          const neededCumulative = initPayment + i * monthlyInstallment;
+          if (parseInt(s.paid_amount) < neededCumulative) {
+            // Check if reminder was already sent for this due date
+            const dateStr = dueDate.toLocaleDateString("uz-UZ");
+            const alreadySent = await pool.query(
+              "SELECT id FROM erp_notifications WHERE recipient = $1 AND message LIKE $2",
+              [s.lead_phone, `%${dateStr}%`]
+            );
+            
+            if (alreadySent.rows.length === 0) {
+              const msg = `Hurmatli ${s.lead_name}! Sizning "${s.project_name}" loyihasidagi ${s.unit_number}-xonadon uchun shartnoma bo'yicha ${i}-sonli to'lov muddati yaqinlashmoqda. To'lov sanasi: ${dateStr}. Kutilayotgan summa: $${monthlyInstallment.toLocaleString()}. Iltimos, to'lovni kiritishingizni so'raymiz. Hurmat bilan, MASKON.`;
+              
+              // Simulating random SMS or Telegram type
+              const type = Math.random() > 0.5 ? 'sms' : 'telegram';
+              await pool.query(
+                "INSERT INTO erp_notifications (type, recipient, message, status) VALUES ($1, $2, $3, 'sent')",
+                [type, s.lead_phone, msg]
+              );
+              createdCount++;
+            }
+          }
+        }
+      }
+    }
+
+    // 2. Check Upcoming Meetings in 30 minutes (Sotuvchilar uchrashuviga 30 daqiqa qolganda)
+    const upcomingMeetingsRes = await pool.query(`
+      SELECT m.*, l.name as lead_name, u.name as seller_name, u.phone as seller_phone
+      FROM erp_meetings m
+      JOIN erp_leads l ON m.lead_id = l.id
+      JOIN users u ON m.user_id = u.id
+      WHERE m.status = 'scheduled'
+    `);
+    
+    for (const m of upcomingMeetingsRes.rows) {
+      const meetTime = new Date(m.scheduled_time);
+      const diffMinutes = Math.round((meetTime.getTime() - now.getTime()) / (1000 * 60));
+      
+      // If meeting is starting in 0 to 30 minutes
+      if (diffMinutes > 0 && diffMinutes <= 30) {
+        // Check if alert already sent
+        const alreadySent = await pool.query(
+          "SELECT id FROM erp_notifications WHERE recipient = $1 AND message LIKE $2",
+          [m.seller_name, `%Uchrashuv ID: ${m.id}%`]
+        );
+        
+        if (alreadySent.rows.length === 0) {
+          const msg = `Sotuvchi ${m.seller_name} uchun eslatma: 30 daqiqadan so'ng mijoz ${m.lead_name} bilan uchrashuvingiz bor. Manzil: ${m.location}. Eslatma vaqti: ${meetTime.toLocaleTimeString("uz-UZ", {hour: '2-digit', minute:'2-digit'})}. (Uchrashuv ID: ${m.id})`;
+          
+          await pool.query(
+            "INSERT INTO erp_notifications (type, recipient, message, status) VALUES ('telegram', $1, $2, 'sent')",
+            [m.seller_name, msg]
+          );
+          createdCount++;
+        }
+      }
+    }
+
+    // 3. Check Idle Leads (Javobsiz qolgan lidlar bo'yicha sotuvchilarga eslatma)
+    // Idle: created > 24 hours ago, status in 'new'/'contacted', has assigned seller, NO meetings, NO tasks, NO notification sent in last 24 hours
+    const idleLeadsRes = await pool.query(`
+      SELECT l.*, u.name as seller_name, u.phone as seller_phone
+      FROM erp_leads l
+      JOIN users u ON l.assigned_to = u.id
+      WHERE l.status IN ('new', 'contacted')
+        AND l.created_at < NOW() - INTERVAL '24 hours'
+        AND NOT EXISTS (SELECT 1 FROM erp_meetings WHERE lead_id = l.id)
+        AND NOT EXISTS (SELECT 1 FROM erp_tasks WHERE lead_id = l.id)
+    `);
+    
+    for (const l of idleLeadsRes.rows) {
+      // Check if alert was sent in last 24 hours
+      const alreadySent = await pool.query(
+        `SELECT id FROM erp_notifications 
+         WHERE recipient = $1 AND message LIKE $2 AND sent_at > NOW() - INTERVAL '24 hours'`,
+        [l.seller_name, `%Lid ID: ${l.id}%`]
+      );
+      
+      if (alreadySent.rows.length === 0) {
+        const msg = `Sotuvchi ${l.seller_name} uchun ogohlantirish: Sizga biriktirilgan mijoz ${l.name} bo'yicha 24 soatdan beri hech qanday harakat bajarilmadi (uchrashuv yoki vazifa yo'q). Iltimos, mijoz bilan bog'laning. (Lid ID: ${l.id})`;
+        
+        await pool.query(
+          "INSERT INTO erp_notifications (type, recipient, message, status) VALUES ('telegram', $1, $2, 'sent')",
+          [l.seller_name, msg]
+        );
+        createdCount++;
+      }
+    }
+
+    revalidatePath("/erp");
+    return { success: true, createdCount };
+  } catch (error) {
+    console.error("erpCheckAndSendAutomaticNotifications error:", error);
+    return { error: "Avtomatik tekshiruvda xatolik" };
+  }
+}
+
+// 9. Client Portal Server Action
+export async function erpGetClientContract(phone, contractId) {
+  await initFeatureTables();
+  try {
+    const cleanPhone = phone.trim().replace(/[\s\-\(\)\+]/g, "");
+    
+    // Select sale details
+    const { rows } = await pool.query(`
+      SELECT s.*, 
+             u.unit_number, u.floor, u.rooms, u.area, u.price as unit_original_price,
+             p.id as project_id, p.name as project_name, p.location as project_location,
+             p.start_date as project_start, p.end_date as project_end,
+             p.progress_kotlovan, p.progress_brick, p.progress_facade, p.progress_interior,
+             l.name as lead_name, l.phone as lead_phone
+      FROM erp_sales s
+      JOIN erp_units u ON s.unit_id = u.id
+      JOIN erp_projects p ON u.project_id = p.id
+      JOIN erp_leads l ON s.lead_id = l.id
+      WHERE (
+        l.phone = $1 OR 
+        REPLACE(REPLACE(REPLACE(REPLACE(l.phone, ' ', ''), '-', ''), '(', ''), ')', '') = $1 OR
+        REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(l.phone, ' ', ''), '-', ''), '(', ''), ')', ''), '+', '') = $1 OR
+        RIGHT(REPLACE(REPLACE(REPLACE(REPLACE(l.phone, ' ', ''), '-', ''), '(', ''), ')', ''), 9) = RIGHT($1, 9)
+      )
+      AND (s.id = $2 OR u.unit_number = $3)
+    `, [cleanPhone, parseInt(contractId) || -1, contractId]);
+
+    if (rows.length === 0) {
+      return { error: "Kiritilgan telefon raqami yoki shartnoma/xonadon raqami bo'yicha hech qanday faol shartnoma topilmadi!" };
+    }
+    
+    return { success: true, contract: rows[0] };
+  } catch (error) {
+    console.error("erpGetClientContract error:", error);
+    return { error: "Ma'lumotlarni yuklashda xatolik yuz berdi" };
+  }
+}
+
 
