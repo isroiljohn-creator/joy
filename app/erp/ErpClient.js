@@ -86,6 +86,37 @@ export default function ErpClient({
     }
     return `$${val.toLocaleString()}`;
   };
+
+  const formatShortPrice = (valueInUSD) => {
+    if (valueInUSD === null || valueInUSD === undefined || valueInUSD === "") return "—";
+    const val = parseInt(valueInUSD);
+    if (isNaN(val)) return "—";
+    
+    if (currency === "UZS") {
+      const valInUZS = val * 12000;
+      if (valInUZS >= 1000000000000) {
+        return `${(valInUZS / 1000000000000).toFixed(2).replace(/\.00$/, '')} trln UZS`;
+      }
+      if (valInUZS >= 1000000000) {
+        return `${(valInUZS / 1000000000).toFixed(2).replace(/\.00$/, '')} mlrd UZS`;
+      }
+      if (valInUZS >= 1000000) {
+        return `${(valInUZS / 1000000).toFixed(2).replace(/\.00$/, '')} mln UZS`;
+      }
+      return `${valInUZS.toLocaleString()} UZS`;
+    }
+    
+    if (val >= 1000000000) {
+      return `$${(val / 1000000000).toFixed(2).replace(/\.00$/, '')}B`;
+    }
+    if (val >= 1000000) {
+      return `$${(val / 1000000).toFixed(2).replace(/\.00$/, '')}M`;
+    }
+    if (val >= 1000) {
+      return `$${(val / 1000).toFixed(2).replace(/\.00$/, '')}K`;
+    }
+    return `$${val.toLocaleString()}`;
+  };
   
   // Quick booking state
   const [bookingType, setBookingType] = useState("reserve"); // 'reserve' or 'sell'
@@ -623,7 +654,7 @@ export default function ErpClient({
           return (
             <g key={idx}>
               <line x1={paddingLeft} y1={y} x2={width - paddingRight} y2={y} stroke="var(--sand)" strokeDasharray="4 4" />
-              <text x={paddingLeft - 10} y={y + 4} fill="var(--muted)" fontSize="9" textAnchor="end">{formatPrice(val)}</text>
+              <text x={paddingLeft - 10} y={y + 4} fill="var(--muted)" fontSize="9" textAnchor="end">{formatShortPrice(val)}</text>
             </g>
           );
         })}
