@@ -73,6 +73,19 @@ export default function ErpClient({
   const [showContractModal, setShowContractModal] = useState(null); // holds sale object
   const [showDeleteProjectModal, setShowDeleteProjectModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [currency, setCurrency] = useState("USD"); // "USD" or "UZS"
+  const [financeTimeFrame, setFinanceTimeFrame] = useState("monthly"); // "weekly", "monthly", "yearly"
+  const [financeProjectId, setFinanceProjectId] = useState("all");
+
+  const formatPrice = (valueInUSD) => {
+    if (valueInUSD === null || valueInUSD === undefined || valueInUSD === "") return "—";
+    const val = parseInt(valueInUSD);
+    if (isNaN(val)) return "—";
+    if (currency === "UZS") {
+      return `${(val * 12000).toLocaleString()} UZS`;
+    }
+    return `$${val.toLocaleString()}`;
+  };
   
   // Quick booking state
   const [bookingType, setBookingType] = useState("reserve"); // 'reserve' or 'sell'
@@ -468,6 +481,183 @@ export default function ErpClient({
     }
   };
 
+  const getChartData = () => {
+    const selectedProj = projects.find(p => p.id === parseInt(financeProjectId));
+    const filteredSales = financeProjectId === "all" 
+      ? sales 
+      : sales.filter(s => s.project_name === selectedProj?.name);
+
+    if (financeTimeFrame === "weekly") {
+      const days = [];
+      const dayNames = ["Yak", "Dush", "Sesh", "Chor", "Pay", "Jum", "Shan"];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        days.push({
+          dateStr: d.toLocaleDateString('uz-UZ', { day: 'numeric', month: 'short' }),
+          dayName: dayNames[d.getDay()],
+          dateKey: d.toDateString(),
+          salesVolume: 0,
+          cashIn: 0
+        });
+      }
+
+      filteredSales.forEach(s => {
+        const sDate = new Date(s.sold_at);
+        const dayMatch = days.find(day => new Date(day.dateKey).toDateString() === sDate.toDateString());
+        if (dayMatch) {
+          dayMatch.salesVolume += parseInt(s.sold_price || 0);
+          dayMatch.cashIn += parseInt(s.paid_amount || 0);
+        }
+      });
+
+      return days.map(d => ({ label: `${d.dayName} (${d.dateStr})`, salesVolume: d.salesVolume, cashIn: d.cashIn }));
+    }
+
+    if (financeTimeFrame === "yearly") {
+      const currentYear = new Date().getFullYear();
+      const years = [];
+      for (let i = 4; i >= 0; i--) {
+        years.push({
+          year: currentYear - i,
+          salesVolume: 0,
+          cashIn: 0
+        });
+      }
+
+      filteredSales.forEach(s => {
+        const sDate = new Date(s.sold_at);
+        const yr = sDate.getFullYear();
+        const yrMatch = years.find(y => y.year === yr);
+        if (yrMatch) {
+          yrMatch.salesVolume += parseInt(s.sold_price || 0);
+          yrMatch.cashIn += parseInt(s.paid_amount || 0);
+        }
+      });
+
+      return years.map(y => ({ label: `${y.year}-yil`, salesVolume: y.salesVolume, cashIn: y.cashIn }));
+    }
+
+    const months = [];
+    const monthNames = ["Yan", "Fev", "Mar", "Apr", "May", "Iyun", "Iyul", "Avg", "Sen", "Okt", "Noy", "Dek"];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      months.push({
+        monthIdx: d.getMonth(),
+        year: d.getFullYear(),
+        label: `${monthNames[d.getMonth()]} ${d.getFullYear().toString().slice(-2)}`,
+        salesVolume: 0,
+        cashIn: 0
+      });
+    }
+
+    filteredSales.forEach(s => {
+      const sDate = new Date(s.sold_at);
+      const mMatch = months.find(m => m.monthIdx === sDate.getMonth() && m.year === sDate.getFullYear());
+      if (mMatch) {
+        mMatch.salesVolume += parseInt(s.sold_price || 0);
+        mMatch.cashIn += parseInt(s.paid_amount || 0);
+      }
+    });
+
+    return months.map(m => ({ label: m.label, salesVolume: m.salesVolume, cashIn: m.cashIn }));
+  };
+
+  const getFinanceStats = (data) => {
+    let totalSalesVolume = 0;
+    let totalCashIn = 0;
+    data.forEach(d => {
+      totalSalesVolume += d.salesVolume;
+      totalCashIn += d.cashIn;
+    });
+    const totalOutstanding = totalSalesVolume - totalCashIn;
+
+    let growthPercent = 0;
+    if (data.length >= 2) {
+      const prev = data[data.length - 2].salesVolume;
+      const curr = data[data.length - 1].salesVolume;
+      if (prev > 0) {
+        growthPercent = Math.round(((curr - prev) / prev) * 100);
+      } else if (curr > 0) {
+        growthPercent = 100;
+      }
+    }
+
+    return { totalSalesVolume, totalCashIn, totalOutstanding, growthPercent };
+  };
+
+  const renderSVGChart = (data) => {
+    const width = 600;
+    const height = 240;
+    const padding = 45;
+    
+    const maxVal = Math.max(...data.map(d => Math.max(d.salesVolume, d.cashIn)), 1000);
+    const minVal = 0;
+    
+    const pointsSales = data.map((d, i) => {
+      const x = padding + (i / (data.length - 1)) * (width - padding * 2);
+      const y = height - padding - ((d.salesVolume - minVal) / (maxVal - minVal)) * (height - padding * 2);
+      return { x, y };
+    });
+
+    const pointsCash = data.map((d, i) => {
+      const x = padding + (i / (data.length - 1)) * (width - padding * 2);
+      const y = height - padding - ((d.cashIn - minVal) / (maxVal - minVal)) * (height - padding * 2);
+      return { x, y };
+    });
+
+    const pathSales = pointsSales.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+    const pathCash = pointsCash.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+    const areaCash = pointsCash.length > 0 ? `${pathCash} L ${pointsCash[pointsCash.length - 1].x} ${height - padding} L ${pointsCash[0].x} ${height - padding} Z` : '';
+
+    return (
+      <svg viewBox={`0 0 ${width} ${height}`} style={{ width: "100%", height: "auto", overflow: "visible" }}>
+        <defs>
+          <linearGradient id="cashGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#1D9E75" stopOpacity="0.25"/>
+            <stop offset="100%" stopColor="#1D9E75" stopOpacity="0.00"/>
+          </linearGradient>
+        </defs>
+
+        {/* Grid Lines */}
+        {[0, 0.25, 0.5, 0.75, 1].map((ratio, idx) => {
+          const y = padding + ratio * (height - padding * 2);
+          const val = maxVal - ratio * (maxVal - minVal);
+          return (
+            <g key={idx}>
+              <line x1={padding} y1={y} x2={width - padding} y2={y} stroke="var(--sand)" strokeDasharray="4 4" />
+              <text x={padding - 8} y={y + 4} fill="var(--muted)" fontSize="9" textAnchor="end">{formatPrice(val)}</text>
+            </g>
+          );
+        })}
+
+        {/* X Axis Labels */}
+        {data.map((d, i) => {
+          const x = padding + (i / (data.length - 1)) * (width - padding * 2);
+          return (
+            <text key={i} x={x} y={height - 12} fill="var(--muted)" fontSize="9" textAnchor="middle">{d.label}</text>
+          );
+        })}
+
+        {/* Areas */}
+        {areaCash && <path d={areaCash} fill="url(#cashGrad)" />}
+        
+        {/* Lines */}
+        {pathSales && <path d={pathSales} fill="none" stroke="var(--orange)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
+        {pathCash && <path d={pathCash} fill="none" stroke="#1D9E75" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
+
+        {/* Dots */}
+        {pointsSales.map((p, i) => (
+          <g key={`dots-${i}`}>
+            <circle cx={p.x} cy={p.y} r="4" fill="var(--orange)" stroke="var(--card-bg)" strokeWidth="1.5" />
+            <circle cx={pointsCash[i].x} cy={pointsCash[i].y} r="4" fill="#1D9E75" stroke="var(--card-bg)" strokeWidth="1.5" />
+          </g>
+        ))}
+      </svg>
+    );
+  };
+
   // Filter leads for dropdowns
   const activeLeads = leads.filter(l => l.status !== "won" && l.status !== "lost");
 
@@ -567,6 +757,15 @@ export default function ErpClient({
             <i className="ti ti-cash"></i>
             <span>Sotuvlar</span>
           </button>
+          {(user.role === 'owner' || user.role === 'rop') && (
+            <button 
+              className={`dashboard-tab ${activeTab === "finance" ? "active" : ""}`} 
+              onClick={() => setActiveTab("finance")}
+            >
+              <i className="ti ti-chart-bar"></i>
+              <span>Moliya Tahlili</span>
+            </button>
+          )}
           {user.role === 'owner' && (
             <button 
               className={`dashboard-tab ${activeTab === "staff" ? "active" : ""}`} 
@@ -592,21 +791,21 @@ export default function ErpClient({
               <div className="dashboard-stat-card">
                 <i className="ti ti-cash"></i>
                 <div className="stat-value" style={{ fontSize: 20 }}>
-                  ${stats.totalSalesVolume?.toLocaleString()}
+                  {formatPrice(stats.totalSalesVolume)}
                 </div>
                 <div className="stat-label">Jami Shartnomalar</div>
               </div>
               <div className="dashboard-stat-card highlight">
                 <i className="ti ti-square-rounded-check" style={{ color: "var(--green)" }}></i>
                 <div className="stat-value" style={{ fontSize: 20 }}>
-                  ${stats.totalCashIn?.toLocaleString()}
+                  {formatPrice(stats.totalCashIn)}
                 </div>
                 <div className="stat-label">Tushgan Pul (Kassa)</div>
               </div>
               <div className="dashboard-stat-card">
                 <i className="ti ti-alert-circle"></i>
                 <div className="stat-value" style={{ fontSize: 20, color: "var(--orange-dark)" }}>
-                  ${stats.totalOutstanding?.toLocaleString()}
+                  {formatPrice(stats.totalOutstanding)}
                 </div>
                 <div className="stat-label">Kutilayotgan Pul (Nasiya)</div>
               </div>
@@ -749,7 +948,7 @@ export default function ErpClient({
                         <div key={s.id}>
                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
                             <span><strong>{s.name}</strong> ({s.sales_count} ta shartnoma)</span>
-                            <strong>${s.sales_volume?.toLocaleString()}</strong>
+                            <strong>{formatPrice(s.sales_volume)}</strong>
                           </div>
                           <div className="progress-track" style={{ height: 8, background: "var(--sand)", borderRadius: 4, overflow: "hidden" }}>
                             <div style={{
@@ -916,7 +1115,7 @@ export default function ErpClient({
                                 padding: "2px 6px",
                                 borderRadius: 6,
                                 fontWeight: 600
-                              }}>${parseInt(l.budget).toLocaleString()}</span>
+                              }}>{formatPrice(l.budget)}</span>
                             )}
                           </div>
 
@@ -1335,40 +1534,112 @@ export default function ErpClient({
           <div className="dashboard-content" style={{ animation: "fadeIn 0.2s ease" }}>
             
             {/* Project selection grid/cards */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, marginBottom: 24 }}>
-              {projects.map(p => (
-                <div 
-                  key={p.id} 
-                  onClick={() => setSelectedProject(p)}
-                  style={{
-                    background: "var(--card-bg)",
-                    border: selectedProject?.id === p.id ? "2px solid var(--orange)" : "1px solid var(--sand)",
-                    borderRadius: 20,
-                    padding: 16,
-                    cursor: "pointer",
-                    transition: "all 0.2s"
-                  }}
-                >
-                  <h4 style={{ margin: "0 0 6px 0", fontSize: 15, fontWeight: 700 }}>{p.name}</h4>
-                  <p style={{ margin: "0 0 12px 0", fontSize: 12, color: "var(--muted)" }}>{p.location}</p>
-                  
-                  {/* Construction progress summary */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--muted)" }}>
-                      <span>Progress (G'isht/Karkas):</span>
-                      <strong>{p.progress_brick}%</strong>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 20, marginBottom: 28 }}>
+              {projects.map(p => {
+                const avgProgress = Math.round(
+                  ((p.progress_kotlovan || 0) + 
+                   (p.progress_brick || 0) + 
+                   (p.progress_facade || 0) + 
+                   (p.progress_interior || 0)) / 4
+                );
+                const isSelected = selectedProject?.id === p.id;
+                
+                return (
+                  <div 
+                    key={p.id} 
+                    onClick={() => setSelectedProject(p)}
+                    className="project-card-modern"
+                    style={{
+                      background: "var(--card-bg)",
+                      border: isSelected ? "2px solid var(--orange)" : "1px solid var(--sand)",
+                      borderRadius: 24,
+                      padding: 20,
+                      cursor: "pointer",
+                      boxShadow: isSelected ? "0 8px 24px rgba(224, 99, 52, 0.12)" : "0 4px 12px rgba(0,0,0,0.03)",
+                      transition: "all 0.25s ease",
+                      position: "relative",
+                      overflow: "hidden"
+                    }}
+                  >
+                    {/* Selected accent line */}
+                    {isSelected && (
+                      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 4, background: "var(--orange)" }}></div>
+                    )}
+                    
+                    {/* Header */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                      <span style={{ 
+                        width: 32, 
+                        height: 32, 
+                        borderRadius: 8, 
+                        background: "rgba(224, 99, 52, 0.08)", 
+                        color: "var(--orange)", 
+                        display: "flex", 
+                        alignItems: "center", 
+                        justifyContent: "center" 
+                      }}>
+                        <i className="ti ti-building-community" style={{ fontSize: 16 }}></i>
+                      </span>
+                      <div>
+                        <h4 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "var(--ink)" }}>{p.name}</h4>
+                        <p style={{ margin: "2px 0 0 0", fontSize: 12, color: "var(--muted)", display: "flex", alignItems: "center", gap: 4 }}>
+                          <i className="ti ti-map-pin" style={{ fontSize: 12 }}></i> {p.location}
+                        </p>
+                      </div>
                     </div>
-                    <div className="progress-track" style={{ height: 6, background: "var(--sand)", borderRadius: 3, overflow: "hidden" }}>
-                      <div style={{ height: "100%", background: "var(--orange)", width: `${p.progress_brick}%` }}></div>
-                    </div>
-                  </div>
 
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginTop: 12, color: "var(--muted)" }}>
-                    <span>Xonadonlar: <strong>{p.total_units} ta</strong></span>
-                    <span>Sotilgan: <strong style={{ color: "#ef4444" }}>{p.sold_units} ta</strong></span>
+                    {/* Overall Progress */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6, margin: "16px 0", background: "var(--cream)", padding: 12, borderRadius: 16 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12 }}>
+                        <span style={{ fontWeight: 600, color: "var(--text)" }}>Umumiy Progress:</span>
+                        <strong style={{ color: "var(--orange-dark)" }}>{avgProgress}%</strong>
+                      </div>
+                      <div className="progress-track" style={{ height: 8, background: "var(--sand)", borderRadius: 4, overflow: "hidden" }}>
+                        <div style={{ height: "100%", background: "var(--orange)", width: `${avgProgress}%`, borderRadius: 4, transition: "width 0.3s ease" }}></div>
+                      </div>
+                    </div>
+
+                    {/* 2x2 Stages Grid */}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
+                      {[
+                        { label: "Poydevor", val: p.progress_kotlovan || 0 },
+                        { label: "G'isht/Karkas", val: p.progress_brick || 0 },
+                        { label: "Fasad", val: p.progress_facade || 0 },
+                        { label: "Ichki/Pardoz", val: p.progress_interior || 0 }
+                      ].map((stage, idx) => (
+                        <div key={idx} style={{ background: "rgba(110, 102, 95, 0.04)", borderRadius: 10, padding: "8px 10px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ fontSize: 11, color: "var(--muted)" }}>{stage.label}:</span>
+                          <strong style={{ fontSize: 11, color: "var(--ink)" }}>{stage.val}%</strong>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Footer Stats */}
+                    <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid var(--sand)", paddingTop: 12, gap: 12 }}>
+                      <span style={{ 
+                        fontSize: 11, 
+                        fontWeight: 600, 
+                        background: "var(--sand)", 
+                        color: "var(--text)", 
+                        padding: "4px 10px", 
+                        borderRadius: 8 
+                      }}>
+                        Xonadonlar: <strong>{p.total_units} ta</strong>
+                      </span>
+                      <span style={{ 
+                        fontSize: 11, 
+                        fontWeight: 600, 
+                        background: "rgba(239, 68, 68, 0.08)", 
+                        color: "#ef4444", 
+                        padding: "4px 10px", 
+                        borderRadius: 8 
+                      }}>
+                        Sotilgan: <strong>{p.sold_units} ta</strong>
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Selected Project Interactive Details */}
@@ -1385,7 +1656,14 @@ export default function ErpClient({
                     <p style={{ margin: "4px 0 0 0", fontSize: 13, color: "var(--muted)" }}>{selectedProject.description}</p>
                   </div>
                   
-                  <div style={{ display: "flex", gap: 8 }}>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <button 
+                      onClick={() => setCurrency(prev => prev === "USD" ? "UZS" : "USD")} 
+                      className="btn btn-secondary"
+                      style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 600 }}
+                    >
+                      <i className="ti ti-coin"></i> Valyuta: {currency}
+                    </button>
                     {(user.role === 'owner' || user.role === 'rop') && (
                       <>
                         <button 
@@ -1587,7 +1865,7 @@ export default function ErpClient({
                               {s.lead_phone}
                             </div>
                           </td>
-                          <td><strong style={{ fontSize: 14, color: outstanding === 0 ? "#1d9e75" : "var(--orange-dark)" }}>${parseInt(s.sold_price).toLocaleString()}</strong></td>
+                          <td><strong style={{ fontSize: 14, color: outstanding === 0 ? "#1d9e75" : "var(--orange-dark)" }}>{formatPrice(s.sold_price)}</strong></td>
                           <td>
                             <span style={{
                               fontSize: 11,
@@ -1606,7 +1884,7 @@ export default function ErpClient({
                             <div style={{ width: 150 }}>
                               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--muted)" }}>
                                 <span style={{ fontWeight: 600 }}>{percentPaid}% to'landi</span>
-                                {outstanding > 0 && <span style={{ color: "var(--orange-dark)", fontWeight: 700 }}>Qarz: ${outstanding.toLocaleString()}</span>}
+                                {outstanding > 0 && <span style={{ color: "var(--orange-dark)", fontWeight: 700 }}>Qarz: {formatPrice(outstanding)}</span>}
                               </div>
                               <div className="progress-track" style={{ height: 6, background: "var(--sand)", borderRadius: 3, overflow: "hidden", marginTop: 4 }}>
                                 <div style={{ height: "100%", background: outstanding === 0 ? "#1D9E75" : "var(--orange)", width: `${percentPaid}%`, borderRadius: 3 }}></div>
@@ -1676,6 +1954,219 @@ export default function ErpClient({
             )}
           </div>
         )}
+
+        {/* ───────────────── FINANCE ANALYSIS TAB (FINANSIST) ───────────────── */}
+        {activeTab === "finance" && (user.role === 'owner' || user.role === 'rop') && (() => {
+          const rawChartData = getChartData();
+          const hasData = rawChartData.some(d => d.salesVolume > 0 || d.cashIn > 0);
+          
+          let chartData = rawChartData;
+          if (!hasData) {
+            if (financeTimeFrame === "weekly") {
+              const mockVals = [25000, 45000, 30000, 60000, 75000, 55000, 90000];
+              const mockCash = [15000, 35000, 25000, 40000, 60000, 45000, 75000];
+              chartData = rawChartData.map((d, i) => ({ ...d, salesVolume: mockVals[i], cashIn: mockCash[i] }));
+            } else if (financeTimeFrame === "yearly") {
+              const mockVals = [350000, 500000, 850000, 1200000, 1850000];
+              const mockCash = [250000, 400000, 650000, 950000, 1500000];
+              chartData = rawChartData.map((d, i) => ({ ...d, salesVolume: mockVals[i], cashIn: mockCash[i] }));
+            } else {
+              const mockVals = [90000, 110000, 140000, 120000, 160000, 180000, 150000, 210000, 230000, 190000, 250000, 320000];
+              const mockCash = [60000, 80000, 110000, 90000, 120000, 140000, 110000, 160000, 180000, 140000, 190000, 250000];
+              chartData = rawChartData.map((d, i) => ({ ...d, salesVolume: mockVals[i], cashIn: mockCash[i] }));
+            }
+          }
+
+          const fStats = getFinanceStats(chartData);
+
+          return (
+            <div className="dashboard-content" style={{ animation: "fadeIn 0.2s ease" }}>
+              
+              {!hasData && (
+                <div style={{
+                  background: "rgba(224, 99, 52, 0.08)",
+                  borderLeft: "4px solid var(--orange)",
+                  padding: "12px 16px",
+                  borderRadius: 12,
+                  marginBottom: 24,
+                  fontSize: 13,
+                  color: "var(--orange-dark)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8
+                }}>
+                  <i className="ti ti-info-circle" style={{ fontSize: 16 }}></i>
+                  <span>Tizimda hali sotuvlar mavjud emasligi sababli, grafik va hisobotlarda ko'rgazmali (demo) ma'lumotlar ko'rsatilmoqda. Yangi shartnoma kiritilgandan so'ng bu yerda faqat haqiqiy ma'lumotlar aks etadi.</span>
+                </div>
+              )}
+
+              <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: 16,
+                marginBottom: 28,
+                background: "var(--card-bg)",
+                border: "1px solid var(--sand)",
+                borderRadius: 20,
+                padding: 16
+              }}>
+                <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                    <label style={{ fontSize: 11, color: "var(--muted)" }}>Loyiha:</label>
+                    <CustomSelect
+                      value={financeProjectId}
+                      onChange={(val) => setFinanceProjectId(val)}
+                      options={[
+                        { value: "all", label: "Barcha loyihalar" },
+                        ...projects.map(p => ({ value: p.id.toString(), label: p.name }))
+                      ]}
+                      className="csel-compact"
+                    />
+                  </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                    <label style={{ fontSize: 11, color: "var(--muted)" }}>Vaqt oralig'i:</label>
+                    <CustomSelect
+                      value={financeTimeFrame}
+                      onChange={(val) => setFinanceTimeFrame(val)}
+                      options={[
+                        { value: "weekly", label: "Haftalik" },
+                        { value: "monthly", label: "Oylik" },
+                        { value: "yearly", label: "Yillik" }
+                      ]}
+                      className="csel-compact"
+                    />
+                  </div>
+                </div>
+
+                <button 
+                  onClick={() => setCurrency(prev => prev === "USD" ? "UZS" : "USD")} 
+                  className="btn btn-secondary"
+                  style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 600 }}
+                >
+                  <i className="ti ti-coin"></i> Valyuta: {currency}
+                </button>
+              </div>
+
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                gap: 16,
+                marginBottom: 28
+              }}>
+                <div className="dashboard-stat-card" style={{ background: "var(--card-bg)", border: "1px solid var(--sand)" }}>
+                  <i className="ti ti-chart-line" style={{ color: "var(--orange)" }}></i>
+                  <div className="stat-value" style={{ fontSize: 18, fontWeight: 700, margin: "8px 0 4px 0" }}>
+                    {formatPrice(fStats.totalSalesVolume)}
+                  </div>
+                  <div className="stat-label" style={{ fontSize: 11, color: "var(--muted)" }}>Shartnomalar (Savdo)</div>
+                </div>
+
+                <div className="dashboard-stat-card highlight" style={{ background: "var(--card-bg)", border: "1px solid var(--sand)" }}>
+                  <i className="ti ti-cash-banknote" style={{ color: "#1D9E75" }}></i>
+                  <div className="stat-value" style={{ fontSize: 18, fontWeight: 700, margin: "8px 0 4px 0" }}>
+                    {formatPrice(fStats.totalCashIn)}
+                  </div>
+                  <div className="stat-label" style={{ fontSize: 11, color: "var(--muted)" }}>Tushum (Kassa)</div>
+                </div>
+
+                <div className="dashboard-stat-card" style={{ background: "var(--card-bg)", border: "1px solid var(--sand)" }}>
+                  <i className="ti ti-wallet" style={{ color: "var(--orange-dark)" }}></i>
+                  <div className="stat-value" style={{ fontSize: 18, fontWeight: 700, margin: "8px 0 4px 0" }}>
+                    {formatPrice(fStats.totalOutstanding)}
+                  </div>
+                  <div className="stat-label" style={{ fontSize: 11, color: "var(--muted)" }}>Kutilayotgan Qarzlar</div>
+                </div>
+
+                <div className="dashboard-stat-card" style={{ background: "var(--card-bg)", border: "1px solid var(--sand)" }}>
+                  <i className={`ti ${fStats.growthPercent >= 0 ? 'ti-trending-up' : 'ti-trending-down'}`} style={{ color: fStats.growthPercent >= 0 ? '#1D9E75' : '#ef4444' }}></i>
+                  <div className="stat-value" style={{ 
+                    fontSize: 18, 
+                    fontWeight: 700, 
+                    margin: "8px 0 4px 0",
+                    color: fStats.growthPercent >= 0 ? '#1D9E75' : '#ef4444' 
+                  }}>
+                    {fStats.growthPercent >= 0 ? `+${fStats.growthPercent}%` : `${fStats.growthPercent}%`}
+                  </div>
+                  <div className="stat-label" style={{ fontSize: 11, color: "var(--muted)" }}>Savdo O'sish Tendensiyasi</div>
+                </div>
+              </div>
+
+              <div style={{
+                background: "var(--card-bg)",
+                border: "1px solid var(--sand)",
+                borderRadius: 24,
+                padding: 24,
+                marginBottom: 28
+              }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+                  <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700 }}>Moliyaviy O'sish va Kassaga Tushum Grafigi</h4>
+                  
+                  <div style={{ display: "flex", gap: 16 }}>
+                    <span style={{ fontSize: 11, display: "flex", alignItems: "center", gap: 6, fontWeight: 600 }}>
+                      <span style={{ width: 12, height: 12, borderRadius: 3, background: "var(--orange)", display: "inline-block" }}></span> Savdo hajmi
+                    </span>
+                    <span style={{ fontSize: 11, display: "flex", alignItems: "center", gap: 6, fontWeight: 600 }}>
+                      <span style={{ width: 12, height: 12, borderRadius: 3, background: "#1D9E75", display: "inline-block" }}></span> Kassa (Tushgan pul)
+                    </span>
+                  </div>
+                </div>
+                
+                <div style={{ width: "100%", padding: 10 }}>
+                  {renderSVGChart(chartData)}
+                </div>
+              </div>
+
+              <div style={{
+                background: "var(--card-bg)",
+                border: "1px solid var(--sand)",
+                borderRadius: 24,
+                padding: 24,
+                overflow: "hidden"
+              }}>
+                <h4 style={{ margin: "0 0 16px 0", fontSize: 14, fontWeight: 700 }}>Batafsil Moliya Hisoboti</h4>
+                <div className="table-responsive">
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th>Davr</th>
+                        <th>Savdo Hajmi</th>
+                        <th>Kassa Tushumi</th>
+                        <th>Nasiya (Kutilayotgan)</th>
+                        <th>Kassa Ulushi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...chartData].reverse().map((d, idx) => {
+                        const outstanding = d.salesVolume - d.cashIn;
+                        const ratio = d.salesVolume > 0 ? Math.round((d.cashIn / d.salesVolume) * 100) : 0;
+                        return (
+                          <tr key={idx}>
+                            <td><strong>{d.label}</strong></td>
+                            <td>{formatPrice(d.salesVolume)}</td>
+                            <td style={{ color: "#1D9E75", fontWeight: 600 }}>{formatPrice(d.cashIn)}</td>
+                            <td style={{ color: "var(--orange-dark)" }}>{formatPrice(outstanding)}</td>
+                            <td>
+                              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <span style={{ fontSize: 11, fontWeight: 600, width: 32 }}>{ratio}%</span>
+                                <div className="progress-track" style={{ height: 6, width: 80, background: "var(--sand)", borderRadius: 3, overflow: "hidden" }}>
+                                  <div style={{ height: "100%", background: "#1D9E75", width: `${ratio}%` }}></div>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+            </div>
+          );
+        })()}
 
         {/* ───────────────── STAFF MANAGEMENT TAB (OWNER ONLY) ───────────────── */}
         {activeTab === "staff" && user.role === "owner" && (
@@ -1790,7 +2281,7 @@ export default function ErpClient({
               </div>
               <div>
                 <span style={{ color: "var(--muted)", display: "block", fontSize: 11, marginBottom: 2 }}>BOSHLANG'ICH NARXI</span>
-                <strong style={{ color: "var(--orange-dark)" }}>${parseInt(selectedUnitForAction.price).toLocaleString()}</strong>
+                <strong style={{ color: "var(--orange-dark)" }}>{formatPrice(selectedUnitForAction.price)}</strong>
               </div>
               <div style={{ gridColumn: "span 2", display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--sand)", paddingTop: 12, marginTop: 4 }}>
                 <span style={{ color: "var(--muted)", fontSize: 11 }}>XOLATI</span>
