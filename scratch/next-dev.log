@@ -1,0 +1,21 @@
+/Users/a1234/.nvm/versions/node/v20.20.2/lib/node_modules/npm/lib/cli/validate-engines.js:31
+    throw err
+    ^
+
+Error: EPERM: operation not permitted, uv_cwd
+    at process.wrappedCwd (node:internal/bootstrap/switches/does_own_process_state:144:28)
+    at process.cwd (/Users/a1234/.nvm/versions/node/v20.20.2/lib/node_modules/npm/node_modules/graceful-fs/polyfills.js:10:19)
+    at new Config (/Users/a1234/.nvm/versions/node/v20.20.2/lib/node_modules/npm/node_modules/@npmcli/config/lib/index.js:71:19)
+    at new Npm (/Users/a1234/.nvm/versions/node/v20.20.2/lib/node_modules/npm/lib/npm.js:67:19)
+    at module.exports (/Users/a1234/.nvm/versions/node/v20.20.2/lib/node_modules/npm/lib/cli/entry.js:21:15)
+    at module.exports (/Users/a1234/.nvm/versions/node/v20.20.2/lib/node_modules/npm/lib/cli/validate-engines.js:39:10)
+    at module.exports (/Users/a1234/.nvm/versions/node/v20.20.2/lib/node_modules/npm/lib/cli.js:4:31)
+    at Object.<anonymous> (/Users/a1234/.nvm/versions/node/v20.20.2/lib/node_modules/npm/bin/npx-cli.js:130:1)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10) {
+  errno: -1,
+  code: 'EPERM',
+  syscall: 'uv_cwd'
+}
+
+Node.js v20.20.2

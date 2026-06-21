@@ -7,22 +7,28 @@ import FloatingChat from "@/components/FloatingChat";
 import Script from "next/script";
 
 export const metadata = {
-  title: "maskon — Ko'chmas mulk platformasi",
-  description: "Uy-joyingizni maskondan toping. O'zbekiston bo'ylab uylar, kvartiralar, ofislar — sotib oling, ijaraga oling yoki soting.",
-  keywords: ["ko'chmas mulk", "uy sotish", "kvartira", "ijara", "Toshkent", "maskon", "O'zbekiston"],
+  title: "Maskon — Ko'chmas mulk platformasi",
+  description: "Uy-joyingizni Maskondan toping. O'zbekiston bo'ylab uylar, kvartiralar, ofislar — sotib oling, ijaraga oling yoki soting.",
+  keywords: ["ko'chmas mulk", "uy sotish", "kvartira", "ijara", "Toshkent", "Maskon", "O'zbekiston"],
   authors: [{ name: "maskon.uz" }],
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/icon.svg",
+  },
   openGraph: {
-    title: "maskon — Ko'chmas mulk platformasi",
-    description: "Uy-joyingizni maskondan toping. O'zbekiston bo'ylab 12 000+ e'lon.",
+    title: "Maskon — Ko'chmas mulk platformasi",
+    description: "Uy-joyingizni Maskondan toping. O'zbekiston bo'ylab 12 000+ e'lon.",
     url: "https://maskon.uz",
-    siteName: "maskon",
+    siteName: "Maskon",
     locale: "uz_UZ",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "maskon — Ko'chmas mulk platformasi",
-    description: "Uy-joyingizni maskondan toping. O'zbekiston bo'ylab 12 000+ e'lon.",
+    title: "Maskon — Ko'chmas mulk platformasi",
+    description: "Uy-joyingizni Maskondan toping. O'zbekiston bo'ylab 12 000+ e'lon.",
   },
 };
 
@@ -84,7 +90,8 @@ export default function RootLayout({ children }) {
           }}
         />
         <meta name="theme-color" content="#E06334" />
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+        <link rel="shortcut icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
