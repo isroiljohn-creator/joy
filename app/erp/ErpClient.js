@@ -590,26 +590,22 @@ export default function ErpClient({
   const renderSVGChart = (data) => {
     const width = 600;
     const height = 240;
-    const padding = 45;
+    const paddingLeft = 100;
+    const paddingRight = 30;
+    const paddingTop = 25;
+    const paddingBottom = 35;
     
     const maxVal = Math.max(...data.map(d => Math.max(d.salesVolume, d.cashIn)), 1000);
     const minVal = 0;
     
-    const pointsSales = data.map((d, i) => {
-      const x = padding + (i / (data.length - 1)) * (width - padding * 2);
-      const y = height - padding - ((d.salesVolume - minVal) / (maxVal - minVal)) * (height - padding * 2);
-      return { x, y };
-    });
-
     const pointsCash = data.map((d, i) => {
-      const x = padding + (i / (data.length - 1)) * (width - padding * 2);
-      const y = height - padding - ((d.cashIn - minVal) / (maxVal - minVal)) * (height - padding * 2);
+      const x = paddingLeft + (i / (data.length - 1)) * (width - paddingLeft - paddingRight);
+      const y = paddingTop + ((maxVal - d.cashIn) / (maxVal - minVal)) * (height - paddingTop - paddingBottom);
       return { x, y };
     });
 
-    const pathSales = pointsSales.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
     const pathCash = pointsCash.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
-    const areaCash = pointsCash.length > 0 ? `${pathCash} L ${pointsCash[pointsCash.length - 1].x} ${height - padding} L ${pointsCash[0].x} ${height - padding} Z` : '';
+    const areaCash = pointsCash.length > 0 ? `${pathCash} L ${pointsCash[pointsCash.length - 1].x} ${height - paddingBottom} L ${pointsCash[0].x} ${height - paddingBottom} Z` : '';
 
     return (
       <svg viewBox={`0 0 ${width} ${height}`} style={{ width: "100%", height: "auto", overflow: "visible" }}>
@@ -622,37 +618,62 @@ export default function ErpClient({
 
         {/* Grid Lines */}
         {[0, 0.25, 0.5, 0.75, 1].map((ratio, idx) => {
-          const y = padding + ratio * (height - padding * 2);
+          const y = paddingTop + ratio * (height - paddingTop - paddingBottom);
           const val = maxVal - ratio * (maxVal - minVal);
           return (
             <g key={idx}>
-              <line x1={padding} y1={y} x2={width - padding} y2={y} stroke="var(--sand)" strokeDasharray="4 4" />
-              <text x={padding - 8} y={y + 4} fill="var(--muted)" fontSize="9" textAnchor="end">{formatPrice(val)}</text>
+              <line x1={paddingLeft} y1={y} x2={width - paddingRight} y2={y} stroke="var(--sand)" strokeDasharray="4 4" />
+              <text x={paddingLeft - 10} y={y + 4} fill="var(--muted)" fontSize="9" textAnchor="end">{formatPrice(val)}</text>
             </g>
           );
         })}
 
         {/* X Axis Labels */}
         {data.map((d, i) => {
-          const x = padding + (i / (data.length - 1)) * (width - padding * 2);
+          const x = paddingLeft + (i / (data.length - 1)) * (width - paddingLeft - paddingRight);
           return (
             <text key={i} x={x} y={height - 12} fill="var(--muted)" fontSize="9" textAnchor="middle">{d.label}</text>
           );
         })}
 
-        {/* Areas */}
+        {/* Bar Chart for Sales Volume (Savdo hajmi) */}
+        {data.map((d, i) => {
+          const x = paddingLeft + (i / (data.length - 1)) * (width - paddingLeft - paddingRight);
+          const y = paddingTop + ((maxVal - d.salesVolume) / (maxVal - minVal)) * (height - paddingTop - paddingBottom);
+          const barHeight = height - paddingBottom - y;
+          if (d.salesVolume <= 0) return null;
+          return (
+            <rect 
+              key={`bar-${i}`}
+              x={x - 7} 
+              y={y} 
+              width={14} 
+              height={barHeight} 
+              rx="4" 
+              fill="var(--orange)" 
+              opacity="0.85"
+              style={{ transition: "all 0.3s ease" }}
+            />
+          );
+        })}
+
+        {/* Areas for Cash In (Kassa tushumi) */}
         {areaCash && <path d={areaCash} fill="url(#cashGrad)" />}
         
-        {/* Lines */}
-        {pathSales && <path d={pathSales} fill="none" stroke="var(--orange)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
+        {/* Line for Cash In */}
         {pathCash && <path d={pathCash} fill="none" stroke="#1D9E75" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
 
-        {/* Dots */}
-        {pointsSales.map((p, i) => (
-          <g key={`dots-${i}`}>
-            <circle cx={p.x} cy={p.y} r="4" fill="var(--orange)" stroke="var(--card-bg)" strokeWidth="1.5" />
-            <circle cx={pointsCash[i].x} cy={pointsCash[i].y} r="4" fill="#1D9E75" stroke="var(--card-bg)" strokeWidth="1.5" />
-          </g>
+        {/* Dots for Cash In */}
+        {pointsCash.map((p, i) => (
+          <circle 
+            key={`dot-${i}`}
+            cx={p.x} 
+            cy={p.y} 
+            r="4.5" 
+            fill="#1D9E75" 
+            stroke="var(--card-bg)" 
+            strokeWidth="2" 
+          />
         ))}
       </svg>
     );
@@ -2056,7 +2077,7 @@ export default function ErpClient({
                 gap: 16,
                 marginBottom: 28
               }}>
-                <div className="dashboard-stat-card" style={{ background: "var(--card-bg)", border: "1px solid var(--sand)" }}>
+                <div className="dashboard-stat-card">
                   <i className="ti ti-chart-line" style={{ color: "var(--orange)" }}></i>
                   <div className="stat-value" style={{ fontSize: 18, fontWeight: 700, margin: "8px 0 4px 0" }}>
                     {formatPrice(fStats.totalSalesVolume)}
@@ -2064,7 +2085,7 @@ export default function ErpClient({
                   <div className="stat-label" style={{ fontSize: 11, color: "var(--muted)" }}>Shartnomalar (Savdo)</div>
                 </div>
 
-                <div className="dashboard-stat-card highlight" style={{ background: "var(--card-bg)", border: "1px solid var(--sand)" }}>
+                <div className="dashboard-stat-card highlight">
                   <i className="ti ti-cash-banknote" style={{ color: "#1D9E75" }}></i>
                   <div className="stat-value" style={{ fontSize: 18, fontWeight: 700, margin: "8px 0 4px 0" }}>
                     {formatPrice(fStats.totalCashIn)}
@@ -2072,7 +2093,7 @@ export default function ErpClient({
                   <div className="stat-label" style={{ fontSize: 11, color: "var(--muted)" }}>Tushum (Kassa)</div>
                 </div>
 
-                <div className="dashboard-stat-card" style={{ background: "var(--card-bg)", border: "1px solid var(--sand)" }}>
+                <div className="dashboard-stat-card">
                   <i className="ti ti-wallet" style={{ color: "var(--orange-dark)" }}></i>
                   <div className="stat-value" style={{ fontSize: 18, fontWeight: 700, margin: "8px 0 4px 0" }}>
                     {formatPrice(fStats.totalOutstanding)}
@@ -2080,7 +2101,7 @@ export default function ErpClient({
                   <div className="stat-label" style={{ fontSize: 11, color: "var(--muted)" }}>Kutilayotgan Qarzlar</div>
                 </div>
 
-                <div className="dashboard-stat-card" style={{ background: "var(--card-bg)", border: "1px solid var(--sand)" }}>
+                <div className="dashboard-stat-card">
                   <i className={`ti ${fStats.growthPercent >= 0 ? 'ti-trending-up' : 'ti-trending-down'}`} style={{ color: fStats.growthPercent >= 0 ? '#1D9E75' : '#ef4444' }}></i>
                   <div className="stat-value" style={{ 
                     fontSize: 18, 
@@ -2127,8 +2148,8 @@ export default function ErpClient({
                 overflow: "hidden"
               }}>
                 <h4 style={{ margin: "0 0 16px 0", fontSize: 14, fontWeight: 700 }}>Batafsil Moliya Hisoboti</h4>
-                <div className="table-responsive">
-                  <table className="table">
+                <div className="dashboard-listings-table">
+                  <table>
                     <thead>
                       <tr>
                         <th>Davr</th>
