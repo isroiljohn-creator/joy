@@ -213,15 +213,21 @@ export async function erpAddProject(formData) {
   }
 }
 
-export async function erpUpdateProjectProgress(projectId, stages) {
+export async function erpUpdateProjectProgress(projectId, stages = {}) {
   await verifyAccess(["owner", "rop"]);
-  const { kotlovan, brick, facade, interior } = stages;
+  const { kotlovan = 0, brick = 0, facade = 0, interior = 0 } = stages || {};
   try {
     await pool.query(
       `UPDATE erp_projects 
        SET progress_kotlovan = $1, progress_brick = $2, progress_facade = $3, progress_interior = $4
        WHERE id = $5`,
-      [kotlovan, brick, facade, interior, projectId]
+      [
+        parseInt(kotlovan) || 0,
+        parseInt(brick) || 0,
+        parseInt(facade) || 0,
+        parseInt(interior) || 0,
+        projectId
+      ]
     );
     revalidatePath("/erp");
     return { success: true };

@@ -27,6 +27,23 @@ import {
   erpCheckAndSendAutomaticNotifications
 } from "@/app/erp-actions";
 
+const meetingBtnStyle = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  height: "28px",
+  padding: "0 10px",
+  fontSize: "11px",
+  fontWeight: "600",
+  borderRadius: "6px",
+  border: "none",
+  cursor: "pointer",
+  boxSizing: "border-box",
+  whiteSpace: "nowrap",
+  textDecoration: "none",
+  transition: "opacity 0.2s ease"
+};
+
 export default function ErpClient({
   user,
   stats: initialStats,
@@ -506,7 +523,7 @@ export default function ErpClient({
         showToast(res.error, true);
       } else {
         showToast("Uchrashuv statusi o'zgartirildi.");
-        setMeetings(prev => prev.map(m => m.id === meetingId ? { ...m, status: nextStatus } : l));
+        setMeetings(prev => prev.map(m => m.id === meetingId ? { ...m, status: nextStatus } : m));
         router.refresh();
         setTimeout(() => window.location.reload(), 1000);
       }
@@ -605,10 +622,10 @@ export default function ErpClient({
     if (!proj) return;
     
     const stages = {
-      kotlovan: field === 'progress_kotlovan' ? parseInt(val) : proj.progress_kotlovan,
-      brick: field === 'progress_brick' ? parseInt(val) : proj.progress_brick,
-      facade: field === 'progress_facade' ? parseInt(val) : proj.progress_facade,
-      interior: field === 'progress_interior' ? parseInt(val) : proj.progress_interior,
+      kotlovan: field === 'progress_kotlovan' ? (parseInt(val) || 0) : (proj.progress_kotlovan || 0),
+      brick: field === 'progress_brick' ? (parseInt(val) || 0) : (proj.progress_brick || 0),
+      facade: field === 'progress_facade' ? (parseInt(val) || 0) : (proj.progress_facade || 0),
+      interior: field === 'progress_interior' ? (parseInt(val) || 0) : (proj.progress_interior || 0),
     };
 
     try {
@@ -616,13 +633,14 @@ export default function ErpClient({
       if (res.error) {
         showToast(res.error, true);
       } else {
-        setProjects(prev => prev.map(p => p.id === projectId ? { 
-          ...p, 
+        const updatedFields = {
           progress_kotlovan: stages.kotlovan,
           progress_brick: stages.brick,
           progress_facade: stages.facade,
           progress_interior: stages.interior
-        } : p));
+        };
+        setProjects(prev => prev.map(p => p.id === projectId ? { ...p, ...updatedFields } : p));
+        setSelectedProject(prev => prev && prev.id === projectId ? { ...prev, ...updatedFields } : prev);
         showToast("Loyihaning qurilish progressi yangilandi!");
       }
     } catch {
@@ -1227,17 +1245,15 @@ export default function ErpClient({
                             <div style={{ display: "flex", gap: 6 }}>
                               <button 
                                 onClick={() => handleUpdateMeetingStatus(m.id, 'completed')} 
-                                className="btn btn-secondary" 
-                                style={{ padding: "4px 8px", fontSize: 11, background: "var(--green-tint)", color: "#16a34a", border: "none" }}
+                                style={{ ...meetingBtnStyle, background: "var(--green-tint)", color: "var(--green)" }}
                               >
-                                ✓ Yakunlandi
+                                Yakunlandi
                               </button>
                               <button 
                                 onClick={() => handleUpdateMeetingStatus(m.id, 'cancelled')} 
-                                className="btn btn-secondary" 
-                                style={{ padding: "4px 8px", fontSize: 11, background: "#fde8e8", color: "#dc2626", border: "none" }}
+                                style={{ ...meetingBtnStyle, background: "rgba(220, 38, 38, 0.12)", color: "#dc2626" }}
                               >
-                                ✕ Bekor
+                                Bekor qilish
                               </button>
                             </div>
                           </td>
@@ -1719,15 +1735,13 @@ export default function ErpClient({
                                 <>
                                   <button 
                                     onClick={() => handleUpdateMeetingStatus(m.id, 'completed')} 
-                                    className="btn btn-secondary" 
-                                    style={{ padding: "4px 8px", fontSize: 11, background: "var(--green-tint)", color: "#16a34a", border: "none", cursor: "pointer", borderRadius: 8 }}
+                                    style={{ ...meetingBtnStyle, background: "var(--green-tint)", color: "var(--green)" }}
                                   >
                                     Yakunlandi
                                   </button>
                                   <button 
                                     onClick={() => handleUpdateMeetingStatus(m.id, 'cancelled')} 
-                                    className="btn btn-secondary" 
-                                    style={{ padding: "4px 8px", fontSize: 11, background: "#fde8e8", color: "#dc2626", border: "none", cursor: "pointer", borderRadius: 8 }}
+                                    style={{ ...meetingBtnStyle, background: "rgba(220, 38, 38, 0.12)", color: "#dc2626" }}
                                   >
                                     Bekor qilish
                                   </button>
@@ -1737,19 +1751,11 @@ export default function ErpClient({
                                 href={getGoogleCalendarUrl(m)}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="btn btn-secondary"
                                 style={{
-                                  padding: "4px 8px",
-                                  fontSize: 11,
+                                  ...meetingBtnStyle,
                                   background: "var(--orange-tint)",
                                   color: "var(--orange-dark)",
-                                  border: "none",
-                                  textDecoration: "none",
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  gap: 4,
-                                  borderRadius: 8,
-                                  cursor: "pointer"
+                                  gap: 4
                                 }}
                                 title="Google Calendar-ga qo'shish"
                               >
