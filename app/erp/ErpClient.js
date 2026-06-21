@@ -2351,6 +2351,12 @@ export default function ErpClient({
                   font-size: 12px !important;
                 }
               }
+
+              /* Prevent modals from overflowing screen height */
+              .modal-overlay .create-agency-card {
+                max-height: 85vh !important;
+                overflow-y: auto !important;
+              }
             ` }} />
           </div>
         </div>
