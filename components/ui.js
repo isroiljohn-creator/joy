@@ -607,7 +607,7 @@ export function CustomSelect({ value, onChange, options, placeholder, className 
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const selected = options.find((o) => (typeof o === "string" ? o : o.value) === value);
+  const selected = options.find((o) => (typeof o === "string" ? o : o.value) == value);
   const label = selected
     ? typeof selected === "string" ? selected : selected.label
     : placeholder || "Tanlang...";
@@ -634,7 +634,7 @@ export function CustomSelect({ value, onChange, options, placeholder, className 
           {options.map((o) => {
             const val = typeof o === "string" ? o : o.value;
             const lbl = typeof o === "string" ? o : o.label;
-            const active = val === value;
+            const active = val == value;
             return (
               <button
                 key={val}

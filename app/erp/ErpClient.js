@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { CustomSelect } from "@/components/ui";
 import {
   erpAddProject,
   erpUpdateProjectProgress,
@@ -875,20 +876,18 @@ export default function ErpClient({
                             {l.notes || "Izoh kiritilmagan"}
                           </div>
 
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--sand)", paddingTop: 10 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--sand)", paddingTop: 10, gap: 8 }}>
                             {/* ROP/Owner assignment */}
                             {(user.role === 'rop' || user.role === 'owner') ? (
-                              <select
-                                className="erp-select"
-                                value={l.assigned_to || ""}
-                                onChange={(e) => handleAssignLead(l.id, e.target.value)}
-                                style={{ fontSize: 11, padding: "2px 6px", borderRadius: 8, maxWidth: 120 }}
-                              >
-                                <option value="">Biriktirish...</option>
-                                {sellers.map(s => (
-                                  <option key={s.id} value={s.id}>{s.name}</option>
-                                ))}
-                              </select>
+                              <div style={{ width: 120 }}>
+                                <CustomSelect
+                                  value={l.assigned_to || ""}
+                                  onChange={(val) => handleAssignLead(l.id, val)}
+                                  options={sellers.map(s => ({ value: s.id, label: s.name }))}
+                                  placeholder="Biriktirish..."
+                                  className="csel-compact"
+                                />
+                              </div>
                             ) : (
                               <span style={{ fontSize: 11, color: "var(--muted)" }}>
                                 <i className="ti ti-user"></i> {l.seller_name || "Biriktirilmagan"}
@@ -896,19 +895,21 @@ export default function ErpClient({
                             )}
 
                             {/* Dropdown to change status */}
-                            <select
-                              className="erp-select"
-                              value={l.status}
-                              onChange={(e) => handleUpdateLeadStatus(l.id, e.target.value)}
-                              style={{ fontSize: 11, padding: "2px 6px", borderRadius: 8 }}
-                            >
-                              <option value="new">Yangi lid</option>
-                              <option value="contacted">Aloqada</option>
-                              <option value="meeting_scheduled">Uchrashuv</option>
-                              <option value="negotiation">Muzokara</option>
-                              <option value="won">Sotib oldi</option>
-                              <option value="lost">Rad etildi</option>
-                            </select>
+                            <div style={{ width: 110 }}>
+                              <CustomSelect
+                                value={l.status}
+                                onChange={(val) => handleUpdateLeadStatus(l.id, val)}
+                                options={[
+                                  { value: "new", label: "Yangi lid" },
+                                  { value: "contacted", label: "Aloqada" },
+                                  { value: "meeting_scheduled", label: "Uchrashuv" },
+                                  { value: "negotiation", label: "Muzokara" },
+                                  { value: "won", label: "Sotib oldi" },
+                                  { value: "lost", label: "Rad etildi" }
+                                ]}
+                                className="csel-compact"
+                              />
+                            </div>
                           </div>
 
                           {/* Quick button to schedule meeting */}
@@ -1103,16 +1104,12 @@ export default function ErpClient({
                       ].map(stage => (
                         <div key={stage.key} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                           <label style={{ fontSize: 11, color: "var(--muted)" }}>{stage.label}:</label>
-                          <select
-                            className="erp-select"
+                          <CustomSelect
                             value={selectedProject[stage.key]}
-                            onChange={(e) => handleProgressChange(selectedProject.id, stage.key, e.target.value)}
-                            style={{ padding: "4px 8px", borderRadius: 8, fontSize: 12 }}
-                          >
-                            {[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map(pct => (
-                              <option key={pct} value={pct}>{pct}%</option>
-                            ))}
-                          </select>
+                            onChange={(val) => handleProgressChange(selectedProject.id, stage.key, val)}
+                            options={[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map(pct => ({ value: pct, label: `${pct}%` }))}
+                            className="csel-compact"
+                          />
                         </div>
                       ))}
                     </div>
@@ -1348,16 +1345,18 @@ export default function ErpClient({
                       </td>
                       <td>
                         {member.id !== user.id ? (
-                          <select
-                            className="erp-select"
-                            value={member.role}
-                            onChange={(e) => handleUserRoleChange(member.id, e.target.value)}
-                            style={{ fontSize: 12, padding: "4px 8px", borderRadius: 8 }}
-                          >
-                            <option value="seller">Sotuvchi</option>
-                            <option value="rop">ROP</option>
-                            <option value="owner">Owner (Xo'jayin)</option>
-                          </select>
+                          <div style={{ maxWidth: 140 }}>
+                            <CustomSelect
+                              value={member.role}
+                              onChange={(val) => handleUserRoleChange(member.id, val)}
+                              options={[
+                                { value: "seller", label: "Sotuvchi" },
+                                { value: "rop", label: "ROP" },
+                                { value: "owner", label: "Owner (Xo'jayin)" }
+                              ]}
+                              className="csel-compact"
+                            />
+                          </div>
                         ) : (
                           <span style={{ fontSize: 12, color: "var(--muted)" }}>—</span>
                         )}
@@ -1434,35 +1433,28 @@ export default function ErpClient({
                 </div>
 
                 <div className="form-group" style={{ marginBottom: 12 }}>
-                  <label style={{ fontSize: 12 }}>Xaridor (Mijoz) *</label>
-                  <select
-                    className="erp-select"
+                  <label style={{ fontSize: 12, display: "block", marginBottom: 4 }}>Xaridor (Mijoz) *</label>
+                  <CustomSelect
                     value={bookingLeadId}
-                    onChange={(e) => setBookingLeadId(e.target.value)}
-                    required
-                    style={{ width: "100%", padding: 10, borderRadius: 12, marginTop: 4 }}
-                  >
-                    <option value="">Mijozni tanlang...</option>
-                    {activeLeads.map(l => (
-                      <option key={l.id} value={l.id}>{l.name} ({l.phone})</option>
-                    ))}
-                  </select>
+                    onChange={(val) => setBookingLeadId(val)}
+                    options={activeLeads.map(l => ({ value: l.id, label: `${l.name} (${l.phone})` }))}
+                    placeholder="Mijozni tanlang..."
+                  />
                 </div>
 
                 {bookingType === "reserve" ? (
                   <div className="form-group" style={{ marginBottom: 20 }}>
-                    <label style={{ fontSize: 12 }}>Bron muddati (kunlarda) *</label>
-                    <select
-                      className="erp-select"
+                    <label style={{ fontSize: 12, display: "block", marginBottom: 4 }}>Bron muddati (kunlarda) *</label>
+                    <CustomSelect
                       value={bookingReserveDays}
-                      onChange={(e) => setBookingReserveDays(parseInt(e.target.value))}
-                      style={{ width: "100%", padding: 10, borderRadius: 12, marginTop: 4 }}
-                    >
-                      <option value="1">1 kun</option>
-                      <option value="3">3 kun</option>
-                      <option value="5">5 kun</option>
-                      <option value="7">7 kun (1 hafta)</option>
-                    </select>
+                      onChange={(val) => setBookingReserveDays(parseInt(val))}
+                      options={[
+                        { value: 1, label: "1 kun" },
+                        { value: 3, label: "3 kun" },
+                        { value: 5, label: "5 kun" },
+                        { value: 7, label: "7 kun (1 hafta)" }
+                      ]}
+                    />
                   </div>
                 ) : (
                   <>
@@ -1480,17 +1472,16 @@ export default function ErpClient({
                     
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
                       <div className="form-group">
-                        <label style={{ fontSize: 12 }}>To'lov turi</label>
-                        <select
-                          className="erp-select"
+                        <label style={{ fontSize: 12, display: "block", marginBottom: 4 }}>To'lov turi</label>
+                        <CustomSelect
                           value={bookingPaymentPlan}
-                          onChange={(e) => setBookingPaymentPlan(e.target.value)}
-                          style={{ width: "100%", padding: 10, borderRadius: 12, marginTop: 4 }}
-                        >
-                          <option value="cash">Naqd to'liq</option>
-                          <option value="installments">Bo'lib to'lash (Nasiya)</option>
-                          <option value="mortgage">Ipoteka krediti</option>
-                        </select>
+                          onChange={(val) => setBookingPaymentPlan(val)}
+                          options={[
+                            { value: "cash", label: "Naqd to'liq" },
+                            { value: "installments", label: "Bo'lib to'lash (Nasiya)" },
+                            { value: "mortgage", label: "Ipoteka krediti" }
+                          ]}
+                        />
                       </div>
                       <div className="form-group">
                         <label style={{ fontSize: 12 }}>Boshlang'ich to'lov ($)</label>
@@ -1709,19 +1700,18 @@ export default function ErpClient({
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
                 <div className="form-group">
-                  <label style={{ fontSize: 12 }}>Manba</label>
-                  <select
-                    className="erp-select"
+                  <label style={{ fontSize: 12, display: "block", marginBottom: 4 }}>Manba</label>
+                  <CustomSelect
                     value={leadForm.source}
-                    onChange={(e) => setLeadForm(p => ({ ...p, source: e.target.value }))}
-                    style={{ width: "100%", padding: 10, borderRadius: 12, marginTop: 4 }}
-                  >
-                    <option value="telegram">Telegram</option>
-                    <option value="instagram">Instagram</option>
-                    <option value="website">Vebsayt</option>
-                    <option value="recommendation">Tavsiya</option>
-                    <option value="walk_in">Ofisga kelgan</option>
-                  </select>
+                    onChange={(val) => setLeadForm(p => ({ ...p, source: val }))}
+                    options={[
+                      { value: "telegram", label: "Telegram" },
+                      { value: "instagram", label: "Instagram" },
+                      { value: "website", label: "Vebsayt" },
+                      { value: "recommendation", label: "Tavsiya" },
+                      { value: "walk_in", label: "Ofisga kelgan" }
+                    ]}
+                  />
                 </div>
                 <div className="form-group">
                   <label style={{ fontSize: 12 }}>Byudjet ($)</label>
@@ -1785,19 +1775,13 @@ export default function ErpClient({
             
             <form onSubmit={handleAddMeeting}>
               <div className="form-group" style={{ marginBottom: 10 }}>
-                <label style={{ fontSize: 12 }}>Mijoz (Lid) *</label>
-                <select
-                  className="erp-select"
+                <label style={{ fontSize: 12, display: "block", marginBottom: 4 }}>Mijoz (Lid) *</label>
+                <CustomSelect
                   value={meetingForm.lead_id}
-                  onChange={(e) => setMeetingForm(p => ({ ...p, lead_id: e.target.value }))}
-                  required
-                  style={{ width: "100%", padding: 10, borderRadius: 12, marginTop: 4 }}
-                >
-                  <option value="">Mijozni tanlang...</option>
-                  {activeLeads.map(l => (
-                    <option key={l.id} value={l.id}>{l.name} ({l.phone})</option>
-                  ))}
-                </select>
+                  onChange={(val) => setMeetingForm(p => ({ ...p, lead_id: val }))}
+                  options={activeLeads.map(l => ({ value: l.id, label: `${l.name} (${l.phone})` }))}
+                  placeholder="Mijozni tanlang..."
+                />
               </div>
 
               <div className="form-group" style={{ marginBottom: 10 }}>
@@ -1824,18 +1808,16 @@ export default function ErpClient({
 
               {user.role !== 'seller' && (
                 <div className="form-group" style={{ marginBottom: 10 }}>
-                  <label style={{ fontSize: 12 }}>Mas'ul sotuvchi</label>
-                  <select
-                    className="erp-select"
+                  <label style={{ fontSize: 12, display: "block", marginBottom: 4 }}>Mas'ul sotuvchi</label>
+                  <CustomSelect
                     value={meetingForm.user_id}
-                    onChange={(e) => setMeetingForm(p => ({ ...p, user_id: e.target.value }))}
-                    style={{ width: "100%", padding: 10, borderRadius: 12, marginTop: 4 }}
-                  >
-                    <option value="">O'zim (yoki tanlang)</option>
-                    {sellers.map(s => (
-                      <option key={s.id} value={s.id}>{s.name}</option>
-                    ))}
-                  </select>
+                    onChange={(val) => setMeetingForm(p => ({ ...p, user_id: val }))}
+                    options={[
+                      { value: "", label: "O'zim (yoki tanlang)" },
+                      ...sellers.map(s => ({ value: s.id, label: s.name }))
+                    ]}
+                    placeholder="Sotuvchini tanlang..."
+                  />
                 </div>
               )}
 
@@ -2201,30 +2183,29 @@ export default function ErpClient({
                 to { opacity: 1; }
               }
 
-              /* Custom styled selects */
-              .erp-select {
-                appearance: none;
-                -webkit-appearance: none;
-                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23E06334' stroke-width='2.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E") !important;
-                background-repeat: no-repeat !important;
-                background-position: right 8px center !important;
-                background-size: 11px !important;
-                padding-right: 24px !important;
+              /* Custom select compact styling for cards and tables */
+              .csel-compact .csel-trigger {
+                padding: 4px 10px !important;
+                font-size: 11px !important;
+                border-radius: 8px !important;
+                min-height: auto !important;
                 background-color: #ffffff;
                 color: var(--ink) !important;
-                border: 1.5px solid var(--sand) !important;
-                outline: none;
-                transition: border-color .2s, box-shadow .2s;
-                cursor: pointer;
+                border: 1px solid var(--sand) !important;
               }
-              .erp-select:focus {
-                border-color: var(--orange) !important;
-                box-shadow: 0 0 0 3px var(--orange-tint) !important;
+              .csel-compact .csel-arrow {
+                font-size: 10px !important;
               }
-              [data-theme="dark"] .erp-select {
+              .csel-compact .csel-dropdown {
+                border-radius: 10px !important;
+                box-shadow: 0 8px 24px rgba(26,19,14,.08) !important;
+              }
+              .csel-compact .csel-option {
+                padding: 6px 12px !important;
+                font-size: 11px !important;
+              }
+              [data-theme="dark"] .csel-compact .csel-trigger {
                 background-color: #231F1A !important;
-                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23FF8F6B' stroke-width='2.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E") !important;
-                color: var(--ink) !important;
                 border-color: var(--sand) !important;
               }
 
