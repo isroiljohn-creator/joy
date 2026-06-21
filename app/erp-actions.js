@@ -513,20 +513,40 @@ export async function erpReserveUnit(unitId, leadId, expiresAt, sellerId) {
   try {
     await pool.query("BEGIN");
     
-    // Update unit status to reserved
-    await pool.query(
-      `UPDATE erp_units 
-       SET status = 'reserved', reserved_until = $1, reserved_by = $2 
-       WHERE id = $3 AND status = 'available'`,
-      [expiresAt, resBy, unitId]
-    );
-
-    // Update lead status to negotiation if it is not won/lost
-    if (leadId) {
+    if (!expiresAt) {
+      // Clearing/cancelling reservation
       await pool.query(
-        "UPDATE erp_leads SET status = 'negotiation' WHERE id = $1 AND status NOT IN ('won', 'lost')",
-        [leadId]
+        `UPDATE erp_units 
+         SET status = 'available', reserved_until = NULL, reserved_by = NULL 
+         WHERE id = $1`,
+        [unitId]
       );
+    } else {
+      // 1. Fetch unit's listing_id and delete listing if any (since it's now reserved and not available)
+      const { rows: unitRows } = await pool.query(
+        `SELECT listing_id FROM erp_units WHERE id = $1`,
+        [unitId]
+      );
+      if (unitRows.length > 0 && unitRows[0].listing_id) {
+        const listingId = unitRows[0].listing_id;
+        await pool.query("DELETE FROM listings WHERE id = $1", [listingId]);
+      }
+
+      // 2. Update unit status to reserved and clear listing_id
+      await pool.query(
+        `UPDATE erp_units 
+         SET status = 'reserved', reserved_until = $1, reserved_by = $2, listing_id = NULL 
+         WHERE id = $3 AND status = 'available'`,
+        [expiresAt, resBy, unitId]
+      );
+
+      // 3. Update lead status to negotiation if it is not won/lost
+      if (leadId) {
+        await pool.query(
+          "UPDATE erp_leads SET status = 'negotiation' WHERE id = $1 AND status NOT IN ('won', 'lost')",
+          [leadId]
+        );
+      }
     }
 
     await pool.query("COMMIT");
@@ -559,13 +579,23 @@ export async function erpAddSale(formData) {
       [unitId, leadId, soldPrice, paymentPlan, initialPayment, paidAmount, paymentPlan === 'cash' ? 'completed' : 'active', soldBy]
     );
 
-    // 2. Update erp_units status to sold
+    // 2. Fetch unit's listing_id and delete listing if any
+    const { rows: unitRows } = await pool.query(
+      `SELECT listing_id FROM erp_units WHERE id = $1`,
+      [unitId]
+    );
+    if (unitRows.length > 0 && unitRows[0].listing_id) {
+      const listingId = unitRows[0].listing_id;
+      await pool.query("DELETE FROM listings WHERE id = $1", [listingId]);
+    }
+
+    // 3. Update erp_units status to sold and clear listing_id
     await pool.query(
-      `UPDATE erp_units SET status = 'sold', reserved_until = NULL, reserved_by = NULL WHERE id = $1`,
+      `UPDATE erp_units SET status = 'sold', reserved_until = NULL, reserved_by = NULL, listing_id = NULL WHERE id = $1`,
       [unitId]
     );
 
-    // 3. Update erp_leads status to won
+    // 4. Update erp_leads status to won
     await pool.query(
       `UPDATE erp_leads SET status = 'won' WHERE id = $1`,
       [leadId]
@@ -920,6 +950,114 @@ export async function erpGetClientContract(phone, contractId) {
   } catch (error) {
     console.error("erpGetClientContract error:", error);
     return { error: "Ma'lumotlarni yuklashda xatolik yuz berdi" };
+  }
+}
+
+export async function erpPublishUnitAsListing(unitId) {
+  const user = await verifyAccess(["owner", "rop"]);
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    
+    // Fetch unit and project details
+    const { rows: unitRows } = await client.query(
+      `SELECT u.*, p.name as project_name, p.location as project_location 
+       FROM erp_units u
+       JOIN erp_projects p ON u.project_id = p.id
+       WHERE u.id = $1`,
+      [unitId]
+    );
+    
+    if (unitRows.length === 0) {
+      throw new Error("Xonadon topilmadi");
+    }
+    
+    const unit = unitRows[0];
+    if (unit.listing_id) {
+      throw new Error("Ushbu xonadon allaqachon platformada e'lon qilingan!");
+    }
+    
+    const priceNum = parseInt(unit.price) || 0;
+    const priceFormatted = "$" + String(priceNum).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    const title = `${unit.rooms} xonali kvartira`;
+    const photo = "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&q=75";
+    const desc = `${unit.project_name} turar joy majmuasida joylashgan yangi ${unit.rooms} xonali shinam xonadon sotuvga qo'yildi. Umumiy maydon: ${unit.area} m², Qavat: ${unit.floor}-qavat. Batafsil ma'lumot olish uchun biz bilan bog'laning.`;
+    
+    // Insert into listings
+    const { rows: listingRows } = await client.query(
+      `INSERT INTO listings (
+        price, price_num, type, cat, addr, rooms, baths, area, floor, top, 
+        photo, owner_id, views, saves, status, pin_x, pin_y, description, 
+        phone, has_mortgage, has_cadastre_verified
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+       RETURNING id`,
+      [
+        priceFormatted, priceNum, title, "Yangi uylar", unit.project_location, 
+        unit.rooms, 1, unit.area, String(unit.floor), false,
+        photo, user.id, 0, 0, "active", 150, 150, desc, 
+        user.phone || "+998 90 123 45 67", true, false
+      ]
+    );
+    
+    const listingId = listingRows[0].id;
+    
+    // Update unit with listing_id
+    await client.query(
+      `UPDATE erp_units SET listing_id = $1 WHERE id = $2`,
+      [listingId, unitId]
+    );
+    
+    await client.query("COMMIT");
+    revalidatePath("/erp");
+    revalidatePath("/listings");
+    revalidatePath("/");
+    return { success: true, listingId };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    console.error("erpPublishUnitAsListing error:", error);
+    return { error: error.message || "E'lonni platformaga nashr qilishda xatolik yuz berdi" };
+  } finally {
+    client.release();
+  }
+}
+
+export async function erpUnpublishUnitAsListing(unitId) {
+  const user = await verifyAccess(["owner", "rop"]);
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    
+    const { rows: unitRows } = await client.query(
+      `SELECT listing_id FROM erp_units WHERE id = $1`,
+      [unitId]
+    );
+    
+    if (unitRows.length === 0) {
+      throw new Error("Xonadon topilmadi");
+    }
+    
+    const listingId = unitRows[0].listing_id;
+    if (!listingId) {
+      throw new Error("Xonadon platformada nashr qilinmagan!");
+    }
+    
+    // Delete from listings
+    await client.query("DELETE FROM listings WHERE id = $1", [listingId]);
+    
+    // Clear listing_id in erp_units
+    await client.query("UPDATE erp_units SET listing_id = NULL WHERE id = $1", [unitId]);
+    
+    await client.query("COMMIT");
+    revalidatePath("/erp");
+    revalidatePath("/listings");
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    console.error("erpUnpublishUnitAsListing error:", error);
+    return { error: error.message || "E'lonni platformadan o'chirishda xatolik yuz berdi" };
+  } finally {
+    client.release();
   }
 }
 

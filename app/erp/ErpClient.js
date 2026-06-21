@@ -24,7 +24,9 @@ import {
   erpDeleteTask,
   erpGetNotifications,
   erpSendManualNotification,
-  erpCheckAndSendAutomaticNotifications
+  erpCheckAndSendAutomaticNotifications,
+  erpPublishUnitAsListing,
+  erpUnpublishUnitAsListing
 } from "@/app/erp-actions";
 
 const meetingBtnStyle = {
@@ -575,6 +577,44 @@ export default function ErpClient({
       }
     } catch (err) {
       showToast("Xatolik yuz berdi: " + err.message, true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePublishUnit = async (unitId) => {
+    setLoading(true);
+    try {
+      const res = await erpPublishUnitAsListing(unitId);
+      if (res.error) {
+        showToast(res.error, true);
+      } else {
+        showToast("Xonadon e'loni platformaga muvaffaqiyatli nashr etildi!");
+        setSelectedUnitForAction(prev => prev ? { ...prev, listing_id: res.listingId } : null);
+        fetchUnits(selectedProject.id);
+        router.refresh();
+      }
+    } catch {
+      showToast("Xatolik yuz berdi", true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUnpublishUnit = async (unitId) => {
+    setLoading(true);
+    try {
+      const res = await erpUnpublishUnitAsListing(unitId);
+      if (res.error) {
+        showToast(res.error, true);
+      } else {
+        showToast("Xonadon e'loni platformadan o'chirildi.");
+        setSelectedUnitForAction(prev => prev ? { ...prev, listing_id: null } : null);
+        fetchUnits(selectedProject.id);
+        router.refresh();
+      }
+    } catch {
+      showToast("Xatolik yuz berdi", true);
     } finally {
       setLoading(false);
     }
@@ -2806,6 +2846,31 @@ export default function ErpClient({
                   {selectedUnitForAction.status === 'available' ? 'Bo\'sh (Sotuvda)' : selectedUnitForAction.status === 'reserved' ? 'Band qilingan' : 'Sotilgan'}
                 </span>
               </div>
+              <div style={{ gridColumn: "span 2", display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--sand)", paddingTop: 12 }}>
+                <span style={{ color: "var(--muted)", fontSize: 11 }}>PLATFORMA E'LONI</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    padding: "4px 10px",
+                    borderRadius: 8,
+                    background: selectedUnitForAction.listing_id ? "var(--orange-tint)" : "var(--sand)",
+                    color: selectedUnitForAction.listing_id ? "var(--orange-dark)" : "var(--muted)"
+                  }}>
+                    {selectedUnitForAction.listing_id ? "Nashr etilgan" : "Nashr etilmagan"}
+                  </span>
+                  {selectedUnitForAction.listing_id && (
+                    <a 
+                      href={`/property/${selectedUnitForAction.listing_id}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      style={{ fontSize: 11, color: "var(--orange-dark)", textDecoration: "underline", fontWeight: 600 }}
+                    >
+                      Ko'rish
+                    </a>
+                  )}
+                </div>
+              </div>
               {selectedUnitForAction.status === 'reserved' && (
                 <div style={{ gridColumn: "span 2", fontSize: 12, color: "var(--orange-dark)", background: "rgba(224, 99, 52, 0.08)", padding: "10px 12px", borderRadius: 10, display: "flex", alignItems: "center", gap: 6 }}>
                   <i className="ti ti-pin" style={{ fontSize: 14 }}></i>
@@ -3003,6 +3068,34 @@ export default function ErpClient({
                 >
                   Yopish
                 </button>
+              </div>
+            )}
+
+            {/* Owner/ROP platform publishing controls */}
+            {(user.role === 'owner' || user.role === 'rop') && (
+              <div style={{ borderTop: "1.5px solid var(--sand)", paddingTop: 16, marginTop: 16 }}>
+                <h4 style={{ margin: "0 0 10px 0", fontSize: 12, fontWeight: 700, color: "var(--ink)" }}>Platformadagi E'lon:</h4>
+                {selectedUnitForAction.listing_id ? (
+                  <button
+                    type="button"
+                    onClick={() => handleUnpublishUnit(selectedUnitForAction.id)}
+                    className="btn btn-secondary btn-full"
+                    style={{ background: "rgba(220, 38, 38, 0.08)", color: "#dc2626", border: "1px solid rgba(220, 38, 38, 0.15)" }}
+                    disabled={loading}
+                  >
+                    {loading ? "O'chirilmoqda..." : "E'lonni platformadan o'chirish"}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handlePublishUnit(selectedUnitForAction.id)}
+                    className="btn btn-primary btn-full"
+                    style={{ background: "var(--orange)", borderColor: "var(--orange)" }}
+                    disabled={loading || selectedUnitForAction.status !== 'available'}
+                  >
+                    {loading ? "Nashr etilmoqda..." : "E'lonni platformada nashr qilish (Yangi uylar)"}
+                  </button>
+                )}
               </div>
             )}
 
