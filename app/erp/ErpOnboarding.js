@@ -29,7 +29,7 @@ const PLANS = [
   {
     id: "starter",
     name: "Starter",
-    price: "499 000",
+    price: "$299",
     period: "/ oy",
     desc: "Kichik agentlik yoki yakka tadbirkor uchun",
     features: [
@@ -44,7 +44,7 @@ const PLANS = [
   {
     id: "pro",
     name: "Pro",
-    price: "1 490 000",
+    price: "$399",
     period: "/ oy",
     desc: "O'sib borayotgan qurilish kompaniyasi uchun",
     features: [
