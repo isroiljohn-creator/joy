@@ -145,7 +145,11 @@ export default function ErpOnboarding({ user }) {
     setOtpLoading(false);
     if (res?.error) { setError(res.error); return; }
     setOtpSent(true); setCountdown(60);
-    setSuccess(res.demoCode ? `Demo kod: ${res.demoCode}` : "Tasdiqlash kodi yuborildi");
+    if (res.demoCode) {
+      setSuccess(`Tasdiqlash kodi: ${res.demoCode}`);
+    } else {
+      setSuccess("Tasdiqlash kodi telefoningizga yuborildi");
+    }
   };
 
   const handleVerifyOtp = async () => {
@@ -480,12 +484,40 @@ function ErrBox({ msg, c }) {
   );
 }
 function SuccessBox({ msg, c }) {
+  // "Tasdiqlash kodi: 123456" formatini ajratib ko'rsatamiz
+  const codeMatch = msg.match(/:\s*(\d{4,6})$/);
+  if (codeMatch) {
+    const label = msg.replace(codeMatch[0], "");
+    const code = codeMatch[1];
+    return (
+      <div style={{ marginTop: 14, padding: "14px 16px", background: c.successBg, border: `1.5px solid ${c.successBorder}`, borderRadius: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 7, color: c.successText, fontSize: 13, marginBottom: 10 }}>
+          <i className="ti ti-circle-check"></i> {label}
+        </div>
+        <div style={{
+          background: c.surface, border: `1px solid ${c.border}`,
+          borderRadius: 10, padding: "12px 16px",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+        }}>
+          <span style={{
+            fontFamily: "'Bricolage Grotesque', monospace",
+            fontSize: 28, fontWeight: 800, letterSpacing: 8,
+            color: ORANGE,
+          }}>{code}</span>
+          <span style={{ fontSize: 11, color: c.muted, textAlign: "right", lineHeight: 1.4 }}>
+            5 daqiqa<br />amal qiladi
+          </span>
+        </div>
+      </div>
+    );
+  }
   return (
     <div style={{ marginTop: 14, padding: "11px 14px", background: c.successBg, border: `1px solid ${c.successBorder}`, borderRadius: 10, color: c.successText, fontSize: 13 }}>
       <i className="ti ti-circle-check" style={{ marginRight: 7 }}></i>{msg}
     </div>
   );
 }
+
 function btn() {
   return { width: "100%", marginTop: 20, padding: "13px 24px", background: ORANGE, border: "none", borderRadius: 12, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "inherit", letterSpacing: -0.3 };
 }

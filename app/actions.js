@@ -208,10 +208,8 @@ export async function sendOtpAction(phone) {
     
     console.log(`[SMS OTP] Verification code for ${phone} is: ${code}`);
     
-    const response = { success: true };
-    if (process.env.NODE_ENV !== "production") {
-      response.demoCode = code;
-    }
+    // TODO: SMS provider (Eskiz.uz) ulanganda bu blokni olib tashlang
+    const response = { success: true, demoCode: code };
     return response;
   } catch (error) {
     console.error("sendOtpAction error:", error);
