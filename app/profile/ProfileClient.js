@@ -183,6 +183,23 @@ export default function ProfileClient({ user, myListings, savedListings, message
                 <i className="ti ti-shield" style={{ fontSize: 15 }}></i> Admin Panel
               </Link>
             )}
+            {["owner", "rop", "seller"].includes(user?.role) && (
+              <Link 
+                href="/erp" 
+                className="editp" 
+                style={{ 
+                  background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
+                  color: "#e94560",
+                  borderColor: "transparent",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  fontWeight: 600
+                }}
+              >
+                <i className="ti ti-building-skyscraper" style={{ fontSize: 15 }}></i> ERP Panel
+              </Link>
+            )}
             {!user?.isVerified && (
               <Link href="/premium" className="editp" style={{ background: "var(--orange-tint)", color: "var(--orange)", borderColor: "transparent" }}>
                 <i className="ti ti-star" style={{ fontSize: 15, verticalAlign: -2 }}></i> {t("premium_btn")}
@@ -200,6 +217,7 @@ export default function ProfileClient({ user, myListings, savedListings, message
               {t("settings")}
             </button>
           </div>
+
         </div>
 
         <div className="pstats">
