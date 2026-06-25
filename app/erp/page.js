@@ -25,8 +25,16 @@ export default async function ErpPage() {
 
   // 2. Agar ERP roli bo'lmasa — onboarding sahifasini ko'rsat
   const allowedRoles = ["owner", "rop", "seller"];
+  const erpPlans = ["starter", "pro", "enterprise"];
+
   if (!allowedRoles.includes(user.role)) {
+    // Hech qanday ERP roli yo'q — to'liq onboarding
     return <ErpOnboarding user={user} />;
+  }
+
+  // Role bor lekin obuna yo'q — faqat tarif tanlash sahifasini ko'rsat
+  if (!erpPlans.includes(user.subscriptionPlan)) {
+    return <ErpOnboarding user={user} pricingOnly={true} />;
   }
 
   // 3. ERP ma'lumotlarini parallel ravishda yuklash

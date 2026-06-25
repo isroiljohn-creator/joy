@@ -83,11 +83,11 @@ const PLANS = [
 // Bosqich tartib: company → project → pricing
 const STAGES = ["company", "project", "pricing"];
 
-export default function ErpOnboarding({ user }) {
+export default function ErpOnboarding({ user, pricingOnly = false }) {
   const router = useRouter();
   const [isDark, setIsDark] = useState(false);
   const [cookieUser, setCookieUser] = useState(null);
-  const [stage, setStage] = useState("company");
+  const [stage, setStage] = useState(pricingOnly ? "pricing" : "company");
   const [selectedPlan, setSelectedPlan] = useState(null);
 
   // Forma
@@ -164,10 +164,12 @@ export default function ErpOnboarding({ user }) {
 
   // Yakuniy saqlash — pricing sahifasidan
   const handleFinish = async () => {
+    if (!selectedPlan) { setError("Tarif tanlanmagan"); return; }
     setLoading(true); setError("");
     const res = await erpSetupAction({
       companyName, companyPhone, companyAddress,
       projectName, projectLocation, projectBudget,
+      plan: selectedPlan,
     });
     setLoading(false);
     if (res?.error) setError(res.error);

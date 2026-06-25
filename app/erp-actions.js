@@ -1359,7 +1359,7 @@ export async function erpUnpublishUnitAsListing(unitId) {
 }
 
 // ERP Onboarding: Yangi kompaniya va loyiha yaratish
-export async function erpSetupAction({ companyName, companyPhone, companyAddress, projectName, projectLocation, projectBudget }) {
+export async function erpSetupAction({ companyName, companyPhone, companyAddress, projectName, projectLocation, projectBudget, plan }) {
   const user = await getCurrentUser();
   if (!user) return { error: "Tizimga kiring" };
 
@@ -1367,6 +1367,11 @@ export async function erpSetupAction({ companyName, companyPhone, companyAddress
   const allowedRoles = ["owner", "rop", "seller"];
   if (allowedRoles.includes(user.role)) {
     return { error: "Siz allaqachon ERP tizimiga ulangansiz" };
+  }
+
+  const validPlans = ["starter", "pro", "enterprise"];
+  if (!plan || !validPlans.includes(plan)) {
+    return { error: "Iltimos, tarif turini tanlang" };
   }
 
   if (!companyName?.trim()) return { error: "Kompaniya nomi majburiy" };
@@ -1390,10 +1395,10 @@ export async function erpSetupAction({ companyName, companyPhone, companyAddress
     );
     const agencyId = agencyRows[0].id;
 
-    // 2. Foydalanuvchiga 'owner' roli va agency_id berish
+    // 2. Foydalanuvchiga 'owner' roli, agency_id va subscription_plan berish
     await client.query(
-      "UPDATE users SET role = 'owner', agency_id = $1 WHERE id = $2",
-      [agencyId, user.id]
+      "UPDATE users SET role = 'owner', agency_id = $1, subscription_plan = $2 WHERE id = $3",
+      [agencyId, plan, user.id]
     );
 
     // 3. Birinchi loyihani yaratish
