@@ -1358,4 +1358,68 @@ export async function erpUnpublishUnitAsListing(unitId) {
   }
 }
 
+// ERP Onboarding: Yangi kompaniya va loyiha yaratish
+export async function erpSetupAction({ companyName, companyPhone, companyAddress, projectName, projectLocation, projectBudget }) {
+  const user = await getCurrentUser();
+  if (!user) return { error: "Tizimga kiring" };
 
+  // Agar allaqachon ERP roli bo'lsa, qayta o'rnatmaylik
+  const allowedRoles = ["owner", "rop", "seller"];
+  if (allowedRoles.includes(user.role)) {
+    return { error: "Siz allaqachon ERP tizimiga ulangansiz" };
+  }
+
+  if (!companyName?.trim()) return { error: "Kompaniya nomi majburiy" };
+  if (!projectName?.trim()) return { error: "Loyiha nomi majburiy" };
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    // 1. Agentlik yaratish
+    const slug = companyName.toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .slice(0, 100) + "-" + user.id;
+
+    const { rows: agencyRows } = await client.query(
+      `INSERT INTO agencies (name, slug, phone, address, owner_id, listing_quota, created_at)
+       VALUES ($1, $2, $3, $4, $5, 200, NOW())
+       RETURNING id`,
+      [companyName.trim(), slug, companyPhone || null, companyAddress || null, user.id]
+    );
+    const agencyId = agencyRows[0].id;
+
+    // 2. Foydalanuvchiga 'owner' roli va agency_id berish
+    await client.query(
+      "UPDATE users SET role = 'owner', agency_id = $1 WHERE id = $2",
+      [agencyId, user.id]
+    );
+
+    // 3. Birinchi loyihani yaratish
+    await client.query(
+      `INSERT INTO erp_projects (name, location, budget, status, agency_id)
+       VALUES ($1, $2, $3, 'planning', $4)`,
+      [
+        projectName.trim(),
+        projectLocation || null,
+        projectBudget ? parseInt(projectBudget) : null,
+        agencyId
+      ]
+    );
+
+    await client.query("COMMIT");
+    revalidatePath("/erp");
+    revalidatePath("/profile");
+    return { success: true };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    console.error("erpSetupAction error:", error);
+    if (error.code === "23505") {
+      return { error: "Bu kompaniya nomi band, boshqa nom tanlang" };
+    }
+    return { error: "Xatolik yuz berdi, qaytadan urinib ko'ring" };
+  } finally {
+    client.release();
+  }
+}

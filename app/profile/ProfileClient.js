@@ -200,6 +200,23 @@ export default function ProfileClient({ user, myListings, savedListings, message
                 <i className="ti ti-building-skyscraper" style={{ fontSize: 15 }}></i> ERP Panel
               </Link>
             )}
+            {!["owner", "rop", "seller"].includes(user?.role) && user?.role !== "admin" && (
+              <Link 
+                href="/erp" 
+                className="editp" 
+                style={{ 
+                  background: "rgba(233,69,96,0.08)",
+                  color: "#e94560",
+                  borderColor: "rgba(233,69,96,0.2)",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  fontWeight: 600
+                }}
+              >
+                <i className="ti ti-building-skyscraper" style={{ fontSize: 15 }}></i> ERP ochish
+              </Link>
+            )}
             {!user?.isVerified && (
               <Link href="/premium" className="editp" style={{ background: "var(--orange-tint)", color: "var(--orange)", borderColor: "transparent" }}>
                 <i className="ti ti-star" style={{ fontSize: 15, verticalAlign: -2 }}></i> {t("premium_btn")}

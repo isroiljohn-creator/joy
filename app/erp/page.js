@@ -11,23 +11,25 @@ import {
   erpGetAllStaff
 } from "@/app/erp-actions";
 import ErpClient from "./ErpClient";
+import ErpOnboarding from "./ErpOnboarding";
 
 export const dynamic = "force-dynamic";
 
 export default async function ErpPage() {
-  // 1. Ruxsatni tekshirish
+  // 1. Tizimga kirganligini tekshirish
   const user = await getCurrentUser();
   
   if (!user) {
     redirect("/login");
   }
 
+  // 2. Agar ERP roli bo'lmasa — onboarding sahifasini ko'rsat
   const allowedRoles = ["owner", "rop", "seller"];
   if (!allowedRoles.includes(user.role)) {
-    redirect("/profile");
+    return <ErpOnboarding user={user} />;
   }
 
-  // 2. Ma'lumotlarni parallel ravishda yuklash
+  // 3. ERP ma'lumotlarini parallel ravishda yuklash
   const statsResponse = await erpGetOverviewStats();
   if (statsResponse.error) {
     console.error("ERP stats error:", statsResponse.error);
