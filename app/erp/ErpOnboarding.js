@@ -408,15 +408,29 @@ export default function ErpOnboarding({ user }) {
                         </div>
                       ))}
                     </div>
-                    <div style={{
-                      marginTop: 20, padding: "10px", borderRadius: 10, textAlign: "center",
-                      background: plan.highlight ? "rgba(255,255,255,0.15)" : selectedPlan === plan.id ? ORANGE : ot,
-                      color: plan.highlight ? "#fff" : selectedPlan === plan.id ? "#fff" : ORANGE,
-                      fontWeight: 700, fontSize: 13,
-                      transition: "all 0.2s",
-                    }}>
-                      {selectedPlan === plan.id && !plan.highlight ? "✓ Tanlandi" : "Tanlash"}
-                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setSelectedPlan(plan.id); }}
+                      style={{
+                        marginTop: 20, padding: "11px", borderRadius: 10,
+                        width: "100%", border: "none", cursor: "pointer",
+                        textAlign: "center", fontFamily: "inherit",
+                        background: selectedPlan === plan.id
+                          ? (plan.highlight ? "rgba(255,255,255,0.95)" : ORANGE)
+                          : (plan.highlight ? "rgba(255,255,255,0.15)" : ot),
+                        color: selectedPlan === plan.id
+                          ? (plan.highlight ? ORANGE : "#fff")
+                          : (plan.highlight ? "#fff" : ORANGE),
+                        fontWeight: 700, fontSize: 13,
+                        transition: "all 0.2s",
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                      }}
+                    >
+                      {selectedPlan === plan.id
+                        ? <><i className="ti ti-circle-check-filled" style={{ fontSize: 15 }}></i> Tanlandi</>
+                        : "Tanlash"
+                      }
+                    </button>
                   </div>
                 ))}
               </div>
